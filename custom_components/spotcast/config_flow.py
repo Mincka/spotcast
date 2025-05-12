@@ -10,3 +10,9 @@ from custom_components.spotcast.config_flow_classes import (
     SpotcastOptionsFlowHandler,
     DEFAULT_OPTIONS,
 )
+
+__all__ = [
+    "SpotcastFlowHandler",
+    "SpotcastOptionsFlowHandler",
+    "DEFAULT_OPTIONS",
+]
