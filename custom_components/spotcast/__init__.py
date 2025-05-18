@@ -23,7 +23,7 @@ from .sessions.exceptions import TokenRefreshError, InternalServerError
 from .websocket import async_setup_websocket
 from .config_flow import DEFAULT_OPTIONS
 
-__version__ = "5.0.0-b36"
+__version__ = "6.0.0-a0"
 
 
 LOGGER = getLogger(__name__)
