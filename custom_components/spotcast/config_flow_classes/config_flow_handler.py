@@ -22,8 +22,9 @@ from spotipy import Spotify
 from custom_components.spotcast import DOMAIN
 from custom_components.spotcast.spotify import SpotifyAccount
 from custom_components.spotcast.sessions import PrivateSession
-from custom_components.spotcast.config_flow_classes.options_flow_handler \
-    import SpotcastOptionsFlowHandler
+from custom_components.spotcast.config_flow_classes.options_flow_handler import (
+    SpotcastOptionsFlowHandler,
+)
 
 LOGGER = getLogger(__name__)
 
@@ -57,14 +58,16 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
     """
 
     DOMAIN = DOMAIN
-    VERSION = 1
+    VERSION = 2
     MINOR_VERSION = 1
     CONNECTION_CLASS = CONN_CLASS_CLOUD_POLL
 
-    INTERNAL_API_SCHEMA = vol.Schema({
-        vol.Required("sp_dc", default=""): cv.string,
-        vol.Required("sp_key", default=""): cv.string
-    })
+    INTERNAL_API_SCHEMA = vol.Schema(
+        {
+            vol.Required("sp_dc", default=""): cv.string,
+            vol.Required("sp_key", default=""): cv.string,
+        }
+    )
 
     def __init__(self):
         """Constructor of the Spotcast Config Flow"""
@@ -77,10 +80,7 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         """Extra data to append to authorization url"""
         return {"scope": ",".join(SpotifyAccount.SCOPE)}
 
-    async def async_step_import(
-        self,
-        import_config: dict
-    ) -> ConfigFlowResult:
+    async def async_step_import(self, import_config: dict) -> ConfigFlowResult:
         """Step for importing a config entry from yaml to ui"""
         LOGGER.info("Importing YAML configuration for Spotcast")
 
@@ -120,19 +120,13 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
             data_schema=vol.Schema({}),
         )
 
-    async def async_step_internal_api(
-            self,
-            user_input: dict[str]
-    ) -> ConfigFlowResult:
+    async def async_step_internal_api(self, user_input: dict[str]) -> ConfigFlowResult:
         """Manages the data entry from the internal api step"""
         LOGGER.debug("Adding internal api to entry data")
         self.data["internal_api"] = user_input
         return await self.async_oauth_create_entry(self.data)
 
-    async def async_oauth_create_entry(
-            self,
-            data: dict[str, Any]
-    ) -> ConfigFlowResult:
+    async def async_oauth_create_entry(self, data: dict[str, Any]) -> ConfigFlowResult:
         """Create an entry for Spotify."""
 
         if "external_api" not in self.data:
@@ -163,7 +157,7 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
             await private_session.async_ensure_token_valid()
             accounts: dict[str, Spotify] = {
                 "public": Spotify(auth=external_api["token"]["access_token"]),
-                "private": Spotify(auth=private_session.clean_token)
+                "private": Spotify(auth=private_session.clean_token),
             }
 
             profiles = {}
@@ -176,9 +170,7 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         except Exception:  # pylint: disable=W0718
             return self.async_abort(
                 reason="connection_error",
-                description_placeholders={
-                    "account_type": key
-                }
+                description_placeholders={"account_type": key},
             )
 
         ids = [x["id"] for x in profiles.values()]
@@ -235,15 +227,14 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
 
         return await self.async_step_pick_implementation(
             user_input={
-                "implementation": reauth_entry.data[
-                    "external_api"
-                ]["auth_implementation"]}
+                "implementation": reauth_entry.data["external_api"][
+                    "auth_implementation"
+                ]
+            }
         )
 
     @staticmethod
-    def async_get_options_flow(
-        config_entry: ConfigEntry
-    ) -> SpotcastOptionsFlowHandler:
+    def async_get_options_flow(config_entry: ConfigEntry) -> SpotcastOptionsFlowHandler:
         """Tells Home Assistant this integration supports configuration
         options"""
         return SpotcastOptionsFlowHandler()
