@@ -12,7 +12,7 @@ Constants:
 from logging import getLogger
 
 from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.const import Platform
 
@@ -22,6 +22,7 @@ from .services.const import SERVICE_SCHEMAS
 from .sessions.exceptions import TokenRefreshError, InternalServerError
 from .websocket import async_setup_websocket
 from .config_flow import DEFAULT_OPTIONS
+from .spotify import SpotifyAccount
 
 __version__ = "6.0.0-a0"
 
@@ -34,50 +35,17 @@ PLATFORMS = [
 ]
 
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Yaml base setup. Triggers config flow import"""
-
-    try:
-        yaml_config = config[DOMAIN]
-    except KeyError:
-        return True
-
-    # ensure minimal format required for import
-    for key in ("sp_dc", "sp_key"):
-        if key not in yaml_config:
-            LOGGER.error(
-                "Missing key `%s` in Spotcast configuration. Import to UI "
-                "impossible. Aborting",
-                key,
-            )
-            return False
-
-    hass.async_create_task(
-        hass.config_entries.flow.async_init(
-            DOMAIN,
-            context={"source": SOURCE_IMPORT},
-            data=yaml_config,
-        )
-    )
-
-    return True
-
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Initial setup of spotcast
+    """Initial setup of spotcast.
 
     Returns:
-        - bool: returns `True` if the integration setup was successfull
+        bool: returns `True` if the integration setup was successfull
     """
-
     # ensure default options
     updated_options = DEFAULT_OPTIONS | entry.options
 
     if updated_options != entry.options:
         hass.config_entries.async_update_entry(entry, options=updated_options)
-
-    # because of circular depoendency
-    from custom_components.spotcast.spotify.account import SpotifyAccount  # pylint: disable=C0415
 
     try:
         account = await SpotifyAccount.async_from_config_entry(

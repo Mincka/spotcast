@@ -8,7 +8,7 @@ from custom_components.spotcast.spotify.account import (
     HomeAssistant,
     ConfigEntry,
     PublicSession,
-    PrivateSession,
+    DesktopSession,
     Store,
 )
 
@@ -19,7 +19,7 @@ class TestAccountCreationWithoutDomainData(IsolatedAsyncioTestCase):
 
     @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
     @patch.object(SpotifyAccount, "async_profile")
-    @patch.object(PrivateSession, "async_ensure_token_valid")
+    @patch.object(DesktopSession, "async_ensure_token_valid")
     @patch.object(PublicSession, "async_ensure_token_valid")
     @patch(f"{TEST_MODULE}.async_get_config_entry_implementation")
     async def asyncSetUp(
@@ -47,9 +47,12 @@ class TestAccountCreationWithoutDomainData(IsolatedAsyncioTestCase):
                     "expires_at": 0,
                 }
             },
-            "internal_api": {
-                "sp_dc": "foo",
-                "sp_key": "bar"
+            "desktop_api": {
+                "token": {
+                    "access_token": "foo",
+                    "refresh_token": "bar",
+                    "expires_at": 0,
+                }
             }
         }
         self.mocks["entry"].options = {
@@ -73,7 +76,7 @@ class TestAccountCreationWithDomainData(IsolatedAsyncioTestCase):
 
     @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
     @patch.object(SpotifyAccount, "async_profile")
-    @patch.object(PrivateSession, "async_ensure_token_valid")
+    @patch.object(DesktopSession, "async_ensure_token_valid")
     @patch.object(PublicSession, "async_ensure_token_valid")
     @patch(f"{TEST_MODULE}.async_get_config_entry_implementation")
     async def asyncSetUp(
@@ -101,9 +104,12 @@ class TestAccountCreationWithDomainData(IsolatedAsyncioTestCase):
                     "expires_at": 0,
                 }
             },
-            "internal_api": {
-                "sp_dc": "foo",
-                "sp_key": "bar"
+            "desktop_api": {
+                "token": {
+                    "access_token": "foo",
+                    "refresh_token": "bar",
+                    "expires_at": 0,
+                }
             }
         }
         self.mocks["entry"].options = {
@@ -124,7 +130,7 @@ class TestPreexistingAccount(IsolatedAsyncioTestCase):
 
     @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
     @patch.object(SpotifyAccount, "async_profile")
-    @patch.object(PrivateSession, "async_ensure_token_valid")
+    @patch.object(DesktopSession, "async_ensure_token_valid")
     @patch.object(PublicSession, "async_ensure_token_valid")
     @patch(f"{TEST_MODULE}.async_get_config_entry_implementation")
     async def asyncSetUp(
@@ -148,7 +154,7 @@ class TestPreexistingAccount(IsolatedAsyncioTestCase):
                     entry_id="12345",
                     hass=self.mocks["hass"],
                     public_session=MagicMock(spec=PublicSession),
-                    private_session=MagicMock(spec=PrivateSession),
+                    private_session=MagicMock(spec=DesktopSession),
                     is_default=True,
                 )
             }
@@ -162,9 +168,12 @@ class TestPreexistingAccount(IsolatedAsyncioTestCase):
                     "expires_at": 0,
                 }
             },
-            "internal_api": {
-                "sp_dc": "foo",
-                "sp_key": "bar"
+            "desktop_api": {
+                "token": {
+                    "access_token": "foo",
+                    "refresh_token": "bar",
+                    "expires_at": 0,
+                }
             }
         }
         self.mocks["entry"].options = {

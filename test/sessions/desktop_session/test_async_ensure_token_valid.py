@@ -19,16 +19,14 @@ from test.sessions.desktop_session import TEST_MODULE
 
 class TestTokenExpired(IsolatedAsyncioTestCase):
 
-    @patch(f"{TEST_MODULE}.time", new_callable=MagicMock)
     @patch.object(DesktopSession, "async_refresh_token")
-    async def asyncSetUp(self, mock_refresh: AsyncMock, mock_time: MagicMock):
+    async def asyncSetUp(self, mock_refresh: AsyncMock):
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
             "entry": MagicMock(spec=ConfigEntry),
             "supervisor": MagicMock(spec=RetrySupervisor),
             "refresh": mock_refresh,
-            "time": mock_time,
         }
 
         self.mocks["update"] = (
@@ -37,11 +35,10 @@ class TestTokenExpired(IsolatedAsyncioTestCase):
             .async_update_entry
         )
 
-        self.mocks["time"].return_value = 500
         self.mocks["supervisor"].is_ready = True
         self.mocks["refresh"].return_value = {
             "access_token": "foo",
-            "expires_in": 300,
+            "expires_at": 800,
             "refresh_token": "bar",
         }
 
@@ -80,16 +77,14 @@ class TestTokenExpired(IsolatedAsyncioTestCase):
 
 class TestTokenNotExpired(IsolatedAsyncioTestCase):
 
-    @patch(f"{TEST_MODULE}.time", new_callable=MagicMock)
     @patch.object(DesktopSession, "async_refresh_token")
-    async def asyncSetUp(self, mock_refresh: AsyncMock, mock_time: MagicMock):
+    async def asyncSetUp(self, mock_refresh: AsyncMock):
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
             "entry": MagicMock(spec=ConfigEntry),
             "supervisor": MagicMock(spec=RetrySupervisor),
             "refresh": mock_refresh,
-            "time": mock_time,
         }
 
         self.mocks["update"] = (
@@ -98,11 +93,10 @@ class TestTokenNotExpired(IsolatedAsyncioTestCase):
             .async_update_entry
         )
 
-        self.mocks["time"].return_value = 500
         self.mocks["supervisor"].is_ready = True
         self.mocks["refresh"].return_value = {
             "access_token": "foo",
-            "expires_in": 300,
+            "expires_at": 5000,
             "refresh_token": "bar",
         }
 
@@ -110,7 +104,7 @@ class TestTokenNotExpired(IsolatedAsyncioTestCase):
             "desktop_api": {
                 "token": {
                     "access_token": "baz",
-                    "expires_at": time()+9999,
+                    "expires_at": time() + 9999,
                     "refresh_token": "bar",
                 }
             }
