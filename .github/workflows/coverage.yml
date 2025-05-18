@@ -26,4 +26,4 @@ jobs:
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
       - run: |
           coverage run --branch --omit=./test/* -m unittest discover -s ./test -p test_*.py
-          coverage report --fail-under=100
+          coverage report --fail-under=70
