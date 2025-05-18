@@ -7,14 +7,14 @@ from homeassistant.components import spotify as ha_spotify
 from homeassistant.components.media_player import BrowseMedia
 from pychromecast import Chromecast
 
-from custom_components.spotcast import DOMAIN
+from .const import DOMAIN
 
 LOGGER = getLogger(__name__)
 
 
 async def async_get_media_browser_root_object(
     hass: HomeAssistant,
-    cast_type: str  # pylint: disable=W0613
+    cast_type: str,  # pylint: disable=W0613
 ) -> list:
     """Create a root object for media browsing"""
     result = await ha_spotify.async_browse_media(hass, None, None)
@@ -31,7 +31,7 @@ async def async_browse_media(
     if not ha_spotify.is_spotify_media_type(media_content_type):
         LOGGER.debug(
             "`%s` is not a valid spotify media type, skipping media browsing",
-            media_content_type
+            media_content_type,
         )
         return None
 
@@ -46,7 +46,7 @@ async def async_browse_media(
         hass=hass,
         media_content_type=media_content_type,
         media_content_id=media_content_id,
-        can_play_artist=False
+        can_play_artist=False,
     )
 
     return media_browser
@@ -68,17 +68,10 @@ async def async_play_media(
         "Starting playback for `%s` on device `%s`(%s)",
         cast_entity_id,
         media_id,
-        media_type
+        media_type,
     )
     spotify_uri = ha_spotify.spotify_uri_from_media_browser_url(media_id)
-    data = {
-        "media_player": {
-            "entity_id": [
-                cast_entity_id
-            ]
-        },
-        "spotify_uri": spotify_uri
-    }
+    data = {"media_player": {"entity_id": [cast_entity_id]}, "spotify_uri": spotify_uri}
 
     await hass.services.async_call(DOMAIN, "play_media", data, blocking=False)
     return True

@@ -10,17 +10,13 @@ from asyncio import Lock
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
-from custom_components.spotcast.sessions.retry_supervisor import (
-    RetrySupervisor
-)
+from .retry_supervisor import RetrySupervisor
+from custom_components.spotcast.entry_data import EntryData
 
-SUPERVISED_ERRORS = (
-
-)
+SUPERVISED_ERRORS = ()
 
 
 class ConnectionSession(ABC):
-
     API_ENDPOINT = None
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry):

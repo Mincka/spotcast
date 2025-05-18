@@ -1,3 +1,75 @@
 [project]
 name = "spotcast"
 version = "5.0.0-b36"
+description = "Home Assistant custom component to start Spotify playback on an idle Chromecast or a Spotify Connect device. Meaning you can target automation for chromecast as well as connect devices."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "LICENSE"
+authors = [
+    { name = "Niklas Fondberg"},
+]
+maintainers = [
+    { name = "Felix Cusson", email = "felixcusson@gmail.com" }
+]
+dependencies = [
+    "spotipy>=2.23.0",
+    "spotifyaio>=0.8.8",
+    "RapidFuzz>=3.10.1"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pylint",
+    "coverage",
+    "radon",
+    "ruff",
+    "mypy",
+    "bandit",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/fondberg/spotcast"
+"Bug Reports" = "https://github.com/fondberg/spotcast/issues/new?template=bug_report.yml"
+"Source" = "https://github.com/fondberg/spotcast"
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+ignore_missing_imports = true
+show_error_codes = true
+pretty = true
+exclude = ["test/"]
+
+[tool.pylint]
+max-line-length = 80
+
+[tool.pylsp-mypy]
+enabled = true
+live_mode = false
+strict = true
+exclude = ["test/"]
+
+[tool.ruff]
+line-length = 80
+target-version = "py313"
+extend-ignore = ["I001"]
+fix = true
+src = ["./"]
+exclude = ["test/", "scripts/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "TCH", "TID", "B", "C4", "N", "SIM", "ARG", "D"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.mccabe]
+max-complexity = 10
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+[tool.ruff.per-file-ignores]
+"**/__init__.py" = ["D104"]

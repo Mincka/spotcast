@@ -6,14 +6,16 @@ from time import time
 
 from aiohttp.client_exceptions import ClientError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.config_entry_oauth2_flow import CLOCK_OUT_OF_SYNC_MAX_SEC
+from homeassistant.helpers.config_entry_oauth2_flow import (
+    CLOCK_OUT_OF_SYNC_MAX_SEC,
+)
 
 from custom_components.spotcast.const import DOMAIN, SPOTIFY_CLIENT_ID
 from custom_components.spotcast.entry_data import ApiItem, EntryData
-from custom_components.spotcast.sessions.connection_session import ConnectionSession
 from custom_components.spotcast.utils import copy_to_dict
 
-from custom_components.spotcast.sessions.exceptions import UpstreamServerNotready
+from .connection_session import ConnectionSession
+from .exceptions import UpstreamServerNotready
 
 LOGGER = getLogger(__name__)
 
@@ -25,13 +27,13 @@ class DesktopSession(ConnectionSession):
     TOKEN_ENDPOINT = "api/token"
 
     @property
-    def _data(self) -> EntryData:
-        return self.entry.data
+    def _data(self) -> ApiItem:
+        return self.entry.data["desktop_api"]
 
     @property
     def token(self) -> str:
         """Returns the active token for the session."""
-        return self._data["desktop_api"]["token"]["access_token"]
+        return self._data["token"]["access_token"]
 
     @property
     def clean_token(self) -> str:
@@ -41,12 +43,12 @@ class DesktopSession(ConnectionSession):
     @property
     def refresh_token(self) -> str:
         """The refresh token for the api."""
-        return self._data["desktop_api"]["token"]["refresh_token"]
+        return self._data["token"]["refresh_token"]
 
     @property
     def expires_at(self) -> int:
         """Returns the timestamp of when the access token will expire."""
-        return self._data["desktop_api"]["token"]["expires_at"]
+        return self._data["token"]["expires_at"]
 
     @property
     def valid_token(self) -> bool:
@@ -58,29 +60,30 @@ class DesktopSession(ConnectionSession):
         not_ready = False
 
         async with self._token_lock:
+            if self.valid_token:
+                return
+
             if not self.supervisor.is_ready:
                 not_ready = True
-
-            elif self.valid_token:
-                return
 
             else:
                 LOGGER.debug("Token is expired. Getting a new one")
 
                 try:
-                    new_data = await self.async_refresh_token()
+                    api_response = await self.async_refresh_token()
                     self.supervisor.is_healthy = True
+
+                    new_data: EntryData = copy_to_dict(self.entry.data)
+                    new_data["desktop_api"]["token"] = api_response
+
+                    self.hass.config_entries.async_update_entry(
+                        self.entry,
+                        data=new_data,
+                    )
                 except self.supervisor.SUPERVISED_EXCEPTIONS as exc:
                     self.supervisor.is_healthy = False
                     self.supervisor.log_message(exc)
                     not_ready = True
-
-                new_data["expires_at"] = time() + new_data.pop("expires_in")
-                self._data["api"] = copy_to_dict(new_data)
-                self.hass.config_entries.async_update_entry(
-                    self.entry,
-                    data=self._data,
-                )
 
         if not_ready:
             raise UpstreamServerNotready("Server not ready for refresh")
@@ -119,8 +122,8 @@ class DesktopSession(ConnectionSession):
             )
 
         response.raise_for_status()
-        data = response.json()
+        data = await response.json()
 
         # sets the new expires at key
         data["expires_at"] = data.pop("expires_in") + time()
-        return await response.json()
+        return data

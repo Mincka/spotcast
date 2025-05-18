@@ -5,11 +5,12 @@ Classes:
     - SpotcastOptionsFlowHandler
 """
 
-from custom_components.spotcast.config_flow_classes import (
+from .config_flow_classes import (
     SpotcastFlowHandler,
     SpotcastOptionsFlowHandler,
-    DEFAULT_OPTIONS,
 )
+
+from .const import DEFAULT_OPTIONS
 
 __all__ = [
     "SpotcastFlowHandler",

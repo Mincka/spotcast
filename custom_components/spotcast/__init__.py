@@ -16,15 +16,12 @@ from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.const import Platform
 
-from custom_components.spotcast.const import DOMAIN
-from custom_components.spotcast.services import ServiceHandler
-from custom_components.spotcast.services.const import SERVICE_SCHEMAS
-from custom_components.spotcast.sessions.exceptions import (
-    TokenRefreshError,
-    InternalServerError,
-)
-from custom_components.spotcast.websocket import async_setup_websocket
-from custom_components.spotcast.config_flow import DEFAULT_OPTIONS
+from .const import DOMAIN
+from .services import ServiceHandler
+from .services.const import SERVICE_SCHEMAS
+from .sessions.exceptions import TokenRefreshError, InternalServerError
+from .websocket import async_setup_websocket
+from .config_flow import DEFAULT_OPTIONS
 
 __version__ = "5.0.0-b36"
 
@@ -51,7 +48,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             LOGGER.error(
                 "Missing key `%s` in Spotcast configuration. Import to UI "
                 "impossible. Aborting",
-                key
+                key,
             )
             return False
 
@@ -83,7 +80,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     from custom_components.spotcast.spotify.account import SpotifyAccount  # pylint: disable=C0415
 
     try:
-
         account = await SpotifyAccount.async_from_config_entry(
             hass=hass,
             entry=entry,
@@ -92,7 +88,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         LOGGER.info(
             "Loaded spotify account `%s`. Set as default: %s",
             account.id,
-            account.is_default
+            account.is_default,
         )
 
         await account.async_ensure_tokens_valid()
@@ -107,7 +103,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     service_handler = ServiceHandler(hass)
 
     for service, schema in SERVICE_SCHEMAS.items():
-
         LOGGER.debug("Registering service %s.%s", DOMAIN, service)
 
         hass.services.async_register(

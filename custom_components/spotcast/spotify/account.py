@@ -21,6 +21,7 @@ from homeassistant.helpers.storage import Store
 
 from custom_components.spotcast.const import DOMAIN
 from custom_components.spotcast.sessions import (
+    DesktopSession,
     PublicSession,
     PrivateSession,
     ConnectionSession,
@@ -391,7 +392,9 @@ class SpotifyAccount:
                 await session.async_ensure_token_valid()
             except TokenError as exc:
                 if reauth_on_fail:
-                    entry = self.hass.config_entries.async_get_entry(self.entry_id)
+                    entry = self.hass.config_entries.async_get_entry(
+                        self.entry_id
+                    )
 
                     entry.async_start_reauth(
                         self.hass, context={"source": SOURCE_REAUTH}
@@ -420,7 +423,9 @@ class SpotifyAccount:
         async with dataset.lock:
             if force or dataset.is_expired():
                 LOGGER.debug("Refreshing profile dataset")
-                data = await self.hass.async_add_executor_job(self.apis["private"].me)
+                data = await self.hass.async_add_executor_job(
+                    self.apis["private"].me
+                )
                 dataset.update(data)
             else:
                 LOGGER.debug("Using cached profile dataset")
@@ -578,7 +583,9 @@ class SpotifyAccount:
         """extracts the id from a uri"""
         return uri.rsplit(":", maxsplit=1)[-1]
 
-    async def async_get_show_episodes(self, uri: str, limit: int = None) -> list[dict]:
+    async def async_get_show_episodes(
+        self, uri: str, limit: int = None
+    ) -> list[dict]:
         """Retrieves the list of episodes for a podcast show
 
         Args:
@@ -635,7 +642,9 @@ class SpotifyAccount:
             if force or dataset.is_expired():
                 LOGGER.debug("Refreshing playback state dataset")
                 data = await self.hass.async_add_executor_job(
-                    self.apis["private"].current_playback, self.country, "episode"
+                    self.apis["private"].current_playback,
+                    self.country,
+                    "episode",
                 )
 
                 if data is None:
@@ -692,7 +701,9 @@ class SpotifyAccount:
     async def async_playlists_count(self) -> int:
         """Returns the number of user playlist for an account"""
 
-        return await self._async_get_count(self.apis["public"].current_user_playlists)
+        return await self._async_get_count(
+            self.apis["public"].current_user_playlists
+        )
 
     async def async_playlists(
         self, force: bool = False, max_items: int = None
@@ -844,7 +855,9 @@ class SpotifyAccount:
             except SpotifyException as exc:
                 raise PlaybackError(exc.msg) from exc
 
-        LOGGER.info("Starting playback of `%s` on device `%s`", context_uri, device_id)
+        LOGGER.info(
+            "Starting playback of `%s` on device `%s`", context_uri, device_id
+        )
 
         if offset is not None:
             offset = {"position": offset}
@@ -878,7 +891,9 @@ class SpotifyAccount:
         """
         await self.async_ensure_tokens_valid()
 
-        LOGGER.info("Setting shuffle to %s on device `%s`", str(shuffle), device_id)
+        LOGGER.info(
+            "Setting shuffle to %s on device `%s`", str(shuffle), device_id
+        )
 
         await self.hass.async_add_executor_job(
             self.apis["private"].shuffle,
@@ -942,7 +957,9 @@ class SpotifyAccount:
         """
         await self.async_ensure_tokens_valid()
 
-        LOGGER.info("Setting repeat state to %s on device `%s`", str(state), device_id)
+        LOGGER.info(
+            "Setting repeat state to %s on device `%s`", str(state), device_id
+        )
 
         await self.hass.async_add_executor_job(
             self.apis["private"].repeat,
@@ -1176,7 +1193,9 @@ class SpotifyAccount:
         while total is None or len(items) < total:
             arguments = [*prepends, limit, offset, *appends]
 
-            result = await self.hass.async_add_executor_job(function, *arguments)
+            result = await self.hass.async_add_executor_job(
+                function, *arguments
+            )
 
             if sub_layer is not None:
                 result = result[sub_layer]
@@ -1223,25 +1242,25 @@ class SpotifyAccount:
         hass: HomeAssistant,
         entry: ConfigEntry,
     ) -> "SpotifyAccount":
-        """Builds a Spotify Account from the home assistant config
-        entry
+        """Builds a Spotify Account from the HA config entry.
 
         Args:
-            - hass(HomeAssistant): the HomeAssistant Instance object
-            - entry(ConfigEntry): the config entry for the spotify
+            hass(HomeAssistant): the HomeAssistant Instance object
+            entry(ConfigEntry): the config entry for the spotify
                 account being setup
         Returns:
             SpotifyAccount: A spotify account from the api config in
                 the config entry
         """
-
         hass = ensure_default_data(hass, entry.entry_id)
         domain_data = hass.data[DOMAIN]
 
         account = domain_data[entry.entry_id].get("account")
 
         if account is not None:
-            LOGGER.debug("Providing preexisting account for entry `%s`", entry.entry_id)
+            LOGGER.debug(
+                "Providing preexisting account for entry `%s`", entry.entry_id
+            )
             return account
 
         oauth_implementation = await async_get_config_entry_implementation(
@@ -1252,7 +1271,7 @@ class SpotifyAccount:
         public_session = PublicSession(hass, entry, oauth_implementation)
         await public_session.async_ensure_token_valid()
 
-        private_session = PrivateSession(hass, entry)
+        private_session = DesktopSession(hass, entry)
         await private_session.async_ensure_token_valid()
 
         account = SpotifyAccount(

@@ -11,9 +11,7 @@ Classes:
 
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
-
-class TokenError(HomeAssistantError):
-    """Generic Error with the Spotify Token"""
+from custom_components.spotcast.exceptions import TokenError
 
 
 class ExpiredCookiesError(TokenError):
@@ -57,8 +55,7 @@ class InvalidTagsError(SearchQueryError):
 
 
 class InvalidItemTypeError(SearchQueryError):
-    """Raised when a search query is built with an invalid item type
-    """
+    """Raised when a search query is built with an invalid item type"""
 
 
 class InvalidUriError(ServiceValidationError):

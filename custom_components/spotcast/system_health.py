@@ -8,11 +8,12 @@ from homeassistant.components.system_health import (
     async_check_can_reach_url,
 )
 
-from custom_components.spotcast import __version__, DOMAIN
-from custom_components.spotcast.spotify.account import SpotifyAccount
-from custom_components.spotcast.sessions import (
+from custom_components.spotcast import __version__
+from .const import DOMAIN
+from .spotify.account import SpotifyAccount
+from .sessions import (
     PublicSession,
-    PrivateSession,
+    DesktopSession,
 )
 
 LOGGER = getLogger(__name__)
@@ -32,7 +33,6 @@ async def system_health_info(hass: HomeAssistant) -> dict[str]:  # pylint: disab
     health_info["Version"] = __version__
 
     for entry in hass.data[DOMAIN].values():
-
         account: SpotifyAccount = entry["account"]
         base_key = f"{account.id[0].upper()}{account.id[1:]}"
 
@@ -45,14 +45,14 @@ async def system_health_info(hass: HomeAssistant) -> dict[str]:  # pylint: disab
                 health_status[key] = {"type": "failed", "error": "unhealthy"}
 
         health_info[f"{base_key} Is Default"] = account.is_default
-        health_info[f"{base_key} Public Endpoint"] = \
-            async_check_can_reach_url(hass, PublicSession.API_ENDPOINT)
+        health_info[f"{base_key} Public Endpoint"] = async_check_can_reach_url(
+            hass, PublicSession.API_ENDPOINT
+        )
         health_info[f"{base_key} Public Token"] = health_status["public"]
-        health_info[f"{base_key} Private Endpoint"] = \
-            async_check_can_reach_url(hass, PrivateSession.API_ENDPOINT)
-        health_info[f"{base_key} Private Token"] = health_status[
-            "private"
-        ]
+        health_info[f"{base_key} Private Endpoint"] = async_check_can_reach_url(
+            hass, DesktopSession.API_ENDPOINT
+        )
+        health_info[f"{base_key} Private Token"] = health_status["private"]
         health_info[f"{base_key} Product"] = account.product
 
     return health_info

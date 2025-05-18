@@ -14,19 +14,19 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from rapidfuzz.fuzz import ratio
 
-from custom_components.spotcast.services.exceptions import (
+from .services.exceptions import (
     AccountNotFoundError,
     NoDefaultAccountError,
 )
-from custom_components.spotcast.const import DOMAIN
-from custom_components.spotcast.exceptions import LowRatioError
+from .const import DOMAIN
+from .exceptions import LowRatioError
 
 LOGGER = getLogger(__name__)
 
 
 def get_account_entry(
-        hass: HomeAssistant,
-        account_id: str = None
+    hass: HomeAssistant,
+    account_id: str = None,
 ) -> ConfigEntry:
     """Returns the config entry of the account. Returns the
     default account if not specified
@@ -43,15 +43,12 @@ def get_account_entry(
     """
 
     if account_id is not None:
-
         LOGGER.debug("Getting config entry for id `%s`", account_id)
 
         entry = hass.config_entries.async_get_entry(account_id)
 
         if entry is None:
-            raise AccountNotFoundError(
-                f"No entry found for id `{account_id}`"
-            )
+            raise AccountNotFoundError(f"No entry found for id `{account_id}`")
 
         return entry
 
@@ -60,7 +57,6 @@ def get_account_entry(
     entries = hass.config_entries.async_entries(DOMAIN)
 
     for entry in entries:
-
         if entry.options["is_default"]:
             return entry
 
@@ -104,7 +100,6 @@ def copy_to_dict(items: dict) -> dict:
     """Makes a deep copy of a dictionary"""
 
     if isinstance(items, (dict, MappingProxyType)):
-
         new_dict = {}
 
         for key, value in items.items():
@@ -113,7 +108,6 @@ def copy_to_dict(items: dict) -> dict:
         return new_dict
 
     if isinstance(items, list):
-
         new_list = []
 
         for item in items:
@@ -128,7 +122,7 @@ def fuzzy_match(
     items: list[dict[str]] | str,
     search: str,
     key: str = None,
-    threshold: float = 0.5
+    threshold: float = 0.5,
 ) -> dict:
     """Finds the best matched string based on a search term
 
@@ -156,13 +150,12 @@ def fuzzy_match(
     best_compared = None
 
     for item in items:
-
         compared = item
 
         if key is not None:
             compared = compared[key]
 
-        current_ratio = ratio(search, compared)/100
+        current_ratio = ratio(search, compared) / 100
 
         if current_ratio > best_ratio:
             best_ratio = current_ratio
@@ -216,7 +209,7 @@ def query_from_url(url: str) -> dict[str, str]:
     if url is None or url == "":
         return {}
 
-    query = url.split('?', maxsplit=1)[-1]
-    query = dict([x.split('=') for x in query.split('&')])
+    query = url.split("?", maxsplit=1)[-1]
+    query = dict([x.split("=") for x in query.split("&")])
     query = {urldecode(x): urldecode(y) for x, y in query.items()}
     return query

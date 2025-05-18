@@ -5,8 +5,7 @@ Classes:
 """
 
 from logging import getLogger
-from typing import Any
-from unittest.mock import MagicMock
+from typing import Any, TYPE_CHECKING
 
 from homeassistant.config_entries import CONN_CLASS_CLOUD_POLL
 from homeassistant.helpers import config_validation as cv
@@ -19,9 +18,12 @@ from homeassistant.config_entries import (
 import voluptuous as vol
 from spotipy import Spotify
 
-from custom_components.spotcast import DOMAIN
+from custom_components.spotcast.const import DOMAIN
+
+if TYPE_CHECKING:
+    from custom_components.spotcast.entry_data import EntryData
+
 from custom_components.spotcast.spotify import SpotifyAccount
-from custom_components.spotcast.sessions import PrivateSession
 from custom_components.spotcast.config_flow_classes.options_flow_handler import (
     SpotcastOptionsFlowHandler,
 )
@@ -62,6 +64,8 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
     MINOR_VERSION = 1
     CONNECTION_CLASS = CONN_CLASS_CLOUD_POLL
 
+    ALLOWED_CONVERT = ["2.*"]
+
     INTERNAL_API_SCHEMA = vol.Schema(
         {
             vol.Required("sp_dc", default=""): cv.string,
@@ -69,95 +73,81 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         }
     )
 
+    DESKTOP_API_SCHEMA = vol.Schema(
+        {
+            vol.Required("access_token", default=""): cv.string,
+            vol.Required("refresh_token", default=""): cv.string,
+        }
+    )
+
     def __init__(self):
-        """Constructor of the Spotcast Config Flow"""
-        self.data: dict = {}
-        self._import_data = None
+        """Constructor of the Spotcast Config Flow."""
+        self.data: EntryData = {
+            "name": "",
+            "version": self.version,
+        }
         super().__init__()
 
     @property
+    def version(self) -> str:
+        """The active configuration version."""
+        return f"{self.VERSION}.{self.MINOR_VERSION}"
+
+    @classmethod
+    def can_convert(cls, version: str) -> bool:
+        """Returns True if provided version can be converted to current."""
+        major_blob = f"{version.split('.', maxsplit=1)[0]}.*"
+        return (
+            major_blob in cls.ALLOWED_CONVERT or version in cls.ALLOWED_CONVERT
+        )
+
+    @property
     def extra_authorize_data(self) -> dict[str]:
-        """Extra data to append to authorization url"""
+        """Extra data to append to authorization url."""
         return {"scope": ",".join(SpotifyAccount.SCOPE)}
 
-    async def async_step_import(self, import_config: dict) -> ConfigFlowResult:
-        """Step for importing a config entry from yaml to ui"""
-        LOGGER.info("Importing YAML configuration for Spotcast")
+    async def async_step_desktop_api(
+        self, user_input: dict[str]
+    ) -> ConfigFlowResult:
+        """Manages the data entry from the internal api step."""
+        LOGGER.debug("Adding desktop api to entry data")
 
-        self._import_data = {
-            "sp_dc": import_config.get("sp_dc"),
-            "sp_key": import_config.get("sp_key"),
+        # build base data for api entry
+        self.data["desktop_api"] = {
+            "token": {
+                "access_token": "",
+                "token_type": "bearer",
+                "expires_at": 0,
+                "refresh_token": "",
+                "scope": "",
+            }
         }
 
-        # Notify the user to remove YAML configuration
-        LOGGER.warning(
-            "Spotcast YAML configuration is deprecated. The main profile has "
-            "been imported to UI config entry. Please remove the YAML "
-            "configuration for Spotcast from your `configuration.yaml` file "
-            "for future reboot and add additional accounts directly through "
-            "the UI"
-        )
-
-        await self.hass.services.async_call(
-            "persistent_notification",
-            "create",
-            {
-                "title": "Spotcast - YAML Configuration Import",
-                "message": (
-                    "Your YAML configuration for Spotcast has been "
-                    "imported. Only the main acount has been imported. For "
-                    "additional account, please Add additional entries "
-                    "directly from the UI.To avoid issues on future reboots, "
-                    "please remove the YAML configuration from your "
-                    "`configuration.yaml` file."
-                ),
-                "notification_id": f"{DOMAIN}_yaml_import",
-            },
-        )
-
-        return self.async_show_form(
-            step_id="pick_implementation",
-            data_schema=vol.Schema({}),
-        )
-
-    async def async_step_internal_api(self, user_input: dict[str]) -> ConfigFlowResult:
-        """Manages the data entry from the internal api step"""
-        LOGGER.debug("Adding internal api to entry data")
-        self.data["internal_api"] = user_input
+        self.data["desktop_api"]["token"] |= user_input
         return await self.async_oauth_create_entry(self.data)
 
-    async def async_oauth_create_entry(self, data: dict[str, Any]) -> ConfigFlowResult:
+    async def async_oauth_create_entry(
+        self, data: dict[str, Any]
+    ) -> ConfigFlowResult:
         """Create an entry for Spotify."""
-
         if "external_api" not in self.data:
             LOGGER.debug("Adding external api to entry data")
             self.data["external_api"] = data
 
-        if self._import_data is not None:
-            self.data["internal_api"] = self._import_data.copy()
-            LOGGER.debug("Adding internal API details from YAML import")
-
-        if "internal_api" not in self.data:
+        if "desktop_api" not in self.data:
             return self.async_show_form(
-                step_id="internal_api",
-                data_schema=self.INTERNAL_API_SCHEMA,
+                step_id="desktop_api",
+                data_schema=self.DESKTOP_API_SCHEMA,
                 errors={},
             )
 
         external_api = self.data["external_api"]
-
-        # create a mock config able to mimmick a config entry for the
-        # purpose of InternalSession
-        entry = MagicMock(spec=ConfigEntry)
-        entry.data = self.data
-        private_session = PrivateSession(self.hass, entry)
+        desktop_api = self.data["desktop_api"]
 
         try:
-            LOGGER.debug("loading curent user data")
-            await private_session.async_ensure_token_valid()
             accounts: dict[str, Spotify] = {
                 "public": Spotify(auth=external_api["token"]["access_token"]),
-                "private": Spotify(auth=private_session.clean_token),
+                "desktop": Spotify(auth=desktop_api["token"]["access_token"]),
             }
 
             profiles = {}
@@ -234,7 +224,9 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         )
 
     @staticmethod
-    def async_get_options_flow(config_entry: ConfigEntry) -> SpotcastOptionsFlowHandler:
+    def async_get_options_flow(
+        config_entry: ConfigEntry,
+    ) -> SpotcastOptionsFlowHandler:
         """Tells Home Assistant this integration supports configuration
         options"""
         return SpotcastOptionsFlowHandler()

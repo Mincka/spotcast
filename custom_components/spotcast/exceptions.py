@@ -1,4 +1,10 @@
-"""Generic exceptions for spotcast"""
+"""Generic exceptions for spotcast."""
+
+from homeassistant.exceptions import HomeAssistantError
+
+
+class TokenError(HomeAssistantError):
+    """Generic Error with the Spotify Token"""
 
 
 class LowRatioError(Exception):
