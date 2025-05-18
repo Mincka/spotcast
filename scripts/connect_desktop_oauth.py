@@ -7,6 +7,8 @@ from base64 import urlsafe_b64encode
 from hashlib import sha256
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from os import urandom
+from pathlib import Path
+import sys
 from threading import Thread
 from urllib.parse import parse_qs, urlencode, urlparse
 import webbrowser
@@ -15,6 +17,11 @@ from requests import HTTPError, post
 from spotipy import Spotify
 
 from custom_components.spotcast.const import SPOTIFY_CLIENT_ID
+
+repo_root = Path(__file__).resolve().parent.parent
+
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
 
 SPOTIFY_SCOPES = [
     "streaming",
