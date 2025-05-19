@@ -6,9 +6,6 @@ from time import time
 
 from aiohttp.client_exceptions import ClientError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.config_entry_oauth2_flow import (
-    CLOCK_OUT_OF_SYNC_MAX_SEC,
-)
 
 from custom_components.spotcast.const import DOMAIN, SPOTIFY_CLIENT_ID
 from custom_components.spotcast.entry_data import ApiItem, EntryData
@@ -25,6 +22,7 @@ class DesktopSession(ConnectionSession):
 
     BASE_URL = "https://accounts.spotify.com"
     TOKEN_ENDPOINT = "api/token"
+    EXPIRATION_OFFSET = -600
 
     @property
     def _data(self) -> ApiItem:
@@ -53,7 +51,7 @@ class DesktopSession(ConnectionSession):
     @property
     def valid_token(self) -> bool:
         """Returns True if the token is still valid."""
-        return self.expires_at > time() + CLOCK_OUT_OF_SYNC_MAX_SEC
+        return self.expires_at > time() + self.EXPIRATION_OFFSET
 
     async def async_ensure_token_valid(self):
         """Checks if the token is valid and if not refreshes it."""
