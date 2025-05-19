@@ -11,7 +11,7 @@ from custom_components.spotcast.const import DOMAIN, SPOTIFY_CLIENT_ID
 from custom_components.spotcast.entry_data import ApiItem, EntryData
 from custom_components.spotcast.utils import copy_to_dict
 
-from .connection_session import ConnectionSession
+from .connection_session import ConnectionSession, HomeAssistant, ConfigEntry
 from .exceptions import UpstreamServerNotready
 
 LOGGER = getLogger(__name__)
@@ -24,14 +24,29 @@ class DesktopSession(ConnectionSession):
     TOKEN_ENDPOINT = "api/token"
     EXPIRATION_OFFSET = -600
 
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry):
+        """An API session through the spotify desktop oauth application."""
+        self._entry_data: EntryData = copy_to_dict(entry.data)
+        super().__init__(hass, entry)
+
     @property
     def _data(self) -> ApiItem:
-        return self.entry.data["desktop_api"]
+        return self._entry_data["desktop_api"]
 
     @property
     def token(self) -> str:
         """Returns the active token for the session."""
         return self._data["token"]["access_token"]
+
+    @property
+    def obfuscated_token(self) -> str:
+        """Returns a token with data hidden for anonimity.
+
+        Used mostly in logs
+        """
+        padding = 3
+        inner_string = "*" * 20
+        return f"{self.token[:padding]}{inner_string}{self.token[-padding:]}"
 
     @property
     def clean_token(self) -> str:
@@ -51,7 +66,7 @@ class DesktopSession(ConnectionSession):
     @property
     def valid_token(self) -> bool:
         """Returns True if the token is still valid."""
-        return self.expires_at > time() + self.EXPIRATION_OFFSET
+        return self.expires_at + self.EXPIRATION_OFFSET > time()
 
     async def async_ensure_token_valid(self):
         """Checks if the token is valid and if not refreshes it."""
@@ -65,18 +80,24 @@ class DesktopSession(ConnectionSession):
                 not_ready = True
 
             else:
-                LOGGER.debug("Token is expired. Getting a new one")
+                LOGGER.debug(
+                    "Token `%s` is expired. Getting a new one",
+                    self.obfuscated_token,
+                )
 
                 try:
                     api_response = await self.async_refresh_token()
                     self.supervisor.is_healthy = True
 
-                    new_data: EntryData = copy_to_dict(self.entry.data)
-                    new_data["desktop_api"]["token"] = api_response
+                    self._entry_data["desktop_api"]["token"] = api_response
+                    LOGGER.debug(
+                        "New token received: `%s`",
+                        self.obfuscated_token,
+                    )
 
                     self.hass.config_entries.async_update_entry(
                         self.entry,
-                        data=new_data,
+                        data=self._entry_data,
                     )
                 except self.supervisor.SUPERVISED_EXCEPTIONS as exc:
                     self.supervisor.is_healthy = False
