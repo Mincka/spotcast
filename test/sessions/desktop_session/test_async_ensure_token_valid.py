@@ -146,11 +146,11 @@ class TestSupervisorNotReady(IsolatedAsyncioTestCase):
             .async_update_entry
         )
 
-        self.mocks["time"].return_value = 500
+        self.mocks["time"].return_value = 2000
         self.mocks["supervisor"].is_ready = False
         self.mocks["refresh"].return_value = {
             "access_token": "foo",
-            "expires_in": 300,
+            "expires_at": 1000,
             "refresh_token": "bar",
         }
 
@@ -158,7 +158,7 @@ class TestSupervisorNotReady(IsolatedAsyncioTestCase):
             "desktop_api": {
                 "token": {
                     "access_token": "baz",
-                    "expires_at": 0,
+                    "expires_at": 1000,
                     "refresh_token": "bar",
                 }
             }
@@ -195,7 +195,7 @@ class TestErrorWhileRefreshing(IsolatedAsyncioTestCase):
             .async_update_entry
         )
 
-        self.mocks["time"].return_value = 500
+        self.mocks["time"].return_value = 2000
         self.mocks["supervisor"].is_ready = True
         self.mocks["supervisor"].SUPERVISED_EXCEPTIONS = (
             RetrySupervisor.SUPERVISED_EXCEPTIONS
@@ -206,7 +206,7 @@ class TestErrorWhileRefreshing(IsolatedAsyncioTestCase):
             "desktop_api": {
                 "token": {
                     "access_token": "baz",
-                    "expires_at": 0,
+                    "expires_at": 1000,
                     "refresh_token": "bar",
                 }
             }
