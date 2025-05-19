@@ -69,13 +69,16 @@ async def async_play_media(hass: HomeAssistant, call: ServiceCall):
     if uri is None:
         pass
     elif uri.startswith("spotify:track:"):
-        uri, index = await async_track_index(account, uri)
-        LOGGER.debug(
-            "Switching context to song's album `%s`, with offset %d",
-            uri,
-            index,
-        )
-        extras["offset"] = index
+        if extras.get("track_context") == "track":
+            LOGGER.debug("Playing track `%s` only once", uri)
+        else:
+            uri, index = await async_track_index(account, uri)
+            LOGGER.debug(
+                "Switching context to song's album `%s`, with offset %d",
+                uri,
+                index,
+            )
+            extras["offset"] = index
 
     elif uri.startswith("spotify:episode:"):
         uri, index = await async_episode_index(account, uri)
