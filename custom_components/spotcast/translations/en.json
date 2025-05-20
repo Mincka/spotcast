@@ -1,6 +1,13 @@
 {
     "config": {
         "step": {
+            "desktop_api": {
+                "data": {
+                    "access_token": "Access Token",
+                    "refresh_token": "Refresh Token"
+                },
+                "description": "Please make sure to follow the steps explained [here](https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0) on how to get your Access & Refresh Tokens."
+            },
             "internal_api": {
                 "data": {
                     "sp_dc": "SP DC",
