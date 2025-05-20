@@ -36,6 +36,7 @@ EXTRAS_SCHEMA = vol.Schema({
     vol.Optional("shuffle"): cv.boolean,
     vol.Optional("limit"): cv.positive_int,
     vol.Optional("random"): cv.boolean,
+    vol.Optional("track_context"): vol.In(["track", "album"]),
 })
 
 

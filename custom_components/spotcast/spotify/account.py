@@ -865,6 +865,10 @@ class SpotifyAccount:
         if position is not None:
             position = int(position * 1000)
 
+        if context_uri.startswith("spotify:track:"):
+            uris=[context_uri]
+            context_uri = None
+
         try:
             await self.hass.async_add_executor_job(
                 self.apis["private"].start_playback,
