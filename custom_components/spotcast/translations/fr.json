@@ -1,6 +1,13 @@
 {
     "config": {
         "step": {
+            "desktop_api": {
+                "data": {
+                    "access_token": "Jeton d'accès (access token)",
+                    "refresh_token": "Jeton d'actualisation (refresh token)"
+                },
+                "description": "Merci de suivre la procédure décrite [ici](https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0) pour récupérer vos jetons d'accès et d'actualisation"
+            },
             "internal_api": {
                 "data": {
                     "sp_dc": "SP DC",
@@ -14,7 +21,7 @@
             }
         },
         "abort": {
-            "connection_error": "Error de connection avec Spotify avec les informations d'identification {account_type}. Merci de vérifier l'information fourni. Pour de l'aide supplémentaire, [ouvrez un ticket](https://github.com/fondberg/spotcast/issues/new/choose).",
+            "connection_error": "Error de connection avec Spotify avec les informations d'identification {account_type}. Si vous avez fournis votre `SP_DC` et `SP_KEY` durant la configuration, veuillez notez que le processus de configuration a drastiquement changé pour V6. Merci de suivre la [nouvelle procédure d'installation](https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0). Pour de l'aide supplémentaire, [ouvrez un ticket](https://github.com/fondberg/spotcast/issues/new/choose).",
             "already_configured": "Ce compte est déjà configuré dans Home Assistant",
             "reauth_account_mismatch": "Le compte fournit ne concorde pas avec le compte Spotify étant réauthentifié",
             "public_private_accounts_mismatch": "Le profile lié aux informations d'identification OAuth et celui des Cookies de navigateurs web sont pour des comptes différents. Faites attention à fournir les informations pour le même compte. Si vous êtes déjà connecté à Spotify dans votre navigateur web, Home Assistant ne vous demandera pas de vous connecter à un autre compte et utilisera le compte actuel."
