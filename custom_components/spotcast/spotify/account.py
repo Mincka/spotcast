@@ -499,13 +499,13 @@ class SpotifyAccount:
         return result
 
     async def async_get_playlist(self, uri: str) -> dict:
-        """Retrieves a playlist information
+        """Retrieves a playlist information.
 
         Args:
-            - uri(str): the URI of the playlist to search
+            uri(str): the URI of the playlist to search
 
         Returns:
-            - dict: the playlist details
+            dict: the playlist details
         """
         await self.async_ensure_tokens_valid()
         LOGGER.debug("Fetching information from playlist `%s`", uri)
@@ -522,13 +522,13 @@ class SpotifyAccount:
         return result
 
     async def async_get_album(self, uri: str) -> dict:
-        """Retrieves an album information
+        """Retrieves an album information.
 
         Args:
-            - uri(str): the URI of the album to search
+            uri(str): the URI of the album to search
 
         Returns:
-            - dict: the album details
+            dict: the album details
         """
         await self.async_ensure_tokens_valid()
         LOGGER.debug("Fetching information for album `%s`", uri)
@@ -544,13 +544,13 @@ class SpotifyAccount:
         return result
 
     async def async_get_artist_top_tracks(self, uri: str) -> list[dict]:
-        """Retrieves the list of top tracks for an artist
+        """Retrieves the list of top tracks for an artist.
 
         Args:
-            - uri(str): the URI of the artist to search
+            uri(str): the URI of the artist to search
 
         Returns:
-            - list[dict]: the list of top songes for an artist
+            list[dict]: the list of top songes for an artist
         """
         await self.async_ensure_tokens_valid()
         LOGGER.debug("Fetching Top Tracks for artist `%s`", uri)
@@ -866,7 +866,7 @@ class SpotifyAccount:
             position = int(position * 1000)
 
         if context_uri.startswith("spotify:track:"):
-            uris=[context_uri]
+            uris = [context_uri]
             context_uri = None
 
         try:
