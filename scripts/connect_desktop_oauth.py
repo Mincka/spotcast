@@ -1,36 +1,6 @@
 """Script to connect to the spotify desktop oauth app and provide an
 access and refresh token for the user
 """
-if True:
-    from pathlib import Path
-    import subprocess
-    import sys
-
-    repo_root = Path(__file__).resolve().parent.parent
-    requirements = (
-        repo_root / "requirements.txt",
-        repo_root / "requirements-scripts.txt",
-    )
-
-    print("Checking for dependencies... ", end="")
-    for requirement_file in requirements:
-        subprocess.check_call(
-            args=[
-                sys.executable,
-                "-m",
-                "pip",
-                "install",
-                "-r",
-                str(requirement_file)
-            ],
-            stdout=subprocess.DEVNULL,
-        )
-
-    print("done.")
-
-    if str(repo_root) not in sys.path:
-        sys.path.insert(0, str(repo_root))
-
 from argparse import ArgumentParser, Namespace
 from base64 import urlsafe_b64encode
 from hashlib import sha256
@@ -43,9 +13,7 @@ import webbrowser
 from requests import HTTPError, post
 
 
-from custom_components.spotcast.const import SPOTIFY_CLIENT_ID
-
-
+SPOTIFY_CLIENT_ID = "65b708073fc0480ea92a077233ca87bd"
 SPOTIFY_SCOPES = [
     "streaming",
     "app-remote-control",
