@@ -300,8 +300,7 @@ class SpotifyAccount:
 
     @property
     def health_status(self) -> dict[str, bool]:
-        """Returns the health status of the underlying sessions"""
-
+        """Returns the health status of the underlying sessions."""
         health = {}
 
         for key, session in self.sessions.items():
@@ -311,9 +310,7 @@ class SpotifyAccount:
 
     @property
     def active_device(self) -> str:
-        """returns the current active device, or None if no active
-        device"""
-
+        """Returns the current active device."""
         playback_state = self.playback_state
 
         if self.playback_state == {}:
@@ -322,35 +319,35 @@ class SpotifyAccount:
         return playback_state["device"]["id"]
 
     def get_profile_value(self, attribute: str) -> Any:
-        """Returns the value for a profile element. Raises Error if not
-        yet loaded.
+        """Returns the value for a profile element.
 
         Args:
-            - attribute(str): the attribute to fetch from the profile
+            attribute(str): the attribute to fetch from the profile
 
         Raises:
-            - ProfileNotLoadedError: Raised if the profile hasn't been
+            ProfileNotLoadedError: Raised if the profile hasn't been
                 loaded yet.
 
         Returns:
-            - Any: the value at the key in the profile
+            Any: the value at the key in the profile
         """
         profile = self._datasets["profile"].data
 
         return profile.get(attribute)
 
     def get_dataset(self, name: str) -> list | dict:
+        """Retrieves a specific dataset."""
         return self._datasets[name].data
 
     def get_token(self, api: str) -> str:
         """Retrives a token from the requested session.
 
         Args:
-            - api(str): The api to retrieve from. Cann be `internal`
+            api(str): The api to retrieve from. Cann be `internal`
                 or `external`.
 
         Returns:
-            - str: token for the requested session
+            str: token for the requested session
         """
         return run_coroutine_threadsafe(
             self.async_get_token(api), self.hass.loop
@@ -360,7 +357,7 @@ class SpotifyAccount:
         """Retrives a token from the requested session.
 
         Args:
-            - api(str): The api to retrieve from. Can be `internal` or
+            api(str): The api to retrieve from. Can be `internal` or
                 `external`.
 
         Returns:
@@ -377,12 +374,11 @@ class SpotifyAccount:
         """Ensures the token are valid.
 
         Args:
-            - skip_profile(bool, optional): set True to skip the
+            skip_profile(bool, optional): set True to skip the
                 profile update. Defaults to False
-            - reauth_on_fail(bool, optional): Asks for reauthorisation
+            reauth_on_fail(bool, optional): Asks for reauthorisation
                 of the entry on failure to get token. Defaults to True.
         """
-
         if not skip_profile:
             await self.async_profile()
 
@@ -392,6 +388,10 @@ class SpotifyAccount:
                 await session.async_ensure_token_valid()
             except TokenError as exc:
                 if reauth_on_fail:
+                    LOGGER.error(
+                        "An error occured while trying to refresh the token. "
+                        "Reauthentication requested"
+                    )
                     entry = self.hass.config_entries.async_get_entry(
                         self.entry_id
                     )
