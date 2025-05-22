@@ -62,13 +62,7 @@ Spotcast is compatible with any version since 2024.11.0.
 There are 2 steps for the setup of an account with spotcast
 
 1. **Integration of the OAuth Client Information:** An OAuth client from Spotify must be provided to access your account profile and informations. You can follow the same step as described in the [Home Assistant Spotify Integration](https://www.home-assistant.io/integrations/spotify/).
-2. **Integration of the private API credentials:** Spotcast relies on the private Spotify API to link a chromecast device to your spotify account when you are trying to start playback (mimmicking what the Spotify Desktop or Spotify Mobile app are doing). The only known way of connecting to that API is through the use of browser cookies. These can be retrieved by:
-    - connecting to [spotify.com](open.spotify.com)
-    - opening the developper console
-    - pasting the `sp_dc` and `sp_key` in the Home Assistant setup form
-
-> [!TIP]
-> See [Obtaining SP_DC and SP_KEY](./docs/config/obtaining_sp_dc_and_sp_key.md) for more details
+2. **Integration of the desktop API credentials:** Spotcast relies on the private Spotify API to link a chromecast device to your spotify account when you are trying to start playback (mimmicking what the Spotify Desktop or Spotify Mobile app are doing). The connection to this api is done via the desktop OAuth client, which requires an authentication process that runs on a local machine (we can't use your Home Assistant server, as Spotify expects to redirect the information to your local machine, not a server, even local). This steps involves running a python script locally. See [Obtaining Desktop Credentials](./docs/config/obtaining_desktop_credentials.md) to complete this step.
 
 ## Services
 
