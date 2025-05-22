@@ -86,7 +86,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unloads the Spotcast config entry"""
+    """Unloads the Spotcast config entry."""
     LOGGER.info("Unloading Spotcast entry `%s`", entry.entry_id)
     unload_ok = await hass.config_entries.async_unload_platforms(
         entry,

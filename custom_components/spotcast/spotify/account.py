@@ -480,13 +480,13 @@ class SpotifyAccount:
         )
 
     async def async_get_track(self, uri: str) -> dict:
-        """Retrieves track information
+        """Retrieves track information.
 
         Args:
-            - uri(str): The URI of the track to search
+            uri(str): The URI of the track to search
 
         Returns:
-            - dict: the songs details
+            dict: the songs details
         """
         await self.async_ensure_tokens_valid()
 
@@ -513,7 +513,7 @@ class SpotifyAccount:
         playlist_id = self._id_from_uri(uri)
 
         result = await self.hass.async_add_executor_job(
-            self.apis["private"].playlist,
+            self.apis["public"].playlist,
             playlist_id,
             None,
             self.country,

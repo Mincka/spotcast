@@ -4,7 +4,7 @@ from json import JSONDecodeError
 from logging import getLogger
 from time import time
 
-from aiohttp.client_exceptions import ClientError
+from aiohttp.client_exceptions import ClientError, ClientResponseError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from custom_components.spotcast.const import DOMAIN, SPOTIFY_CLIENT_ID
@@ -12,7 +12,7 @@ from custom_components.spotcast.entry_data import ApiItem, EntryData
 from custom_components.spotcast.utils import copy_to_dict
 
 from .connection_session import ConnectionSession, HomeAssistant, ConfigEntry
-from .exceptions import UpstreamServerNotready
+from .exceptions import UpstreamServerNotready, TokenRefreshError
 
 LOGGER = getLogger(__name__)
 
@@ -89,6 +89,8 @@ class DesktopSession(ConnectionSession):
                     api_response = await self.async_refresh_token()
                     self.supervisor.is_healthy = True
 
+                    LOGGER.warn(self._entry_data)
+
                     self._entry_data["desktop_api"]["token"] = api_response
                     LOGGER.debug(
                         "New token received: `%s`",
@@ -103,6 +105,11 @@ class DesktopSession(ConnectionSession):
                     self.supervisor.is_healthy = False
                     self.supervisor.log_message(exc)
                     not_ready = True
+                except ClientResponseError as exc:
+                    if exc.status == 400:
+                        LOGGER.error("Unable to refresh desktop token")
+                        raise TokenRefreshError(exc) from exc
+                    raise exc
 
         if not_ready:
             raise UpstreamServerNotready("Server not ready for refresh")
