@@ -55,24 +55,19 @@ class TestTokenExpired(IsolatedAsyncioTestCase):
         self.session = DesktopSession(self.mocks["hass"], self.mocks["entry"])
         self.session.supervisor = self.mocks["supervisor"]
 
-        await self.session.async_ensure_token_valid()
+        self.result = await self.session.async_ensure_token_valid()
 
     def test_new_data(self):
-        try:
-            self.mocks["update"].assert_called_with(
-                self.session.entry,
-                data={
-                    "desktop_api": {
-                        "token": {
-                            "access_token": "foo",
-                            "expires_at": 800,
-                            "refresh_token": "bar",
-                        }
-                    }
+        self.assertEqual(
+            self.result,
+            {
+                "token": {
+                    "access_token": "foo",
+                    "expires_at": 800,
+                    "refresh_token": "bar",
                 }
-            )
-        except AssertionError as exc:
-            self.fail(exc)
+            }
+        )
 
 
 class TestTokenNotExpired(IsolatedAsyncioTestCase):

@@ -76,13 +76,19 @@ class TestTokenIsNotValid(IsolatedAsyncioTestCase):
             }
         }
 
+        self.mock_implementation.async_refresh_token = AsyncMock()
+        self.mock_implementation.async_refresh_token.return_value = {
+            "access_token": "far",
+            "expires_at": 123
+        }
+
         self.session = PublicSession(
             hass=self.mock_hass,
             entry=mock_entry,
             implementation=self.mock_implementation
         )
 
-        await self.session.async_ensure_token_valid()
+        self.result = await self.session.async_ensure_token_valid()
 
     async def test_async_refresh_token_not_called(self):
         try:
@@ -90,11 +96,16 @@ class TestTokenIsNotValid(IsolatedAsyncioTestCase):
         except AssertionError:
             self.fail("Refresh Token was not called")
 
-    async def test_update_entry_not_called(self):
-        try:
-            self.mock_hass.config_entries.async_update_entry.assert_called()
-        except AssertionError:
-            self.fail("Update Entry was not called")
+    def test_data_returned(self):
+        self.assertEqual(
+            self.result,
+            {
+                "token": {
+                    "access_token": "far",
+                    "expires_at": 123,
+                }
+            }
+        )
 
 
 class TestTokenFailsToRefresh(IsolatedAsyncioTestCase):

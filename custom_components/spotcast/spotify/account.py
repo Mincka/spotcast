@@ -7,6 +7,7 @@ Classes:
 from logging import getLogger
 from asyncio import (
     run_coroutine_threadsafe,
+    Lock,
     sleep,
     TimeoutError,
 )
@@ -27,7 +28,7 @@ from custom_components.spotcast.sessions import (
     ConnectionSession,
     async_get_config_entry_implementation,
 )
-from custom_components.spotcast.utils import ensure_default_data
+from custom_components.spotcast.utils import ensure_default_data, copy_to_dict
 from custom_components.spotcast.spotify.dataset import Dataset
 from custom_components.spotcast.spotify.search_query import SearchQuery
 from custom_components.spotcast.spotify.utils import select_image_url
@@ -35,6 +36,7 @@ from custom_components.spotcast.spotify.exceptions import (
     PlaybackError,
     TokenError,
 )
+from custom_components.spotcast.entry_data import ApiItem
 from custom_components.spotcast.sessions.exceptions import (
     InternalServerError,
     UpstreamServerNotready,
@@ -45,8 +47,7 @@ LOGGER = getLogger(__name__)
 
 
 class SpotifyAccount:
-    """The account of a Spotify user. Able to leverage the public and
-    private API.
+    """The account of a Spotify user.
 
     Attributes:
         - hass(HomeAssistant): The Home Assistance instance
@@ -142,33 +143,38 @@ class SpotifyAccount:
         },
     }
 
+    SESSION_CONFIG_MAP = {
+        "public": "external_api",
+        "private": "desktop_api",
+    }
+
     def __init__(
         self,
         entry_id: str,
         hass: HomeAssistant,
         public_session: PublicSession,
-        private_session: PrivateSession,
+        private_session: DesktopSession,
         is_default: bool = False,
         base_refresh_rate: int = 30,
     ):
-        """The account of a Spotify user. Able to leverage the public
-        and private API.
+        """The account of a Spotify user.
 
         Args:
-            - entry_id(str): The id of the config entry in HomeAssistant
+            entry_id(str): The id of the config entry in HomeAssistant
                 for the account.
-            - hass(HomeAssistant): The Home Assistant Instance
-            - external_session(OAuth2Session): The public api session
+            hass(HomeAssistant): The Home Assistant Instance
+            public_session(OAuth2Session): The public api session
                 for the Spotify Account
-            - internal_session(InternalSession): The private api
+            private_session(InternalSession): The private api
                 session for the Spotify Account
-            - is_default(bool, optional): True if account is treated as
+            is_default(bool, optional): True if account is treated as
                 default for service call. Defaults to False.
-            - base_refresh_rate(int, optional): The base refresh rate
+            base_refresh_rate(int, optional): The base refresh rate
                 used to update dateset
         """
         self.entry_id = entry_id
         self.hass = hass
+        self._lock = Lock()
         self.sessions: dict[str, ConnectionSession] = {
             "public": public_session,
             "private": private_session,
@@ -176,14 +182,18 @@ class SpotifyAccount:
         self.apis: dict[str, Spotify] = {}
 
         for name, session in self.sessions.items():
-            self.apis[name] = Spotify(auth=session.token)
+            self.apis[name] = Spotify(auth=session.access_token)
 
         self.is_default = is_default
-        self._base_refresh_rate = 30
+        self._base_refresh_rate = base_refresh_rate
 
         self._datasets: dict[str, Dataset] = {}
         self._last_playback_state = {}
-        self._playback_store = Store(hass, 1, f"spotcast_{entry_id}_last_state")
+        self._playback_store = Store(
+            hass,
+            1,
+            f"spotcast_{entry_id}_last_state",
+        )
         self.current_item = {"uri": None, "audio_features": {}}
 
         for name, dataset in self.DATASETS.items():
@@ -193,16 +203,15 @@ class SpotifyAccount:
 
     @property
     def base_refresh_rate(self) -> int:
-        """Returns the current base refresh rate"""
+        """Returns the current base refresh rate."""
         return self._base_refresh_rate
 
     @base_refresh_rate.setter
     def base_refresh_rate(self, value: int):
-        """Sets the base refresh rate and updates the dataset
-        accordingly
+        """Sets the base refresh rate and updates the dataset.
 
         Args:
-            - value(int): the new base refresh_rate
+            value(int): the new base refresh_rate
         """
         self._base_refresh_rate = value
 
@@ -212,14 +221,12 @@ class SpotifyAccount:
 
     @property
     def id(self) -> str:
-        """Returns the id of the account"""
+        """Returns the id of the account."""
         return self.get_profile_value("id")
 
     @property
     def name(self) -> str:
-        """Returns the name of the account. In case of no display name,
-        returns the id
-        """
+        """Returns the name of the account."""
         name = self.get_profile_value("display_name")
 
         if name is None:
@@ -229,66 +236,65 @@ class SpotifyAccount:
 
     @property
     def profile(self) -> dict:
-        """Returns the full profile dictionary of the account"""
+        """Returns the full profile dictionary of the account."""
         return self.get_dataset("profile")
 
     @property
     def playlists(self) -> list:
-        """Returns the list of playlists for the account"""
+        """Returns the list of playlists for the account."""
         return self.get_dataset("playlists")
 
     @property
     def categories(self) -> list:
-        """Returns the list of Browse categories for the account"""
+        """Returns the list of Browse categories for the account."""
         return self.get_dataset("categories")
 
     @property
     def liked_songs(self) -> list:
-        """Returns the list of liked songs for the account"""
+        """Returns the list of liked songs for the account."""
         liked_songs = self.get_dataset("liked_songs")
         liked_songs = [x["track"]["uri"] for x in liked_songs]
         return liked_songs
 
     @property
     def devices(self) -> list:
-        """Returns the list of devices linked to the account"""
+        """Returns the list of devices linked to the account."""
         return self.get_dataset("devices")
 
     @property
     def playback_state(self) -> list:
-        """Returns the list of devices linked to the account"""
+        """Returns the list of devices linked to the account."""
         return self.get_dataset("playback_state")
 
     @property
     def country(self) -> str:
-        """Returns the current country in which the account resides"""
+        """Returns the current country in which the account resides."""
         return self.get_profile_value("country")
 
     @property
     def image_link(self) -> str:
-        """Returns the link for the account profile image"""
+        """Returns the link for the account profile image."""
         images = self.get_profile_value("images")
         return select_image_url(images)
 
     @property
     def product(self) -> str:
-        """Returns the account subscription product"""
+        """Returns the account subscription product."""
         return self.get_profile_value("product")
 
     @property
     def type(self) -> str:
-        """Returns the type of account"""
+        """Returns the type of account."""
         return self.get_profile_value("type")
 
     @property
     def liked_songs_uri(self) -> str:
-        """Returns the liked songs uri for the account"""
+        """Returns the liked songs uri for the account."""
         return f"spotify:user:{self.id}:collection"
 
     @property
     def device_info(self) -> DeviceInfo:
-        """Returns the Home Assistant device info of the Account
-        Service"""
+        """Returns the Home Assistant device info of the account."""
         return DeviceInfo(
             identifiers={(DOMAIN, self.id)},
             manufacturer="Spotify AB",
@@ -383,37 +389,67 @@ class SpotifyAccount:
             await self.async_profile()
 
         LOGGER.debug("Refreshing api tokens for Spotify Account")
-        for key, session in self.sessions.items():
-            try:
-                await session.async_ensure_token_valid()
-            except TokenError as exc:
-                if reauth_on_fail:
-                    LOGGER.error(
-                        "An error occured while trying to refresh the token. "
-                        "Reauthentication requested"
-                    )
-                    entry = self.hass.config_entries.async_get_entry(
-                        self.entry_id
-                    )
+        async with self._lock:
+            entry = self.hass.config_entries.async_get_entry(self.entry_id)
+            data = copy_to_dict(entry.data)
 
-                    entry.async_start_reauth(
-                        self.hass, context={"source": SOURCE_REAUTH}
-                    )
+            for key, session in self.sessions.items():
+                token_info = await self._async_refresh_single_token(
+                    session,
+                    reauth_on_fail,
+                )
+                data[self.SESSION_CONFIG_MAP[key]] = token_info
 
-                raise exc
+                self.apis[key].set_auth(session.access_token)
 
-            token = await self.async_get_token(key)
-            self.apis[key].set_auth(token)
+            if data != entry.data:
+                LOGGER.info(
+                    "New information receive, updating entry for `%s`",
+                    self.entry_id,
+                )
+                self.hass.config_entries.async_update_entry(
+                    entry=entry,
+                    data=data,
+                )
+
+    async def _async_refresh_single_token(
+        self,
+        session: ConnectionSession,
+        reauth_on_fail: bool = True,
+    ) -> ApiItem:
+        """Refreshes the token a a specific session."""
+        try:
+            return await session.async_ensure_token_valid()
+        except TokenError as exc:
+            if reauth_on_fail:
+                LOGGER.error(
+                    "An error occured while trying to refresh the "
+                    "token. Reauthentication requested"
+                )
+
+                entry = self.hass.config_entries.async_get_entry(self.entry_id)
+                entry.async_start_reauth(
+                    self.hass, context={"source": SOURCE_REAUTH}
+                )
+
+            raise exc
+
+    def _request_reauth(self, entry: ConfigEntry):
+        """Requests reauth for an entry."""
+        entry.async_start_reauth(
+            self.hass,
+            context={"source": SOURCE_REAUTH},
+        )
 
     async def async_profile(self, force: bool = False) -> dict:
-        """Test the connection and returns a user profile
+        """Test the connection and returns a user profile.
 
         Args:
-            - force(bool, optional): Forces the profile update if True.
+            force(bool, optional): Forces the profile update if True.
                 Defaults to False
 
         Returns:
-            - dict: the raw profile dictionary from the Spotify API
+            dict: the raw profile dictionary from the Spotify API
         """
         await self.async_ensure_tokens_valid(skip_profile=True)
         LOGGER.debug("Getting Profile from Spotify")
@@ -433,7 +469,7 @@ class SpotifyAccount:
         return self.profile
 
     async def async_devices(self, force: bool = False) -> list[dict]:
-        """Returns the list of devices"""
+        """Returns the list of devices."""
         await self.async_ensure_tokens_valid()
         LOGGER.debug("Getting Devices for account `%s`", self.name)
 
@@ -455,18 +491,16 @@ class SpotifyAccount:
         self,
         limit: int = None,
     ) -> list[dict]:
-        """Retrieves the list of podcast episode saved to the user
-        account
+        """Retrieves the list of podcast episode saved.
 
         Args:
-            - limit(int, optional): If not None, stops getting episode
+            limit(int, optional): If not None, stops getting episode
                 once the limit of item reached. Defaults to None
 
         Return:
             - list[dict]: a list of dictionary with the episodes
                 information
         """
-
         await self.async_ensure_tokens_valid()
         LOGGER.debug(
             "Getting List of saved podcast episode for account `%s`",
@@ -686,8 +720,7 @@ class SpotifyAccount:
         return playback_state
 
     async def async_track_features(self, uri: str) -> str:
-        """Returns the track audio features. Returns an empty
-        dictionary if the item doesn't have audio features"""
+        """Returns the track audio features."""
         if uri is None or not uri.startswith("spotify:track:"):
             return {}
 
@@ -699,16 +732,19 @@ class SpotifyAccount:
         return response[0]
 
     async def async_playlists_count(self) -> int:
-        """Returns the number of user playlist for an account"""
+        """Returns the number of user playlist for an account."""
+        await self.async_ensure_tokens_valid()
 
         return await self._async_get_count(
             self.apis["public"].current_user_playlists
         )
 
     async def async_playlists(
-        self, force: bool = False, max_items: int = None
+        self,
+        force: bool = False,
+        max_items: int = None,
     ) -> list[dict]:
-        """Returns a list of playlist for the current user"""
+        """Returns a list of playlist for the current user."""
         await self.async_ensure_tokens_valid()
         LOGGER.debug("Getting Playlist for account `%s`", self.name)
 
@@ -735,11 +771,11 @@ class SpotifyAccount:
         query: SearchQuery,
         limit: int = 20,
     ) -> list[dict]:
-        """Makes a search query and returns the result
+        """Makes a search query and returns the result.
 
         Args:
-            - query(SearchQuery): The search query to run
-            - limit(int, optional): The maximum amount of item to
+            query(SearchQuery): The search query to run
+            limit(int, optional): The maximum amount of item to
                 retrieve in each category. Defaults to 20.
         """
         await self.async_ensure_tokens_valid()

@@ -31,6 +31,7 @@ class TestIstHealthy(TestCase):
             "hass": MagicMock(spec=HomeAssistant),
             "entry": MagicMock(spec=ConfigEntry),
         }
+        self.mocks["entry"].data = {}
         self.session = DummySession(
             hass=self.mocks["hass"],
             entry=self.mocks["entry"]
@@ -47,6 +48,7 @@ class TestIsNotHealthy(TestCase):
             "hass": MagicMock(spec=HomeAssistant),
             "entry": MagicMock(spec=ConfigEntry),
         }
+        self.mocks["entry"].data = {}
         self.session = DummySession(
             hass=self.mocks["hass"],
             entry=self.mocks["entry"]

@@ -23,35 +23,12 @@ class DesktopSession(ConnectionSession):
     BASE_URL = "https://accounts.spotify.com"
     TOKEN_ENDPOINT = "api/token"
     EXPIRATION_OFFSET = -600
-
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry):
-        """An API session through the spotify desktop oauth application."""
-        self._entry_data: EntryData = copy_to_dict(entry.data)
-        super().__init__(hass, entry)
-
-    @property
-    def _data(self) -> ApiItem:
-        return self._entry_data["desktop_api"]
-
-    @property
-    def token(self) -> str:
-        """Returns the active token for the session."""
-        return self._data["token"]["access_token"]
-
-    @property
-    def obfuscated_token(self) -> str:
-        """Returns a token with data hidden for anonimity.
-
-        Used mostly in logs
-        """
-        padding = 3
-        inner_string = "*" * 20
-        return f"{self.token[:padding]}{inner_string}{self.token[-padding:]}"
+    API_KEY = "desktop_api"
 
     @property
     def clean_token(self) -> str:
         """Returns the active token for the session."""
-        return self.token
+        return self.access_token
 
     @property
     def refresh_token(self) -> str:
@@ -61,7 +38,7 @@ class DesktopSession(ConnectionSession):
     @property
     def expires_at(self) -> int:
         """Returns the timestamp of when the access token will expire."""
-        return self._data["token"]["expires_at"]
+        return self.token["expires_at"]
 
     @property
     def valid_token(self) -> bool:
@@ -74,7 +51,7 @@ class DesktopSession(ConnectionSession):
 
         async with self._token_lock:
             if self.valid_token:
-                return
+                return self._data
 
             if not self.supervisor.is_ready:
                 not_ready = True
@@ -89,18 +66,14 @@ class DesktopSession(ConnectionSession):
                     api_response = await self.async_refresh_token()
                     self.supervisor.is_healthy = True
 
-                    LOGGER.warn(self._entry_data)
-
-                    self._entry_data["desktop_api"]["token"] = api_response
+                    self._data["token"] = api_response
                     LOGGER.debug(
                         "New token received: `%s`",
                         self.obfuscated_token,
                     )
 
-                    self.hass.config_entries.async_update_entry(
-                        self.entry,
-                        data=self._entry_data,
-                    )
+                    return self._data
+
                 except self.supervisor.SUPERVISED_EXCEPTIONS as exc:
                     self.supervisor.is_healthy = False
                     self.supervisor.log_message(exc)

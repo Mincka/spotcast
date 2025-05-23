@@ -1,227 +1,128 @@
 """Module to test the async_ensure_tokens_valid function"""
 
+from types import MappingProxyType
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, patch, AsyncMock
 
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     PublicSession,
-    PrivateSession,
+    DesktopSession,
     HomeAssistant,
-    TokenError,
     ConfigEntry,
-    SOURCE_REAUTH,
+    Spotify,
     Store,
 )
 
 from test.spotify.account import TEST_MODULE
 
 
-class TestWithProfileRefresh(IsolatedAsyncioTestCase):
+class TestUpdateRequired(IsolatedAsyncioTestCase):
 
-    @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.Store", new_callable=MagicMock)
     @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
+    @patch.object(SpotifyAccount, "_async_refresh_single_token")
+    @patch.object(SpotifyAccount, "async_profile")
     async def asyncSetUp(
-            self,
-            mock_spotify: MagicMock,
-            mock_store: MagicMock,
+        self,
+        mock_profile: AsyncMock,
+        mock_refresh: AsyncMock,
+        mock_spotify: MagicMock,
+        mock_store: MagicMock,
     ):
 
+        mock_spotify.return_value = MagicMock(spec=Spotify)
+        mock_store.return_value = MagicMock(spec=Store)
+
         self.mocks = {
-            "internal": MagicMock(spec=PrivateSession),
-            "external": MagicMock(spec=PublicSession),
             "hass": MagicMock(spec=HomeAssistant),
-        }
-        self.mocks["hass"].loop = MagicMock()
-
-        self.mock_spotify = mock_spotify
-
-        self.mocks["external"].token = {
-            "access_token": "12345",
-            "expires_at": 12345.61,
+            "public_session": MagicMock(spec=PublicSession),
+            "private_session": MagicMock(spec=DesktopSession),
+            "entry": MagicMock(spec=ConfigEntry),
+            "profile": mock_profile,
+            "refresh": mock_refresh,
+            "spotify": mock_spotify.return_value,
         }
 
-        self.account = SpotifyAccount(
-            entry_id="12345",
-            hass=self.mocks["hass"],
-            public_session=self.mocks["external"],
-            private_session=self.mocks["internal"],
-            is_default=True
+        self.mocks["hass"].config_entries = MagicMock()
+        self.mocks["hass"].config_entries.async_get_entry = MagicMock()
+        self.mocks["hass"].config_entries.async_get_entry\
+            .return_value = self.mocks["entry"]
+
+        self.mocks["entry"].data = MappingProxyType({
+            "desktop_api": {
+                "token": {
+                    "access_token": "foo",
+                    "refresh_token": "bar",
+                    "expires_at": 123,
+                }
+            },
+            "external_api": {
+                "token": {
+                    "access_token": "baz",
+                    "refresh_token": "boo",
+                    "expires_at": 234,
+                },
+                "implementation": "far",
+            }
+        })
+
+        self.mocks["refresh"].side_effect = [
+            {
+                "token": {
+                    "access_token": "foo",
+                    "refresh_token": "world",
+                    "expires_at": 345,
+                },
+                "implementation": "far",
+            },
+            {
+                "token": {
+                    "access_token": "hello",
+                    "refresh_token": "world",
+                    "expires_at": 345,
+                }
+            },
+        ]
+
+        self.mocks["public_session"].token = "foo"
+        self.mocks["private_session"].token = "hello"
+
+        self.mocks["hass"].config_entries.async_update_entry = MagicMock()
+        self.mocks["update"] = (
+            self.mocks["hass"].config_entries.async_update_entry
         )
 
-        self.account.async_profile = AsyncMock()
+        self.account = SpotifyAccount(
+            entry_id="foo",
+            hass=self.mocks["hass"],
+            public_session=self.mocks["public_session"],
+            private_session=self.mocks["private_session"],
+        )
 
         await self.account.async_ensure_tokens_valid()
 
-    def test_async_profile_was_called(self):
+    def test_entry_updated(self):
         try:
-            self.account.async_profile.assert_called()
-        except AssertionError:
-            self.fail()
-
-    def test_both_sessions_were_checked_for_token(self):
-        for key, session in self.account.sessions.items():
-            try:
-                session.async_ensure_token_valid.assert_called()
-            except AssertionError:
-                self.fail()
-
-    def test_spotify_token_updated_after_refresh(self):
-        try:
-            self.account.apis["public"].set_auth.assert_called()
-        except AssertionError:
-            self.fail()
-
-
-class TestWithoutProfileRefresh(IsolatedAsyncioTestCase):
-
-    @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
-    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
-    async def asyncSetUp(
-            self,
-            mock_spotify: MagicMock,
-            mock_store: MagicMock,
-    ):
-
-        self.mocks = {
-            "internal": MagicMock(spec=PrivateSession),
-            "external": MagicMock(spec=PublicSession),
-            "hass": MagicMock(spec=HomeAssistant),
-        }
-        self.mocks["hass"].loop = MagicMock()
-
-        self.mock_spotify = mock_spotify
-
-        self.mocks["external"].token = {
-            "access_token": "12345",
-            "expires_at": 12345.61,
-        }
-
-        self.mocks["internal"].token = "23456"
-
-        self.account = SpotifyAccount(
-            entry_id="12345",
-            hass=self.mocks["hass"],
-            public_session=self.mocks["external"],
-            private_session=self.mocks["internal"],
-            is_default=True
-        )
-
-        self.account.async_profile = AsyncMock()
-
-        await self.account.async_ensure_tokens_valid(skip_profile=True)
-
-    def test_async_profile_was_not_called(self):
-        try:
-            self.account.async_profile.assert_not_called()
-        except AssertionError:
-            self.fail()
-
-    def test_both_sessions_were_checked_for_token(self):
-        for key, session in self.account.sessions.items():
-            try:
-                session.async_ensure_token_valid.assert_called()
-            except AssertionError:
-                self.fail()
-
-    def test_spotify_token_updated_after_refresh(self):
-        try:
-            self.account.apis["public"].set_auth.assert_called()
-        except AssertionError:
-            self.fail()
-
-    def test_internal_controller_token_updated_after_refresh(self):
-        try:
-            self.account.apis["private"].set_auth.assert_called()
-        except AssertionError:
-            self.fail()
-
-
-class TestTokenErrorHandling(IsolatedAsyncioTestCase):
-
-    @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
-    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
-    async def test_reauth_process_not_called_when_not_requested(
-            self,
-            mock_spotify: MagicMock,
-            mock_store: MagicMock,
-    ):
-
-        self.mocks = {
-            "internal": MagicMock(spec=PrivateSession),
-            "external": MagicMock(spec=PublicSession),
-            "hass": MagicMock(spec=HomeAssistant),
-            "entry": MagicMock(spec=ConfigEntry),
-        }
-        self.mocks["hass"].loop = MagicMock()
-        self.mocks["hass"].config_entries.async_get_entry\
-            .return_value = self.mocks["entry"]
-
-        self.mock_spotify = mock_spotify
-
-        self.mocks["internal"].async_ensure_token_valid = AsyncMock()
-        self.mocks["internal"].async_ensure_token_valid\
-            .side_effect = TokenError()
-
-        self.account = SpotifyAccount(
-            entry_id="12345",
-            hass=self.mocks["hass"],
-            public_session=self.mocks["external"],
-            private_session=self.mocks["internal"],
-            is_default=True
-        )
-
-        self.account.async_profile = AsyncMock()
-
-        with self.assertRaises(TokenError):
-            await self.account.async_ensure_tokens_valid(reauth_on_fail=False)
-
-        try:
-            self.mocks["entry"].async_start_reauth.assert_not_called()
-        except AssertionError:
-            self.fail()
-
-    @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
-    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
-    async def test_reauth_process_called_when_requested(
-            self,
-            mock_spotify: MagicMock,
-            mock_store: MagicMock,
-    ):
-
-        self.mocks = {
-            "internal": MagicMock(spec=PrivateSession),
-            "external": MagicMock(spec=PublicSession),
-            "hass": MagicMock(spec=HomeAssistant),
-            "entry": MagicMock(spec=ConfigEntry),
-        }
-        self.mocks["hass"].loop = MagicMock()
-        self.mocks["hass"].config_entries.async_get_entry\
-            .return_value = self.mocks["entry"]
-
-        self.mock_spotify = mock_spotify
-
-        self.mocks["internal"].async_ensure_token_valid = AsyncMock()
-        self.mocks["internal"].async_ensure_token_valid\
-            .side_effect = TokenError()
-
-        self.account = SpotifyAccount(
-            entry_id="12345",
-            hass=self.mocks["hass"],
-            public_session=self.mocks["external"],
-            private_session=self.mocks["internal"],
-            is_default=True
-        )
-
-        self.account.async_profile = AsyncMock()
-
-        with self.assertRaises(TokenError):
-            await self.account.async_ensure_tokens_valid()
-
-        try:
-            self.mocks["entry"].async_start_reauth.assert_called_with(
-                self.mocks["hass"],
-                context={"source": SOURCE_REAUTH},
+            self.mocks["update"].assert_called_once_with(
+                entry=self.mocks["entry"],
+                data={
+                    "external_api": {
+                        "token": {
+                            "access_token": "foo",
+                            "refresh_token": "world",
+                            "expires_at": 345,
+                        },
+                        "implementation": "far",
+                    },
+                    "desktop_api": {
+                        "token": {
+                            "access_token": "hello",
+                            "refresh_token": "world",
+                            "expires_at": 345,
+                        }
+                    },
+                }
             )
-        except AssertionError:
-            self.fail()
+        except AssertionError as exc:
+            self.fail(exc)

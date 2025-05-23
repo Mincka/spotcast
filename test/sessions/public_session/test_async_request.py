@@ -21,6 +21,7 @@ class TestRequestCall(IsolatedAsyncioTestCase):
     async def asyncSetUp(self, mock_valid: AsyncMock, mock_request: AsyncMock):
         mock_hass = MagicMock(spec=HomeAssistant)
         mock_entry = MagicMock(spec=ConfigEntry)
+        mock_entry.data = {}
         mock_implementation = MagicMock(spec=OAuth2Session)
         self.mock_request = mock_request
 

@@ -31,13 +31,20 @@ class TestPropertiesRetrieval(TestCase):
         self.session = DesktopSession(**self.mocks)
 
     def test_token_value(self):
-        self.assertEqual(self.session.token, "foo")
+        self.assertEqual(
+            self.session.token,
+            {
+                "access_token": "foo",
+                "refresh_token": "bar",
+                "expires_at": 0,
+            }
+        )
 
     def test_refresh_token_value(self):
         self.assertEqual(self.session.refresh_token, "bar")
 
     def test_clean_token_value(self):
-        self.assertEqual(self.session.clean_token, self.session.token)
+        self.assertEqual(self.session.clean_token, self.session.access_token)
 
     def test_expires_at_value(self):
         self.assertEqual(self.session.expires_at, 0)

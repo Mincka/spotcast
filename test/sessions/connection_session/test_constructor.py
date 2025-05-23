@@ -34,6 +34,7 @@ class TestDataRetention(TestCase):
             "hass": MagicMock(spec=HomeAssistant),
             "entry": MagicMock(spec=ConfigEntry),
         }
+        self.mocks["entry"].data = {}
 
         self.session = DummySession(
             hass=self.mocks["hass"],
@@ -54,3 +55,6 @@ class TestDataRetention(TestCase):
 
     def test_is_healthy_attribute_created(self):
         self.assertFalse(self.session._is_healthy)
+
+    def test_data_copy_made(self):
+        self.assertEqual(self.session._entry_data, {})
