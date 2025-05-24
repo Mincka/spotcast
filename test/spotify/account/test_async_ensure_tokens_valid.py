@@ -68,22 +68,26 @@ class TestUpdateRequired(IsolatedAsyncioTestCase):
         })
 
         self.mocks["refresh"].side_effect = [
-            {
-                "token": {
-                    "access_token": "foo",
-                    "refresh_token": "world",
-                    "expires_at": 345,
-                },
-                "implementation": "far",
-            },
-            {
-                "token": {
-                    "access_token": "hello",
-                    "refresh_token": "world",
-                    "expires_at": 345,
-                }
-            },
+            True,
+            True,
         ]
+
+        self.mocks["public_session"].data = {
+            "token": {
+                "access_token": "foo",
+                "refresh_token": "world",
+                "expires_at": 345,
+            },
+            "auth_implementation": "far"
+        }
+
+        self.mocks["private_session"].data = {
+            "token": {
+                "access_token": "hello",
+                "refresh_token": "world",
+                "expires_at": 345,
+            }
+        }
 
         self.mocks["public_session"].token = "foo"
         self.mocks["private_session"].token = "hello"
@@ -113,7 +117,7 @@ class TestUpdateRequired(IsolatedAsyncioTestCase):
                             "refresh_token": "world",
                             "expires_at": 345,
                         },
-                        "implementation": "far",
+                        "auth_implementation": "far",
                     },
                     "desktop_api": {
                         "token": {

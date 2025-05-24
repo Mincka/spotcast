@@ -370,12 +370,13 @@ class SpotifyAccount:
             - str: token for the requested session
         """
         await self.sessions[api].async_ensure_token_valid()
-        return self.sessions[api].clean_token
+        return self.sessions[api].access_token
 
     async def async_ensure_tokens_valid(
         self,
         skip_profile: bool = False,
         reauth_on_fail: bool = True,
+        force_entry_update: bool = False,
     ):
         """Ensures the token are valid.
 
@@ -384,25 +385,36 @@ class SpotifyAccount:
                 profile update. Defaults to False
             reauth_on_fail(bool, optional): Asks for reauthorisation
                 of the entry on failure to get token. Defaults to True.
+            force_entry_update(bool, optional): Forces the config entry
+                update even if no data was updated.
         """
         if not skip_profile:
             await self.async_profile()
 
-        LOGGER.debug("Refreshing api tokens for Spotify Account")
         async with self._lock:
             entry = self.hass.config_entries.async_get_entry(self.entry_id)
             data = copy_to_dict(entry.data)
+            need_update = False
 
             for key, session in self.sessions.items():
-                token_info = await self._async_refresh_single_token(
+                was_updated = await self._async_refresh_single_token(
                     session,
                     reauth_on_fail,
                 )
-                data[self.SESSION_CONFIG_MAP[key]] = token_info
+
+                LOGGER.debug(
+                    "Session `%s` token updated: %s",
+                    key,
+                    was_updated,
+                )
+
+                need_update = need_update or was_updated
+
+                data[self.SESSION_CONFIG_MAP[key]] = session.data
 
                 self.apis[key].set_auth(session.access_token)
 
-            if data != entry.data:
+            if need_update or force_entry_update:
                 LOGGER.info(
                     "New information receive, updating entry for `%s`",
                     self.entry_id,
@@ -416,10 +428,11 @@ class SpotifyAccount:
         self,
         session: ConnectionSession,
         reauth_on_fail: bool = True,
-    ) -> ApiItem:
+    ) -> bool:
         """Refreshes the token a a specific session."""
         try:
-            return await session.async_ensure_token_valid()
+            was_updated = await session.async_ensure_token_valid()
+            return was_updated
         except TokenError as exc:
             if reauth_on_fail:
                 LOGGER.error(
@@ -1321,6 +1334,8 @@ class SpotifyAccount:
             private_session=private_session,
             **entry.options,
         )
+
+        await account.async_ensure_tokens_valid(force_entry_update=True)
 
         await account.async_profile()
 

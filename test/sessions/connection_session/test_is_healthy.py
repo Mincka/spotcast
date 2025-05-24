@@ -1,59 +1,18 @@
-"""Module to test the is_healthy property"""
+"""Moduel to test the is_healthy property of the ConnectionSession class"""
 
 from unittest import TestCase
-from unittest.mock import MagicMock
 
-from custom_components.spotcast.sessions.connection_session import (
-    ConnectionSession,
-    HomeAssistant,
-    ConfigEntry,
-)
+from test.sessions.connection_session import get_mocked_session
 
 
-class DummySession(ConnectionSession):
-
-    async def async_ensure_token_valid(self):
-        raise NotImplementedError
-
-    @property
-    def token(self):
-        raise NotImplementedError
-
-    @property
-    def clean_token(self):
-        raise NotImplementedError
-
-
-class TestIstHealthy(TestCase):
+class Test_isHealthy(TestCase):
 
     def setUp(self):
-        self.mocks = {
-            "hass": MagicMock(spec=HomeAssistant),
-            "entry": MagicMock(spec=ConfigEntry),
-        }
-        self.mocks["entry"].data = {}
-        self.session = DummySession(
-            hass=self.mocks["hass"],
-            entry=self.mocks["entry"]
+        self.session, self.mocks = get_mocked_session()
+        self.session.supervisor.is_healthy = True
+
+    def test_returns_supervisors_status(self):
+        self.assertEqual(
+            self.session.is_healthy,
+            self.session.supervisor.is_healthy,
         )
-
-    def test_is_not_healthy_by_default(self):
-        self.assertTrue(self.session.is_healthy)
-
-
-class TestIsNotHealthy(TestCase):
-
-    def setUp(self):
-        self.mocks = {
-            "hass": MagicMock(spec=HomeAssistant),
-            "entry": MagicMock(spec=ConfigEntry),
-        }
-        self.mocks["entry"].data = {}
-        self.session = DummySession(
-            hass=self.mocks["hass"],
-            entry=self.mocks["entry"]
-        )
-        self.session.supervisor._is_healthy = False
-
-    def test_is_healthy_when_set_true(self):
-        self.assertFalse(self.session.is_healthy)

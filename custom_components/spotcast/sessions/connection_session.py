@@ -6,50 +6,67 @@ Classes:
 
 from abc import ABC, abstractmethod
 from asyncio import Lock
+from logging import getLogger
+from time import time
 
+from aiohttp.client_exceptions import ClientResponseError
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
 from .retry_supervisor import RetrySupervisor
-from custom_components.spotcast.entry_data import ApiItem, EntryData
+from custom_components.spotcast.entry_data import ApiItem, EntryData, TokenData
 from custom_components.spotcast.utils import copy_to_dict
 
-SUPERVISED_ERRORS = ()
+from .exceptions import UpstreamServerNotready, TokenRefreshError
+
+LOGGER = getLogger(__name__)
 
 
 class ConnectionSession(ABC):
     """Module for the abstract class ConnectionSession."""
 
     API_ENDPOINT = None
-    API_KEY = "None"
+    API_KEY = "dummy_api"
+    EXPIRATION_OFFSET = 20
+    SESSION_TYPE = "Dummy"
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry):
         """Module for the abstract class ConnectionSession."""
         self.hass = hass
         self.entry = entry
         self._entry_data: EntryData = copy_to_dict(self.entry.data)
-        self._is_healthy = False
         self._token_lock = Lock()
         self.supervisor = RetrySupervisor()
 
-    @abstractmethod
-    async def async_ensure_token_valid(self) -> ApiItem:
-        """Method that ensures a token is currently valid."""
+    @property
+    def expires_at(self) -> float:
+        """Returns the expiration epoch of the access token."""
+        return self.token["expires_at"]
 
     @property
-    def _data(self) -> dict:
+    def valid_token(self) -> bool:
+        """Returns False if the access token is expired."""
+        return self.expires_at - self.EXPIRATION_OFFSET > time()
+
+    @property
+    def data(self) -> ApiItem:
         """Retrieves the data from the entry."""
         return self._entry_data[self.API_KEY]
 
-    @_data.setter
-    def _data(self, data: dict) -> None:
+    @data.setter
+    def data(self, data: dict) -> None:
         """Saves data for the api entry."""
         self._entry_data[self.API_KEY] = data
 
     @property
-    def token(self) -> dict:
-        """Retrives the token information for the session."""
-        return self._data["token"]
+    def token(self) -> TokenData:
+        """Retrieves the token information for the session."""
+        return self.data["token"]
+
+    @token.setter
+    def token(self, data: TokenData):
+        """Updates the token data."""
+        self.data["token"] = data
 
     @property
     def access_token(self) -> str:
@@ -69,6 +86,7 @@ class ConnectionSession(ABC):
         """
         padding = 3
         inner_string = "*" * 20
+
         return (
             f"{self.access_token[:padding]}"
             f"{inner_string}"
@@ -79,3 +97,52 @@ class ConnectionSession(ABC):
     def is_healthy(self) -> bool:
         """Returns True if the session is able to refresh its token."""
         return self.supervisor.is_healthy
+
+    @abstractmethod
+    async def async_refresh_token(self) -> TokenData:
+        """Refreshes the token and returns its new data."""
+
+    async def async_ensure_token_valid(self) -> bool:
+        """Method that ensures a token is currently valid.
+
+        Returns:
+            bool: Returns `True` if the token was refreshed and `False`
+                if not
+        """
+        async with self._token_lock:
+            if self.valid_token:
+                return False
+
+            if not self.supervisor.is_ready:
+                raise UpstreamServerNotready("Server not ready for refresh")
+
+            LOGGER.debug(
+                "%s Session - Expired Token `%s`",
+                self.SESSION_TYPE,
+                self.obfuscated_token,
+            )
+
+            try:
+                api_response = await self.async_refresh_token()
+            except self.supervisor.SUPERVISED_EXCEPTIONS as exc:
+                self.supervisor.is_healthy = False
+                self.supervisor.log_message(exc)
+                raise UpstreamServerNotready(
+                    "Server not ready for refresh"
+                ) from exc
+            except ClientResponseError as exc:
+                self.supervisor.is_healthy = False
+                if exc.status == 400:
+                    LOGGER.error("Unable to refresh desktop token")
+                    raise TokenRefreshError(exc) from exc
+                raise exc from exc
+
+            self.supervisor.is_healthy = True
+            self.token = api_response
+            LOGGER.debug(
+                "%s Session - New Token `%s`",
+                self.SESSION_TYPE,
+                self.obfuscated_token,
+            )
+
+            return True

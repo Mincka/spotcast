@@ -39,7 +39,7 @@ class TestDataRetention(IsolatedAsyncioTestCase):
             is_default=True
         )
 
-        mock_internal.clean_token = "12345"
+        mock_internal.access_token = "12345"
 
         self.result = await self.account.async_get_token("private")
 

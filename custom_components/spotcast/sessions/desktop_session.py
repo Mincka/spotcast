@@ -4,15 +4,13 @@ from json import JSONDecodeError
 from logging import getLogger
 from time import time
 
-from aiohttp.client_exceptions import ClientError, ClientResponseError
+from aiohttp.client_exceptions import ClientError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from custom_components.spotcast.const import DOMAIN, SPOTIFY_CLIENT_ID
-from custom_components.spotcast.entry_data import ApiItem, EntryData
-from custom_components.spotcast.utils import copy_to_dict
+from custom_components.spotcast.entry_data import ApiItem
 
-from .connection_session import ConnectionSession, HomeAssistant, ConfigEntry
-from .exceptions import UpstreamServerNotready, TokenRefreshError
+from .connection_session import ConnectionSession
 
 LOGGER = getLogger(__name__)
 
@@ -22,70 +20,9 @@ class DesktopSession(ConnectionSession):
 
     BASE_URL = "https://accounts.spotify.com"
     TOKEN_ENDPOINT = "api/token"
-    EXPIRATION_OFFSET = -600
+    EXPIRATION_OFFSET = 600
     API_KEY = "desktop_api"
-
-    @property
-    def clean_token(self) -> str:
-        """Returns the active token for the session."""
-        return self.access_token
-
-    @property
-    def refresh_token(self) -> str:
-        """The refresh token for the api."""
-        return self._data["token"]["refresh_token"]
-
-    @property
-    def expires_at(self) -> int:
-        """Returns the timestamp of when the access token will expire."""
-        return self.token["expires_at"]
-
-    @property
-    def valid_token(self) -> bool:
-        """Returns True if the token is still valid."""
-        return self.expires_at + self.EXPIRATION_OFFSET > time()
-
-    async def async_ensure_token_valid(self):
-        """Checks if the token is valid and if not refreshes it."""
-        not_ready = False
-
-        async with self._token_lock:
-            if self.valid_token:
-                return self._data
-
-            if not self.supervisor.is_ready:
-                not_ready = True
-
-            else:
-                LOGGER.debug(
-                    "Token `%s` is expired. Getting a new one",
-                    self.obfuscated_token,
-                )
-
-                try:
-                    api_response = await self.async_refresh_token()
-                    self.supervisor.is_healthy = True
-
-                    self._data["token"] = api_response
-                    LOGGER.debug(
-                        "New token received: `%s`",
-                        self.obfuscated_token,
-                    )
-
-                    return self._data
-
-                except self.supervisor.SUPERVISED_EXCEPTIONS as exc:
-                    self.supervisor.is_healthy = False
-                    self.supervisor.log_message(exc)
-                    not_ready = True
-                except ClientResponseError as exc:
-                    if exc.status == 400:
-                        LOGGER.error("Unable to refresh desktop token")
-                        raise TokenRefreshError(exc) from exc
-                    raise exc
-
-        if not_ready:
-            raise UpstreamServerNotready("Server not ready for refresh")
+    SESSION_TYPE = "Desktop"
 
     async def async_refresh_token(self) -> ApiItem:
         """Refreshes the token."""
