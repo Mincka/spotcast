@@ -24,6 +24,7 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi 
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          export PYTHONPATH=$(pwd)
       - run: |
           coverage run --branch --omit=./test/* -m unittest discover -s ./test -p test_*.py
           coverage report --fail-under=70
