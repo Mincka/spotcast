@@ -4,14 +4,10 @@ from base64 import urlsafe_b64encode
 from hashlib import sha256
 from logging import getLogger
 from time import time
-from typing import cast
 from os import urandom
 
 from homeassistant.helpers.config_entry_oauth2_flow import (
     LocalOAuth2ImplementationWithPkce,
-    async_get_clientsession,
-    ClientError,
-    JSONDecodeError,
 )
 
 from custom_components.spotcast.entry_data import (
