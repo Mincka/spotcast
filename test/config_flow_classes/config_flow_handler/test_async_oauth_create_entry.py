@@ -1,7 +1,7 @@
 """Module to test the async_oauth_create_entry function"""
 
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock, AsyncMock, call, PropertyMock
 
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import AbortFlow
@@ -9,6 +9,7 @@ from homeassistant.data_entry_flow import AbortFlow
 from custom_components.spotcast.config_flow_classes.config_flow_handler \
     import (
         SpotcastFlowHandler,
+        RelayedOAuth2ImplementationWithPcke,
         SOURCE_REAUTH,
         Spotify,
         ConfigEntry,
@@ -19,389 +20,373 @@ from test.config_flow_classes.config_flow_handler import TEST_MODULE
 
 class TestExternalApiEntry(IsolatedAsyncioTestCase):
 
-    def setUp(self):
-
-        self.external_api = {
-            "auth_implementation": "spotcast_foo",
-            "token": {
-                "access_token": "12345",
-                "token_type": "Bearer",
-                "expires_in": 3600,
-                "refreh_token": "ABCDF",
-                "expires_at": 1729807129.8667192
-            }
-        }
-
-        self.flow_handler = SpotcastFlowHandler()
-
     @patch.object(
         SpotcastFlowHandler,
-        "async_show_form",
-        new_callable=MagicMock
+        "_get_pcke_impl",
+        new_callable=MagicMock,
     )
-    async def test_data_attributes_has_external_api_data(
-        self,
-        mock_form: MagicMock
-    ):
-        await self.flow_handler.async_oauth_create_entry(self.external_api)
-        self.assertIn("external_api", self.flow_handler.data)
-
     @patch.object(
         SpotcastFlowHandler,
-        "async_show_form",
-        new_callable=MagicMock
+        "async_external_step",
+        new_callable=MagicMock,
     )
-    async def test_intern_api_step_is_called(self, mock_form: MagicMock):
-        await self.flow_handler.async_oauth_create_entry(self.external_api)
-        try:
-            mock_form.assert_called_with(
-                step_id="desktop_api",
-                data_schema=self.flow_handler.DESKTOP_API_SCHEMA,
-                errors={},
-            )
-        except AssertionError:
-            self.fail("internal_api step was never called")
+    async def asyncSetUp(self, mock_external: AsyncMock, mock_pcke: MagicMock):
 
-
-class TestInternalApiProvided(IsolatedAsyncioTestCase):
-
-    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
-    async def asyncSetUp(
-        self,
-        mock_spotify: MagicMock,
-    ):
-
-        mock_spotify.return_value = MagicMock(spec=Spotify)
-
-        self.mocks = {
-            "hass": MagicMock(spec=HomeAssistant),
-            "spotify": mock_spotify.return_value,
-        }
-
-        self.mocks["hass"].async_add_executor_job = AsyncMock(return_value={
-            "id": "foo",
-            "display_name": "User Name"
-        })
-
-        self.data = {
-            "external_api": {
-                "token": {
-                    "access_token": "12345"
-                }
-            },
-            "internal_api": {
-                "token": {
-                    "access_token": "23456"
-                }
-            }
-        }
-
-        self.handler = SpotcastFlowHandler()
-        self.handler.hass = self.mocks["hass"]
-        self.handler.data = self.data
-        self.handler.async_set_unique_id = AsyncMock()
-        self.handler.async_create_entry = MagicMock()
-        self.mocks["hass"].config_entries.async_entries.return_value = []
-
-        self.result = await self.handler.async_oauth_create_entry({})
-
-    def test_entry_properly_setup(self):
-        try:
-            self.handler.async_create_entry(
-                title="User Name",
-                data={
-                    "external_api": {
-                        "token": {
-                            "access_token": "12345"
-                        }
-                    },
-                    "internal_api": {
-                        "token": {
-                            "access_token": "23456"
-                        }
-                    }
-                },
-                options={
-                    "is_default": True,
-                    "base_refresh_rate": 30,
-                }
-            )
-        except AssertionError:
-            self.fail()
-
-
-class TestFailedToGetProfile(IsolatedAsyncioTestCase):
-
-    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
-    async def asyncSetUp(
-        self,
-        mock_spotify: MagicMock,
-    ):
-
-        mock_spotify.return_value = MagicMock(spec=Spotify)
-
-        self.mocks = {
-            "hass": MagicMock(spec=HomeAssistant),
-            "spotify": mock_spotify.return_value,
-        }
-
-        self.mocks["hass"].async_add_executor_job = AsyncMock(
-            side_effect=ValueError()
+        mock_pcke.return_value = MagicMock(
+            spec=RelayedOAuth2ImplementationWithPcke,
         )
 
-        self.data = {
-            "external_api": {
-                "token": {
-                    "access_token": "12345"
-                }
-            },
-            "internal_api": {
-                "sp_dc": "foo",
-                "sp_key": "bar",
-            }
-        }
-
-        self.handler = SpotcastFlowHandler()
-        self.handler.hass = self.mocks["hass"]
-        self.handler.data = self.data
-        self.handler.async_abort = MagicMock()
-
-        self.result = await self.handler.async_oauth_create_entry({})
-
-    def test_abort_correctly_called(self):
-        try:
-            self.handler.async_abort(reason="connection_error")
-        except AssertionError:
-            self.fail()
-
-
-class TestPublicPrivateProfileMismatch(IsolatedAsyncioTestCase):
-
-    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
-    async def asyncSetUp(
-        self,
-        mock_spotify: MagicMock,
-    ):
-
-        mock_spotify.return_value = MagicMock(spec=Spotify)
-
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
-            "spotify": mock_spotify.return_value,
+            "external": mock_external,
+            "pcke": mock_pcke.return_value
         }
 
-        self.mocks["hass"].async_add_executor_job = AsyncMock(side_effect=[
-            {
-                "id": "foo",
-                "display_name": "User Name"
-            },
-            {
-                "id": "bar",
-                "display_name": "Different User"
-            }
-        ])
-
-        self.data = {
-            "external_api": {
-                "token": {
-                    "access_token": "12345"
-                }
-            },
-            "desktop_api": {
-                "token": {
-                    "access_token": "23456"
-                }
-            }
-        }
+        self.mocks["hass"].data = {}
+        self.mocks["pcke"].async_generate_authorize_url = AsyncMock()
+        self.mocks["pcke"].async_generate_authorize_url\
+            .return_value = "https://foo.bar"
 
         self.handler = SpotcastFlowHandler()
         self.handler.hass = self.mocks["hass"]
-        self.handler.data = self.data
-        self.handler.async_abort = MagicMock()
+        self.handler.flow_id = "12345"
+        self.handler.data = {}
+        await self.handler.async_oauth_create_entry({"foo": "bar"})
 
-        self.result = await self.handler.async_oauth_create_entry({})
+    def test_data_added_to_external_api(self):
+        self.assertEqual(self.handler.data, {"external_api": {"foo": "bar"}})
 
-    def test_abort_correctly_called(self):
+    def test_external_step_called(self):
         try:
-            self.handler.async_abort.assert_called_with(
-                reason="public_private_accounts_mismatch"
+            self.mocks["external"].assert_called_with(
+                step_id="desktop_api",
+                url="https://foo.bar"
             )
         except AssertionError as exc:
             self.fail(exc)
 
 
-class TestReauthProcess(IsolatedAsyncioTestCase):
+class TestAllDataProvided(IsolatedAsyncioTestCase):
 
+    @patch.object(
+        SpotcastFlowHandler,
+        "async_create_entry",
+        new_callable=MagicMock,
+    )
+    @patch.object(SpotcastFlowHandler, "async_set_unique_id")
     @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
     async def asyncSetUp(
         self,
         mock_spotify: MagicMock,
+        mock_set_id: AsyncMock,
+        mock_create: MagicMock,
     ):
+
+        self.mocks = {
+            "hass": MagicMock(spec=HomeAssistant),
+            "spotify_constructor": mock_spotify,
+            "set_id": mock_set_id,
+            "spotify_sessions": [
+                MagicMock(spec=Spotify),
+                MagicMock(spec=Spotify),
+            ],
+            "create": mock_create,
+        }
+
+        self.mocks["spotify_constructor"].side_effect = self.mocks[
+            "spotify_sessions"
+        ]
+
+        self.mocks["hass"].data = {}
+        self.mocks["hass"].async_add_executor_job = AsyncMock()
+        self.mocks["hass"].async_add_executor_job.return_value = {
+            "id": "12345",
+            "display_name": "Foo Bar"
+        }
+        self.mocks["hass"].config_entries.async_entries.return_value = []
+
+        self.handler = SpotcastFlowHandler()
+        self.handler.hass = self.mocks["hass"]
+        self.handler.flow_id = "12345"
+        self.handler.context_id = "23456"
+        self.handler.data = {
+            "external_api": {
+                "token": {
+                    "access_token": "foo",
+                },
+            },
+            "desktop_api": {
+                "token": {
+                    "access_token": "bar",
+                },
+            },
+        }
+
+        await self.handler.async_oauth_create_entry({})
+
+    def test_spotify_created_with_proper_tokens(self):
+        try:
+            self.mocks["spotify_constructor"].assert_has_calls([
+                call(auth="foo"),
+                call(auth="bar"),
+            ])
+        except AssertionError as exc:
+            self.fail(exc)
+
+    def test_profiles_from_both_sessions_retrieved(self):
+        try:
+            self.mocks["hass"].async_add_executor_job.assert_has_calls([
+                call(self.mocks["spotify_sessions"][0].current_user),
+                call(self.mocks["spotify_sessions"][1].current_user),
+            ])
+        except AssertionError as exc:
+            self.fail(exc)
+
+    def test_name_set_in_data(self):
+        self.assertEqual(self.handler.data["name"], "Foo Bar")
+
+    def test_unique_id_set_to_spotify_id(self):
+        try:
+            self.mocks["set_id"].assert_called_with("12345")
+        except AssertionError as exc:
+            self.fail(exc)
+
+    def test_entry_creation_data(self):
+        try:
+            self.mocks["create"].assert_called_with(
+                title="Foo Bar",
+                data=self.handler.data,
+                options={
+                    "is_default": True,
+                    "base_refresh_rate": 30,
+                }
+            )
+        except AssertionError as exc:
+            self.fail(exc)
+
+
+class TestProfileRefreshError(IsolatedAsyncioTestCase):
+
+    @patch.object(SpotcastFlowHandler, "async_abort", new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
+    async def asyncSetUp(self, mock_spotify: MagicMock, mock_abort: MagicMock):
 
         mock_spotify.return_value = MagicMock(spec=Spotify)
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
             "spotify": mock_spotify.return_value,
-            "entry": MagicMock(spec=ConfigEntry)
-        }
-
-        self.mocks["entry"].unique_id = "foo"
-        self.mocks["hass"].async_add_executor_job = AsyncMock(side_effect=[
-            {
-                "id": "foo",
-            },
-            {
-                "id": "foo",
-            }
-        ])
-
-        self.data = {
-            "external_api": {
-                "token": {
-                    "access_token": "12345"
-                }
-            },
-            "desktop_api": {
-                "token": {
-                    "access_token": "23456"
-                }
-            }
+            "abort": mock_abort,
         }
 
         self.handler = SpotcastFlowHandler()
         self.handler.hass = self.mocks["hass"]
-        self.handler.data = self.data
-        self.handler.context = {
-            "source": SOURCE_REAUTH,
-            "unique_id": "foo"
+        self.handler.data = {
+            "external_api": {
+                "token": {
+                    "access_token": "foo",
+                },
+            },
+            "desktop_api": {
+                "token": {
+                    "access_token": "bar",
+                },
+            },
         }
-        self.handler._get_reauth_entry = MagicMock(
-            return_value=self.mocks["entry"]
-        )
-        self.handler.async_update_reload_and_abort = MagicMock()
+
+        self.mocks["hass"].async_add_executor_job = AsyncMock()
+        self.mocks["hass"].async_add_executor_job\
+            .side_effect = NotImplementedError()
 
         self.result = await self.handler.async_oauth_create_entry({})
 
-    def test_abort_correctly_called(self):
+    def test_process_aborted(self):
         try:
-            self.handler.async_update_reload_and_abort.assert_called_with(
-                self.mocks["entry"],
+            self.mocks["abort"].assert_called_with(
+                reason="connection_error",
+                description_placeholders={"account_type": "public"}
+            )
+        except AssertionError as exc:
+            self.fail(exc)
+
+    def test_returns_abort_flow_result(self):
+        self.assertIs(self.result, self.mocks["abort"].return_value)
+
+
+class TestUnmatchedProfile(IsolatedAsyncioTestCase):
+
+    @patch.object(SpotcastFlowHandler, "async_abort", new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
+    async def asyncSetUp(self, mock_spotify: MagicMock, mock_abort: MagicMock):
+
+        mock_spotify.return_value = MagicMock(spec=Spotify)
+
+        self.mocks = {
+            "hass": MagicMock(spec=HomeAssistant),
+            "spotify": mock_spotify.return_value,
+            "abort": mock_abort,
+        }
+
+        self.handler = SpotcastFlowHandler()
+        self.handler.hass = self.mocks["hass"]
+        self.handler.data = {
+            "external_api": {
+                "token": {
+                    "access_token": "foo",
+                },
+            },
+            "desktop_api": {
+                "token": {
+                    "access_token": "bar",
+                },
+            },
+        }
+
+        self.mocks["hass"].async_add_executor_job = AsyncMock()
+        self.mocks["hass"].async_add_executor_job\
+            .side_effect = [
+                {"id": "foo"},
+                {"id": "bar"},
+        ]
+
+        self.result = await self.handler.async_oauth_create_entry({})
+
+    def test_process_aborted(self):
+        try:
+            self.mocks["abort"].assert_called_with(
+                reason="public_private_accounts_mismatch",
+            )
+        except AssertionError as exc:
+            self.fail(exc)
+
+    def test_returns_abort_flow_result(self):
+        self.assertIs(self.result, self.mocks["abort"].return_value)
+
+
+class TestReauthMismatch(IsolatedAsyncioTestCase):
+
+    @patch.object(SpotcastFlowHandler, "source", new_callable=PropertyMock)
+    @patch.object(SpotcastFlowHandler, "async_set_unique_id")
+    @patch.object(
+        SpotcastFlowHandler,
+        "_abort_if_unique_id_mismatch",
+        new_callable=MagicMock,
+    )
+    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
+    async def test_error_raised(
+        self,
+        mock_spotify: MagicMock,
+        mock_abort: MagicMock,
+        mock_set_id: MagicMock,
+        mock_source: PropertyMock,
+    ):
+
+        mock_spotify.return_value = MagicMock(spec=Spotify)
+
+        self.mocks = {
+            "hass": MagicMock(spec=HomeAssistant),
+            "spotify": mock_spotify.return_value,
+            "abort": mock_abort,
+            "set_id": mock_set_id,
+            "source": mock_source,
+        }
+
+        self.handler = SpotcastFlowHandler()
+        self.mocks["source"].return_value = SOURCE_REAUTH
+        self.handler.hass = self.mocks["hass"]
+        self.handler.data = {
+            "external_api": {
+                "token": {
+                    "access_token": "foo",
+                },
+            },
+            "desktop_api": {
+                "token": {
+                    "access_token": "bar",
+                },
+            },
+        }
+
+        self.mocks["hass"].async_add_executor_job = AsyncMock()
+        self.mocks["hass"].async_add_executor_job.return_value = {"id": "foo"}
+        self.mocks["abort"].side_effect = AbortFlow("Dummy")
+
+        with self.assertRaises(AbortFlow):
+            await self.handler.async_oauth_create_entry({})
+
+
+class TestSuccessfullReauth(IsolatedAsyncioTestCase):
+
+    @patch.object(
+        SpotcastFlowHandler,
+        "_get_reauth_entry",
+        new_callable=MagicMock,
+    )
+    @patch.object(
+        SpotcastFlowHandler,
+        "async_update_reload_and_abort",
+        new_callable=MagicMock,
+    )
+    @patch.object(SpotcastFlowHandler, "source", new_callable=PropertyMock)
+    @patch.object(SpotcastFlowHandler, "async_set_unique_id")
+    @patch.object(
+        SpotcastFlowHandler,
+        "_abort_if_unique_id_mismatch",
+        new_callable=MagicMock,
+    )
+    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
+    async def asyncSetUp(
+        self,
+        mock_spotify: MagicMock,
+        mock_abort: MagicMock,
+        mock_set_id: MagicMock,
+        mock_source: PropertyMock,
+        mock_reload: MagicMock,
+        mock_get_reauth: MagicMock,
+    ):
+
+        mock_spotify.return_value = MagicMock(spec=Spotify)
+
+        self.mocks = {
+            "hass": MagicMock(spec=HomeAssistant),
+            "spotify": mock_spotify.return_value,
+            "abort": mock_abort,
+            "set_id": mock_set_id,
+            "source": mock_source,
+            "reload": mock_reload,
+            "get_reauth": mock_get_reauth,
+        }
+
+        self.handler = SpotcastFlowHandler()
+        self.mocks["source"].return_value = SOURCE_REAUTH
+        self.handler.hass = self.mocks["hass"]
+        self.handler.data = {
+            "external_api": {
+                "token": {
+                    "access_token": "foo",
+                },
+            },
+            "desktop_api": {
+                "token": {
+                    "access_token": "bar",
+                },
+            },
+        }
+
+        self.mocks["hass"].async_add_executor_job = AsyncMock()
+        self.mocks["hass"].async_add_executor_job.return_value = {"id": "foo"}
+
+        self.result = await self.handler.async_oauth_create_entry({})
+
+    def test_reload_called(self):
+        try:
+            self.mocks["reload"].assert_called_with(
+                self.mocks["get_reauth"].return_value,
                 title="foo",
                 data=self.handler.data,
             )
-        except AssertionError:
-            self.fail()
+        except AssertionError as exc:
+            self.fail(exc)
 
-
-class TestFailReauthProcess(IsolatedAsyncioTestCase):
-
-    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
-    async def test_error_raised(
-        self,
-        mock_spotify: MagicMock,
-    ):
-
-        mock_spotify.return_value = MagicMock(spec=Spotify)
-
-        self.mocks = {
-            "hass": MagicMock(spec=HomeAssistant),
-            "spotify": mock_spotify.return_value,
-            "entry": MagicMock(spec=ConfigEntry)
-        }
-
-        self.mocks["entry"].unique_id = "bar"
-        self.mocks["hass"].async_add_executor_job = AsyncMock(side_effect=[
-            {
-                "id": "foo",
-            },
-            {
-                "id": "foo",
-            }
-        ])
-
-        self.data = {
-            "external_api": {
-                "token": {
-                    "access_token": "12345"
-                }
-            },
-            "desktop_api": {
-                "token": {
-                    "access_token": "23456"
-                }
-            }
-        }
-
-        self.handler = SpotcastFlowHandler()
-        self.handler.hass = self.mocks["hass"]
-        self.handler.data = self.data
-        self.handler.context = {
-            "source": SOURCE_REAUTH,
-            "unique_id": "bar"
-        }
-        self.handler._get_reauth_entry = MagicMock(
-            return_value=self.mocks["entry"]
-        )
-        self.handler.async_update_reload_and_abort = MagicMock()
-
-        with self.assertRaises(AbortFlow):
-            await self.handler.async_oauth_create_entry({})
-
-
-class TestUniqueIdExist(IsolatedAsyncioTestCase):
-
-    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
-    async def test_error_raised(
-        self,
-        mock_spotify: MagicMock,
-    ):
-
-        mock_spotify.return_value = MagicMock(spec=Spotify)
-
-        self.mocks = {
-            "hass": MagicMock(spec=HomeAssistant),
-            "spotify": mock_spotify.return_value,
-            "entry": MagicMock(spec=ConfigEntry)
-        }
-
-        self.mocks["entry"].unique_id = "bar"
-        self.mocks["hass"].async_add_executor_job = AsyncMock(side_effect=[
-            {
-                "id": "foo",
-            },
-            {
-                "id": "foo",
-            }
-        ])
-
-        self.data = {
-            "external_api": {
-                "token": {
-                    "access_token": "12345"
-                }
-            },
-            "desktop_api": {
-                "token": {
-                    "access_token": "23456"
-                }
-            }
-        }
-
-        self.handler = SpotcastFlowHandler()
-        self.handler.hass = self.mocks["hass"]
-        self.handler.data = self.data
-        self.handler.context = {
-            "source": SOURCE_REAUTH,
-            "unique_id": "bar"
-        }
-        self.handler._get_reauth_entry = MagicMock(
-            return_value=self.mocks["entry"]
-        )
-        self.handler.async_update_reload_and_abort = MagicMock()
-        self.handler._abort_if_unique_id_configured = MagicMock(
-            side_effect=AbortFlow(reason="test_abort")
-        )
-
-        with self.assertRaises(AbortFlow):
-            await self.handler.async_oauth_create_entry({})
+    def test_reauth_flow_result_returned(self):
+        self.assertIs(self.result, self.mocks["reload"].return_value)

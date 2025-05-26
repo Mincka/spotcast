@@ -1,16 +1,18 @@
-"""Module for the spotify account class
+"""Module for the spotify account class.
 
 Classes:
-    - SpotifyAccount
+    SpotifyAccount
 """
 
-from logging import getLogger
 from asyncio import (
     run_coroutine_threadsafe,
     Lock,
     sleep,
     TimeoutError,
 )
+from copy import deepcopy
+import datetime as dt
+from logging import getLogger
 from time import time
 from typing import Any
 
@@ -393,7 +395,7 @@ class SpotifyAccount:
 
         async with self._lock:
             entry = self.hass.config_entries.async_get_entry(self.entry_id)
-            data = copy_to_dict(entry.data)
+            new_data = deepcopy({**entry.data})
             need_update = False
 
             for key, session in self.sessions.items():
@@ -410,7 +412,7 @@ class SpotifyAccount:
 
                 need_update = need_update or was_updated
 
-                data[self.SESSION_CONFIG_MAP[key]] = session.data
+                new_data[self.SESSION_CONFIG_MAP[key]] = {**session.data}
 
                 self.apis[key].set_auth(session.access_token)
 
@@ -419,10 +421,14 @@ class SpotifyAccount:
                     "New information receive, updating entry for `%s`",
                     self.entry_id,
                 )
-                self.hass.config_entries.async_update_entry(
+                new_data["last_update"] = dt.datetime.now().isoformat()
+
+                result = self.hass.config_entries.async_update_entry(
                     entry=entry,
-                    data=data,
+                    data=new_data,
                 )
+
+                LOGGER.debug("Config Entry updated: %s", result)
 
     async def _async_refresh_single_token(
         self,
@@ -473,7 +479,7 @@ class SpotifyAccount:
             if force or dataset.is_expired():
                 LOGGER.debug("Refreshing profile dataset")
                 data = await self.hass.async_add_executor_job(
-                    self.apis["private"].me
+                    self.apis["public"].me
                 )
                 dataset.update(data)
             else:
@@ -955,9 +961,10 @@ class SpotifyAccount:
         )
 
     async def async_liked_songs_count(self) -> int:
-        """returns the number of linked songs for an account"""
+        """returns the number of linked songs for an account."""
+        await self.async_ensure_tokens_valid()
         return await self._async_get_count(
-            self.apis["private"].current_user_saved_tracks,
+            self.apis["public"].current_user_saved_tracks,
         )
 
     async def async_liked_songs(self, force: bool = False) -> list[str]:

@@ -3,14 +3,25 @@
 from typing import TypedDict
 
 
-class TokenData(TypedDict):
-    """Token Data information."""
+class BaseTokenData(TypedDict):
+    """Common Token data format."""
 
     access_token: str
     token_type: str
-    expires_at: int
     refresh_token: str
     scope: str
+
+
+class SpotifyTokenResponse(BaseTokenData):
+    """Response format from spotify for a token request."""
+
+    expires_in: float
+
+
+class TokenData(BaseTokenData):
+    """Token Data information."""
+
+    expires_at: float
 
 
 class ApiItem(TypedDict):

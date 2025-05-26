@@ -100,7 +100,11 @@ class ConnectionSession(ABC):
 
     @abstractmethod
     async def async_refresh_token(self) -> TokenData:
-        """Refreshes the token and returns its new data."""
+        """Refreshes the token and returns its new data.
+
+        The token data must include an `expires_at` key, not the
+        `expires_in` standard key.
+        """
 
     async def async_ensure_token_valid(self) -> bool:
         """Method that ensures a token is currently valid.

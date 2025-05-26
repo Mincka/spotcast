@@ -1,7 +1,7 @@
-"""Module containing the Config Flow Handler for Spotcast
+"""Module containing the Config Flow Handler for Spotcast.
 
 Classes:
-    - SpotcastFlowHandler
+    SpotcastFlowHandler
 """
 
 from logging import getLogger
@@ -18,13 +18,24 @@ from homeassistant.config_entries import (
 import voluptuous as vol
 from spotipy import Spotify
 
-from custom_components.spotcast.const import DOMAIN
+from custom_components.spotcast.const import (
+    DOMAIN,
+    SPOTIFY_CLIENT_ID,
+    SPOTIFY_AUTHORIZE_URL,
+    SPOTIFY_TOKEN_URL,
+)
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from custom_components.spotcast.entry_data import EntryData
 
+
+from custom_components.spotcast.entry_data import TokenData
 from custom_components.spotcast.spotify import SpotifyAccount
-from custom_components.spotcast.config_flow_classes.options_flow_handler import (
+from custom_components.spotcast.sessions.oauth_pcke_implementation import (
+    RelayedOAuth2ImplementationWithPcke,
+)
+
+from .options_flow_handler import (
     SpotcastOptionsFlowHandler,
 )
 
@@ -32,10 +43,10 @@ LOGGER = getLogger(__name__)
 
 
 class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
-    """Hnadler of the Config Flow for Spotcast
+    """Handler of the Config Flow for Spotcast.
 
     Attributes:
-        - data(dict): The set of information currently collected for
+        data(dict): The set of information currently collected for
             the entry
 
     Constants:
@@ -82,11 +93,12 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
 
     def __init__(self):
         """Constructor of the Spotcast Config Flow."""
+        super().__init__()
         self.data: EntryData = {
             "name": "",
             "version": self.version,
         }
-        super().__init__()
+        self._pcke_impl = None
 
     @property
     def version(self) -> str:
@@ -106,28 +118,46 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         """Extra data to append to authorization url."""
         return {"scope": ",".join(SpotifyAccount.SCOPE)}
 
+    async def async_get_desktop_token(self, external_data: dict) -> TokenData:
+        """Retrives a fresh access_token from spotify dekstop app."""
+        pcke_impl = self._get_pcke_impl()
+        return await pcke_impl.async_resolve_external_data(external_data)
+
     async def async_step_desktop_api(
         self, user_input: dict[str]
     ) -> ConfigFlowResult:
         """Manages the data entry from the internal api step."""
         LOGGER.debug("Adding desktop api to entry data")
 
-        # build base data for api entry
         self.data["desktop_api"] = {
-            "token": {
-                "access_token": "",
-                "token_type": "bearer",
-                "expires_at": 0,
-                "refresh_token": "",
-                "scope": "",
-            }
+            "token": await self.async_get_desktop_token(user_input),
         }
 
-        self.data["desktop_api"]["token"] |= user_input
-        return await self.async_oauth_create_entry(self.data)
+        return self.async_external_step_done(next_step_id="desktop_api_done")
+
+    async def async_step_desktop_api_done(
+        self,
+        user_input: dict,
+    ) -> ConfigFlowResult:
+        """Passes the external steps result to oauth create entry."""
+        return await self.async_oauth_create_entry(user_input)
+
+    def _get_pcke_impl(self) -> RelayedOAuth2ImplementationWithPcke:
+        """Provide the custom spotcast Pkce oauth implementation."""
+        if self._pcke_impl is None:
+            self._pcke_impl = RelayedOAuth2ImplementationWithPcke(
+                hass=self.hass,
+                domain=f"{self.DOMAIN}-desktop",
+                client_id=SPOTIFY_CLIENT_ID,
+                authorize_url=SPOTIFY_AUTHORIZE_URL,
+                token_url=SPOTIFY_TOKEN_URL,
+            )
+
+        return self._pcke_impl
 
     async def async_oauth_create_entry(
-        self, data: dict[str, Any]
+        self,
+        data: dict[str, Any],
     ) -> ConfigFlowResult:
         """Create an entry for Spotify."""
         if "external_api" not in self.data:
@@ -135,10 +165,17 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
             self.data["external_api"] = data
 
         if "desktop_api" not in self.data:
-            return self.async_show_form(
+            pkce_impl = self._get_pcke_impl()
+
+            url = await pkce_impl.async_generate_authorize_url(
+                flow_id=self.flow_id
+            )
+
+            LOGGER.debug("External Step - url `%s`", url)
+
+            return self.async_external_step(
                 step_id="desktop_api",
-                data_schema=self.DESKTOP_API_SCHEMA,
-                errors={},
+                url=url,
             )
 
         external_api = self.data["external_api"]
@@ -170,11 +207,8 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
 
         current_user = profiles["public"]
 
-        name = external_api["id"] = current_user["id"]
-        display_name = current_user.get("display_name")
-
-        if display_name is not None:
-            name = current_user["display_name"]
+        external_api["id"] = current_user["id"]
+        name = current_user.get("display_name", current_user["id"])
 
         self.data["name"] = name
 
@@ -183,7 +217,9 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         if self.source == SOURCE_REAUTH:
             self._abort_if_unique_id_mismatch(reason="reauth_account_mismatch")
             return self.async_update_reload_and_abort(
-                self._get_reauth_entry(), title=name, data=self.data
+                self._get_reauth_entry(),
+                title=name,
+                data=self.data,
             )
 
         self._abort_if_unique_id_configured()

@@ -8,7 +8,7 @@ from aiohttp.client_exceptions import ClientError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from custom_components.spotcast.const import DOMAIN, SPOTIFY_CLIENT_ID
-from custom_components.spotcast.entry_data import ApiItem
+from custom_components.spotcast.entry_data import ApiItem, TokenData
 
 from .connection_session import ConnectionSession
 

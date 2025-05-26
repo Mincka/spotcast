@@ -4,6 +4,8 @@ from types import MappingProxyType
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, patch, AsyncMock
 
+import time_machine
+
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     PublicSession,
@@ -104,7 +106,8 @@ class TestUpdateRequired(IsolatedAsyncioTestCase):
             private_session=self.mocks["private_session"],
         )
 
-        await self.account.async_ensure_tokens_valid()
+        with time_machine.travel("2024-10-20 10:00:00", tick=False):
+            await self.account.async_ensure_tokens_valid()
 
     def test_entry_updated(self):
         try:
@@ -126,6 +129,7 @@ class TestUpdateRequired(IsolatedAsyncioTestCase):
                             "expires_at": 345,
                         }
                     },
+                    "last_update": "2024-10-20T10:00:00",
                 }
             )
         except AssertionError as exc:
