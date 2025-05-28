@@ -14,7 +14,7 @@ Spotcast uses Spotify Desktop Application Oauth authentication client to get the
 > [!WARNING]
 > It is very important to run the instruction in the proper order. Do not start the Home Assistant configuration before completing the prior steps. Especially the [Relay Server](#run-the-relay-server-on-your-local-computer-relay-server) step.
 
-## Install Requied Software
+## Install Requried Software
 
 In order to run teh required relay server on your computer, you will need to install [Python 3.13+](https://www.python.org/downloads/).
 
@@ -33,7 +33,7 @@ Those who want to start the relay server quick and conveniently may start the se
 curl -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
 ```
 
-> [!INFO]
+> [!IMPORTANT]
 > Piping to `python` is controversial since you cannot read the code you are about to run. This is a reality that [pihole raises](https://pi-hole.net/blog/2016/07/25/curling-and-piping-to-bash/#page-content) for there own project as well, just to give one example, even if they still provide a one-step install process (there documentation on the mather was also the inspiration of this section and info/warning). In the end, if you do not trust the source or the author of the source, don't run the code without vetting it first (this should also stand for a custom home assistant integration, its still code and can do nasty things to your server and network if built with bad intent).
 >
 > If you would prefer to review the code before running the relay server, here are alternative methods.
