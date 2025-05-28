@@ -20,23 +20,16 @@ Used by [Spotify-Card-V2](https://github.com/mikevanes/spotify-card-v2)
 
 ### HACS
 
-This component is easiest installed using [HACS](https://github.com/custom-components/hacs).
-
-1. First Make sure you have `spotcast` installed through HACS:
+This component is easiest installed using [HACS](https://github.com/custom-components/hacs). You can add the integration by clicking the button below or searching for `spotcast` in your `HACS pannel`
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=fondberg&repository=spotcast&category=integration)
 
-2. Then, setup an account:
-
-[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
-
 ### Manual installation
 
-1. Copy all files from custom_components/spotcast/ to custom_components/spotcast/ inside your config Home Assistant directory
+1. Download this project (In Github, click the `<> Code` button and select `Download ZIP`)
+2. Extract the zip file.
+3. Copy all files from custom_components/spotcast/ to custom_components/spotcast/ inside your config Home Assistant directory.
 2. Reboot your Home Assistant.
-3. Click the following link to setup an account:
-
-[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
 
 ## Configuration
 
@@ -54,16 +47,30 @@ Spotcast is compatible with any version since 2024.11.0.
 ### Setup
 
 > [!WARNING]
-> It is highly recommended to set a separate Spotify App for Spotcast, especially for multiple accounts. Spotcast + Spotify Integration can lead to high API request if all combined in the same Authentication Application.
-
-> [!WARNING]
 > If you need to update your application credentials (changed in secret, new Spotify Application). Please follow [these instructions](https://www.home-assistant.io/integrations/application_credentials/)
 
-To make the spotcast setup, you will need to run a relay server on your local machine in order to redirect Spotify Desktop Application calls to your Home Assistant server. In order to do so, please follow [these instructions](./docs/config/spotcast_configuration.md).
+> [!IMPORTANT]
+> In order to setup spotcast, you will need to integrate the credentials from the desktop spotify application into Home Assistant. This requires to run a *Relay Server* on your computer to redirect authentication information from your computer to your Home Assistant server. This step must be complete **Before** starting the integraton configuration in Home Assistant.
 
-## Services
+1. Setup a Spotify Developper Application by following [these instructions](https://www.home-assistant.io/integrations/spotify/#create-a-spotify-application)
 
-The spotcast custom component provides multiple services to the user for different use cases. The services available are as followed (link to full documentation in table):
+2. Start the relay server. Full instruction can be found [here](./docs/confif/spotcast_configuration.md). It is **higly recommanded** to read the configuration instruction, but for reference sake the following one-step configuration command is provided (alternatives method provided in the [configuration instructions](./docs/config/spotcast_configuration.md):
+
+```shell
+curl -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
+```
+
+3. Start the integration configuration by going to `Settings -> Devices & services -> + ADD INTEGRATION -> Spotcast` or by clicking the following link:
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
+
+4. If you are setting up Spotcast for the first time, you will be asked to integrate an OAuth application. Please provide your `Client ID` and `Client Secret` that can be found [Spotify's developpper dashboard](https://developer.spotify.com/dashboard).
+
+5. Connect your Spotify Account through your browser
+
+6. You will be informed that the next step requires to open an external window. Accept.
+
+7. Another Spotify Window will open with a button with the text `Continue to the app`. Press the button to finalize the configuration.
 
 > [!TIP]
 > If you are converting script from pre `v5` services. The closest equivalence to `spotcast.start` is `spotcast.play_media`
