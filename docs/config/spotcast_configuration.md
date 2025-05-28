@@ -8,7 +8,6 @@
 Spotcast uses Spotify Desktop Application Oauth authentication client to get the proper scope to enable chromecast registration when calling playback on a chromecast device. In order to get the credentials you will have to do the following (summary, detailed steps following):
 
 1. Install required software
-2. Clone the projecct
 3. Run the relay server on your local computer
 4. Setup the entry through Home Assistant
 
@@ -17,41 +16,46 @@ Spotcast uses Spotify Desktop Application Oauth authentication client to get the
 
 ## Install Requied Software
 
-In order to run the script, there are 2 softwares you must have installed on your local computer:
-
-1. [Git](https://git-scm.com/downloads)
-2. [Python 3.13+](https://www.python.org/downloads/)
+In order to run teh required relay server on your computer, you will need to install [Python 3.13+](https://www.python.org/downloads/).
 
 If you are on Windows or Mac, I suggess you install from the websites directly. If you are on linux, follow your distribution package manager process to install both of them.
 
-## Clone the project
-
-In order to have the script on your machine, please run the following (I suggest you run one command at a time in case of errors):
-
-```shell
-git clone https://github/fondberg/spotcast
-cd spotcast
-git checkout dev
-```
-
-### fatal: destination path
-
-If you get an error `fatal: destination path 'spotcast' already exists and is not an empty directory.`, this means you already cloned the project in the past. Instead, run the following:
-
-```shell
-cd spotcast
-git fetch
-git pull
-```
 ## Run the relay server on your local computer
 
-For the next step, we will start a relay server on the local machine to redirect any spotify oauth redirects to Home Assistant. From the spotcast project directory run the following:
+### One-Step Installation
 
-```python
-python scripts/relay_server.py
+For the next step, we will start a relay server on the local machine to redirect any spotify oauth redirects to Home Assistant.
+
+
+Those who want to start the relay server quick and conveniently may start the server with the following command:
+
+```shell
+curl -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
 ```
 
-You should see the following in your terminal
+> [!INFO]
+> Piping to `python` is controversial since you cannot read the code you are about to run. This is a reality that [pihole raises](https://pi-hole.net/blog/2016/07/25/curling-and-piping-to-bash/#page-content) for there own project as well, just to give one example, even if they still provide a one-step install process (there documentation on the mather was also the inspiration of this section and info/warning). In the end, if you do not trust the source or the author of the source, don't run the code without vetting it first (this should also stand for a custom home assistant integration, its still code and can do nasty things to your server and network if built with bad intent).
+>
+> If you would prefer to review the code before running the relay server, here are alternative methods.
+
+#### Alternative 1: Clone and run
+
+```shell
+git clone https://github.com/fondberg/spotcast.git
+cd spotcast
+git checkout dev # required while we are still in alpha/beta
+python scripts/relay_server.py
+```
+#### Alternate 2: Manual download and run
+
+```shell
+curl -o relay_server.py https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py
+python relay_server.py
+```
+
+### Running the relay server
+
+Once the server start you should see the following in your terminal:
 
 ```
 Relay server running on http://127.0.0.1:8080/login
