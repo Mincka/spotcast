@@ -17,6 +17,8 @@ TEST_MODULE = "custom_components.spotcast.sessions.connection_session"
 
 class DummySession(ConnectionSession):
 
+    API_KEY = "dummy_api"
+
     async def async_refresh_token(self):
         return {
             "access_token": "boo",
