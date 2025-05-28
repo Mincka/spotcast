@@ -36,7 +36,7 @@ curl -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scr
 > [!IMPORTANT]
 > Piping to `python` is controversial since you cannot read the code you are about to run. This is a reality that [pihole raises](https://pi-hole.net/blog/2016/07/25/curling-and-piping-to-bash/#page-content) for there own project as well, just to give one example, even if they still provide a one-step install process (there documentation on the mather was also the inspiration of this section and info/warning). In the end, if you do not trust the source or the author of the source, don't run the code without vetting it first (this should also stand for a custom home assistant integration, its still code and can do nasty things to your server and network if built with bad intent).
 >
-> If you would prefer to review the code before running the relay server, here are alternative methods.
+> If you would prefer to review the code before running the relay server, here are alternative methods. You can also review the code [here](https://github.com/fondberg/spotcast/blob/dev/scripts/relay_server.py).
 
 #### Alternative 1: Clone and run
 
