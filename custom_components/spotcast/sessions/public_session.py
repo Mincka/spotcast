@@ -8,6 +8,7 @@ Functions:
 """
 
 from logging import getLogger
+from typing import Any, cast
 
 from homeassistant.helpers.config_entry_oauth2_flow import (
     client,
@@ -41,6 +42,7 @@ class PublicSession(ConnectionSession):
     API_ENDPOINT = "https://api.spotify.com"
     API_KEY = "external_api"
     SESSION_TYPE = "Public"
+    EXPIRATION_OFFSET = 600
 
     def __init__(
         self,
@@ -54,13 +56,14 @@ class PublicSession(ConnectionSession):
 
     async def async_refresh_token(self) -> TokenData:
         """Refreshes the token and returns its new data."""
-        return await self.implementation.async_refresh_token(self.token)
+        token = await self.implementation.async_refresh_token(self.token)
+        return cast("TokenData", token)
 
     async def async_request(
         self,
         method: str,
         url: str,
-        **kwargs,
+        **kwargs: dict[Any, Any],
     ) -> client.ClientResponse:
         """Make a request."""
         await self.async_ensure_token_valid()
