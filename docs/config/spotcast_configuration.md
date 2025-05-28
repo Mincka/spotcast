@@ -14,7 +14,7 @@ Spotcast uses Spotify Desktop Application Oauth authentication client to get the
 > [!WARNING]
 > It is very important to run the instruction in the proper order. Do not start the Home Assistant configuration before completing the prior steps. Especially the [Relay Server](#run-the-relay-server-on-your-local-computer-relay-server) step.
 
-## Install Requried Software
+## Install Required Software
 
 In order to run teh required relay server on your computer, you will need to install [Python 3.13+](https://www.python.org/downloads/).
 
