@@ -69,3 +69,26 @@ If so, you are ready to setup the integration in Home Assistant.
 For the final step, all that remains to do is setup Spotcast directly in Home Assistant. You can do so by going into `Settings -> Devies & Services -> + ADD INTEGRATION -> Spotcast`, or click the following link:
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
+
+## Relay Server configuration
+
+The relay server can be configured if needed to suite edge cases. The following arguments are available
+
+| Argument             | Description                                                                                                                                         | Default                                       |
+| :---:                | :---                                                                                                                                                | :---                                          |
+| `-r` `--redirec-url` | Specify the url where to redirect traffic. Can be used to specify your Home Assistant server directly if you do not have the `my` integration setup | `https://my.home-assistant.io/redirect/oauth` |
+
+To specify configuration argument, run any of the following based on your configuration method of choice
+
+### One-Step Installation
+
+```shell
+curl -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python - -r http://<your-home-assistant-server>
+```
+
+### Running the script locally
+
+```shell
+python relay_server.py -r http://<your-home-assistant-server>
+```
+

@@ -49,13 +49,13 @@ def get_args() -> Namespace:
         nargs='?',
     )
 
-    parser.add_argument(
-        "-p", "--port",
-        default=8080,
-        type=int,
-        help="Port to run the Relay server on (default: 8080)",
-        nargs='?',
-    )
+    # parser.add_argument(
+    #     "-p", "--port",
+    #     default=8080,
+    #     type=int,
+    #     help="Port to run the Relay server on (default: 8080)",
+    #     nargs='?',
+    # )
 
     return parser.parse_args()
 
@@ -68,10 +68,10 @@ def main():
 
     # setup the server
     RedirectHandler.redirect_url = config.redirect_url
-    server_address = ("127.0.0.1", config.port)
+    server_address = ("127.0.0.1", 8080)
     httpd = HTTPServer(server_address, RedirectHandler)
 
-    print(f"Relay server running on http://127.0.0.1:{config.port}/login")
+    print(f"Relay server running on http://127.0.0.1:{LISTEN_PORT}/login")
     print(f"Redirecting to: {config.redirect_url}")
     print("Press CTRL+C to quit the server when done")
 
