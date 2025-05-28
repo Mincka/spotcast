@@ -42,7 +42,6 @@ class PublicSession(ConnectionSession):
     API_ENDPOINT = "https://api.spotify.com"
     API_KEY = "external_api"
     SESSION_TYPE = "Public"
-    EXPIRATION_OFFSET = 600
 
     def __init__(
         self,

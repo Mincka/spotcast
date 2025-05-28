@@ -20,7 +20,6 @@ class DesktopSession(ConnectionSession):
 
     BASE_URL = "https://accounts.spotify.com"
     TOKEN_ENDPOINT = "api/token"
-    EXPIRATION_OFFSET = 600
     API_KEY = "desktop_api"
     SESSION_TYPE = "Desktop"
 

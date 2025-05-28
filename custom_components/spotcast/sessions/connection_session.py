@@ -28,7 +28,7 @@ class ConnectionSession(ABC):
 
     API_ENDPOINT: str | None = None
     API_KEY: Literal["desktop_api", "external_api"]
-    EXPIRATION_OFFSET = 20
+    EXPIRATION_OFFSET = 600
     SESSION_TYPE = "Dummy"
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry):
