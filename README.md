@@ -54,7 +54,7 @@ Spotcast is compatible with any version since 2024.11.0.
 
 1. Setup a Spotify Developper Application by following [these instructions](https://www.home-assistant.io/integrations/spotify/#create-a-spotify-application)
 
-2. Start the relay server. Full instruction can be found [here](./docs/confif/spotcast_configuration.md). It is **higly recommanded** to read the configuration instruction, but for reference sake the following one-step configuration command is provided (alternatives method provided in the [configuration instructions](./docs/config/spotcast_configuration.md):
+2. Start the relay server. Full instruction can be found [here](./docs/config/spotcast_configuration.md). It is **higly recommanded** to read the configuration instruction, but for reference sake the following one-step configuration command is provided (alternatives method provided in the [configuration instructions](./docs/config/spotcast_configuration.md)):
 
 ```shell
 curl -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
