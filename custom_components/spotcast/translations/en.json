@@ -18,13 +18,18 @@
             "pick_implementation": {
                 "title": "Importing Spotcast YAML configuration",
                 "description": "Press OK to complete import."
+            },
+            "reauth_confirm": {
+                "title": "[%key:common::config_flow::title::reauth%]",
+                "description": "The Spotcast integratio needs to re-authenticate your account."
             }
         },
         "abort": {
             "connection_error": "Unable to connect to Spotify using the {account_type} credentials. If you provided your `SP_DC` and `SP_KEY` in the configuration, please note that V6 configuration has changed drastically. Make sure to read the [new installation process](https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0). For more help, [Open a ticket](https://github.com/fondberg/spotcast/issues/new/choose).",
             "already_configured": "This account is already configured in Home Assistant",
             "reauth_account_mismatch": "The account provided does not match the account being reauthenticated",
-            "public_private_accounts_mismatch": "The profile from the OAuth credentials and the Desktop credentials are for 2 different accounts. Make sure to provide information from the same account. If you are already logged in to Spotify on your browser. Home Assistant won,t ask you to connect to a different account and will use the currently logged in user."
+            "public_private_accounts_mismatch": "The profile from the OAuth credentials and the desktop credentials are for 2 different accounts. Make sure to provide information from the same account. If you are already logged in to Spotify on your browser. Home Assistant won,t ask you to connect to a different account and will use the currently logged in user.",
+            "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
         }
     },
     "options": {
@@ -38,7 +43,7 @@
             }
         },
         "abort": {
-            "success": "Options were setup successfully."
+            "success": "Options were applied successfully."
         }
     },
     "selector": {
@@ -70,7 +75,7 @@
                 },
                 "account": {
                     "name": "Spotify Account",
-                    "description": "The id of the Spotify account to use. Takes the default account otherwise."
+                    "description": "The ID of the Spotify account to use. Takes the default account otherwise."
                 }
             }
         },
@@ -80,11 +85,11 @@
             "fields": {
                 "spotify_uris": {
                     "name": "Spotify URIs",
-                    "description": "A list of track to add to the active playback"
+                    "description": "A list of media to add to the Spotify Library"
                 },
                 "account": {
                     "name": "Spotify Account",
-                    "description": "The id of the Spotify account to use. Takes the default account otherwise."
+                    "description": "The ID of the Spotify account to use. Takes the default account otherwise."
                 }
             }
         },
@@ -134,7 +139,7 @@
         },
         "play_dj": {
             "name": "Spotify DJ Playlist",
-            "description": "Play Spotify DJ playlist on a Chromecast device",
+            "description": "Play Spotify DJ playlist",
             "fields": {
                 "media_player": {
                     "name": "Target",
@@ -204,7 +209,7 @@
         },
         "play_media": {
             "name": "Play Media",
-            "description": "Play Spotify media on Chromecast devices",
+            "description": "Play Spotify media",
             "fields": {
                 "media_player": {
                     "name": "Target",

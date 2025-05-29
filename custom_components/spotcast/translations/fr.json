@@ -18,13 +18,18 @@
             "pick_implementation": {
                 "title": "Import de la configuration YAML de Spotcast",
                 "description": "Appuyez sur ok pour continuer"
+            },
+            "reauth_config": {
+                "title": "[%key:common::config_flow::title::reauth%]",
+                "description": "L'intégration Spotcast a besoin de réauthentifier votre compte."
             }
         },
         "abort": {
             "connection_error": "Error de connection avec Spotify avec les informations d'identification {account_type}. Si vous avez fournis votre `SP_DC` et `SP_KEY` durant la configuration, veuillez notez que le processus de configuration a drastiquement changé pour V6. Merci de suivre la [nouvelle procédure d'installation](https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0). Pour de l'aide supplémentaire, [ouvrez un ticket](https://github.com/fondberg/spotcast/issues/new/choose).",
             "already_configured": "Ce compte est déjà configuré dans Home Assistant",
             "reauth_account_mismatch": "Le compte fournit ne concorde pas avec le compte Spotify étant réauthentifié",
-            "public_private_accounts_mismatch": "Le profile lié aux informations d'identification OAuth et celui des Cookies de navigateurs web sont pour des comptes différents. Faites attention à fournir les informations pour le même compte. Si vous êtes déjà connecté à Spotify dans votre navigateur web, Home Assistant ne vous demandera pas de vous connecter à un autre compte et utilisera le compte actuel."
+            "public_private_accounts_mismatch": "Le profile lié aux informations d'identification OAuth et celui des Cookies de navigateurs web sont pour des comptes différents. Faites attention à fournir les informations pour le même compte. Si vous êtes déjà connecté à Spotify dans votre navigateur web, Home Assistant ne vous demandera pas de vous connecter à un autre compte et utilisera le compte actuel.",
+            "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
         }
     },
     "options": {
