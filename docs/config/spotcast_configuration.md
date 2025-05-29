@@ -30,7 +30,7 @@ For the next step, we will start a relay server on the local machine to redirect
 Those who want to start the relay server quick and conveniently may start the server with the following command:
 
 > [!WARNING]
-> If you are running `PowerShell` in Windows, Windows made the decision to create an alias for `curl` to `Invoke-WebRequest` which is **not** compatible with the `curl` utility. Because of this, you must call `curl.exe` instead of `curl` if running a `PowerShell` terminal. This issue does not affect `CMD` which is the default terminal shell on Windows.
+> If you are running `PowerShell` in Windows, Windows made the decision to create an alias for `curl` to `Invoke-WebRequest` which is **not** compatible with the `curl` utility. Because of this, you must call `curl.exe` instead of `curl` if running a `PowerShell` terminal. This issue does not affect `CMD`.
 
 ```shell
 curl -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
