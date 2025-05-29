@@ -1,4 +1,4 @@
-# Obtaining Desktop Credentials
+# Spotcast Configuration
 
 > [!WARNING]
 > This process is in alpha and is very likely
