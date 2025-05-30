@@ -1,4 +1,4 @@
-"""Module for the play media service
+"""Module for the play media service.
 
 Functions:
     - async_play_media
@@ -25,25 +25,27 @@ from custom_components.spotcast.media_player.utils import (
 
 from custom_components.spotcast.services.utils import (
     EXTRAS_SCHEMA,
-    entity_from_target_selector
+    entity_from_target_selector,
 )
 
 LOGGER = getLogger(__name__)
 
-PLAY_MEDIA_SCHEMA = vol.Schema({
-    vol.Optional("media_player"): cv.ENTITY_SERVICE_FIELDS,
-    vol.Required("spotify_uri"): url_to_uri,
-    vol.Optional("account"): cv.string,
-    vol.Optional("data"): EXTRAS_SCHEMA,
-})
+PLAY_MEDIA_SCHEMA = vol.Schema(
+    {
+        vol.Optional("media_player"): cv.ENTITY_SERVICE_FIELDS,
+        vol.Required("spotify_uri"): url_to_uri,
+        vol.Optional("account"): cv.string,
+        vol.Optional("data"): EXTRAS_SCHEMA,
+    }
+)
 
 
 async def async_play_media(hass: HomeAssistant, call: ServiceCall):
-    """Service to start playing media
+    """Service to start playing media.
 
     Args:
-        - hass(HomeAssistant): the Home Assistant Instance
-        - call(ServiceCall): the service call data pack
+        hass(HomeAssistant): the Home Assistant Instance
+        call(ServiceCall): the service call data pack
     """
     uri: str = call.data.get("spotify_uri")
     account_id: str = call.data.get("account")
@@ -61,8 +63,7 @@ async def async_play_media(hass: HomeAssistant, call: ServiceCall):
 
     LOGGER.debug("Loading Spotify Account for User `%s`", account_id)
     account = await SpotifyAccount.async_from_config_entry(
-        hass=hass,
-        entry=entry
+        hass=hass, entry=entry
     )
 
     # check for track uri and switch to album with offset if necessary
@@ -99,9 +100,7 @@ async def async_play_media(hass: HomeAssistant, call: ServiceCall):
 
     try:
         media_player = await async_media_player_from_id(
-            hass=hass,
-            account=account,
-            entity_id=entity_id
+            hass=hass, account=account, entity_id=entity_id
         )
     except MissingActiveDeviceError as exc:
         raise ServiceValidationError(str(exc)) from exc
@@ -110,7 +109,7 @@ async def async_play_media(hass: HomeAssistant, call: ServiceCall):
         "Playing `%s` on `%s` for account `%s`",
         uri,
         media_player.name,
-        account.id
+        account.id,
     )
 
     await account.async_play_media(media_player.id, uri, **extras)
@@ -118,19 +117,18 @@ async def async_play_media(hass: HomeAssistant, call: ServiceCall):
 
 
 async def async_episode_index(
-        account: SpotifyAccount,
-        uri: str
+    account: SpotifyAccount,
+    uri: str,
 ) -> tuple[str, int]:
-    """Returns the uri of a show and the index that would play the uri
-    provided in the context of the podcast show
+    """Returns the uri of a show and its index.
 
     Args:
-        - account(SpotifyAccount): The account used to fetch episode
+        account(SpotifyAccount): The account used to fetch episode
             information
-        - uri(str): A show URI
+        uri(str): A show URI
 
     Returns:
-        - tuple[str, int]: A tuple containing the show uri of the
+        tuple[str, int]: A tuple containing the show uri of the
             episode and its index in the show.
     """
     episode_info = await account.async_get_episode(uri)
@@ -144,8 +142,7 @@ async def async_episode_index(
 
 
 async def async_track_index(
-    account: SpotifyAccount,
-    uri: str
+    account: SpotifyAccount, uri: str
 ) -> tuple[str, int]:
     """Returns the uri of the album and the index that would play the
     uri provided in the context of the album
@@ -201,4 +198,4 @@ async def async_random_index(account: SpotifyAccount, uri: str) -> int:
             f"{uri} is not compatible with random start track"
         )
 
-    return randint(0, count-1)
+    return randint(0, count - 1)
