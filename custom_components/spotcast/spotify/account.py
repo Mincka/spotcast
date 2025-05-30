@@ -617,7 +617,7 @@ class SpotifyAccount:
         return result["tracks"]
 
     async def async_get_playlist_tracks(self, uri: str) -> list[dict]:
-        """Retrieves the list of tracks inside a playlist"""
+        """Retrieves the list of tracks inside a playlist."""
         await self.async_ensure_tokens_valid()
         LOGGER.debug("Fetching tracks from playlist `%s`", uri)
 
@@ -639,7 +639,7 @@ class SpotifyAccount:
     async def async_get_show_episodes(
         self, uri: str, limit: int = None
     ) -> list[dict]:
-        """Retrieves the list of episodes for a podcast show
+        """Retrieves the list of episodes for a podcast show.
 
         Args:
             - uri(str): the uri of the spotify podcast show to call
@@ -716,9 +716,8 @@ class SpotifyAccount:
         return self.playback_state
 
     async def _async_add_audio_features(self, playback_state: dict) -> dict:
-        """Adds the audio_features to the current playback state"""
-
-        playback_state = {} if playback_state is None else playback_state
+        """Adds the audio_features to the current playback state."""
+        playback_state = playback_state or {}
 
         current_item = playback_state.get("item")
 
@@ -738,7 +737,7 @@ class SpotifyAccount:
         playback_state["audio_features"] = self.current_item["audio_features"]
         return playback_state
 
-    async def async_track_features(self, uri: str) -> str:
+    async def async_track_features(self, uri: str) -> dict:
         """Returns the track audio features."""
         if uri is None or not uri.startswith("spotify:track:"):
             return {}
@@ -748,7 +747,7 @@ class SpotifyAccount:
             [uri],
         )
 
-        return response[0]
+        return response[0] or {}
 
     async def async_playlists_count(self) -> int:
         """Returns the number of user playlist for an account."""
