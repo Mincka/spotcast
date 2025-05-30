@@ -35,7 +35,7 @@ This component is easiest installed using [HACS](https://github.com/custom-compo
 
 ### Minimum Home Assistant version
 
-Spotcast is compatible with any version since 2024.11.0.
+Spotcast is compatible with any version since 2025.4.
 
 ### Official Spotify Integration
 
