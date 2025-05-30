@@ -8,7 +8,7 @@ from aiohttp.client_exceptions import ClientError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from custom_components.spotcast.const import DOMAIN, SPOTIFY_CLIENT_ID
-from custom_components.spotcast.entry_data import ApiItem, TokenData
+from custom_components.spotcast.entry_data import ApiItem
 
 from .connection_session import ConnectionSession
 
@@ -18,7 +18,7 @@ LOGGER = getLogger(__name__)
 class DesktopSession(ConnectionSession):
     """An API session through the spotify desktop oauth application."""
 
-    BASE_URL = "https://accounts.spotify.com"
+    API_ENDPOINT = "https://accounts.spotify.com"
     TOKEN_ENDPOINT = "api/token"
     API_KEY = "desktop_api"
     SESSION_TYPE = "Desktop"
@@ -34,7 +34,7 @@ class DesktopSession(ConnectionSession):
         }
 
         response = await session.post(
-            url=f"{self.BASE_URL}/{self.TOKEN_ENDPOINT}",
+            url=f"{self.API_ENDPOINT}/{self.TOKEN_ENDPOINT}",
             data=data,
         )
 

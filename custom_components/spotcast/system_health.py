@@ -1,4 +1,4 @@
-"""Module providing the info to system health"""
+"""Module providing the info to system health."""
 
 from logging import getLogger
 
@@ -9,6 +9,8 @@ from homeassistant.components.system_health import (
 )
 
 from custom_components.spotcast import __version__
+
+from .chromecast import SpotifyController
 from .const import DOMAIN
 from .spotify.account import SpotifyAccount
 from .sessions import (
@@ -26,11 +28,22 @@ def async_register(hass: HomeAssistant, register: SystemHealthRegistration):  # 
 
 
 async def system_health_info(hass: HomeAssistant) -> dict[str]:  # pylint: disable=W0613
-    """Get Health info for the info page"""
-
+    """Get Health info for the info page."""
     health_info = {}
 
     health_info["Version"] = __version__
+
+    health_info["API Endpoint"] = async_check_can_reach_url(
+        hass,
+        PublicSession.API_ENDPOINT,
+    )
+
+    health_info["Device Registration Endpoint"] = async_check_can_reach_url(
+        hass,
+        SpotifyController.APP_HOSTNAME,
+    )
+
+    health_info[""]
 
     for entry in hass.data[DOMAIN].values():
         account: SpotifyAccount = entry["account"]
@@ -45,14 +58,8 @@ async def system_health_info(hass: HomeAssistant) -> dict[str]:  # pylint: disab
                 health_status[key] = {"type": "failed", "error": "unhealthy"}
 
         health_info[f"{base_key} Is Default"] = account.is_default
-        health_info[f"{base_key} Public Endpoint"] = async_check_can_reach_url(
-            hass, PublicSession.API_ENDPOINT
-        )
         health_info[f"{base_key} Public Token"] = health_status["public"]
-        health_info[f"{base_key} Private Endpoint"] = async_check_can_reach_url(
-            hass, DesktopSession.API_ENDPOINT
-        )
-        health_info[f"{base_key} Private Token"] = health_status["private"]
+        health_info[f"{base_key} Desktop Token"] = health_status["private"]
         health_info[f"{base_key} Product"] = account.product
 
     return health_info
