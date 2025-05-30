@@ -1,4 +1,4 @@
-"""Module for the abstract SpotcastSensor class"""
+"""Module for the abstract SpotcastSensor class."""
 
 from logging import getLogger
 
@@ -59,8 +59,10 @@ class SpotcastSensor(SpotcastEntity, SensorEntity):
 
         state = self._attr_state
         if (
-            isinstance(state, str) and state != self.INACTIVE_STATE
-            or isinstance(state, (int, float)) and state > 0
+            isinstance(state, str)
+            and state != self.INACTIVE_STATE
+            or isinstance(state, (int, float))
+            and state > 0
         ):
             return self.ICON
 

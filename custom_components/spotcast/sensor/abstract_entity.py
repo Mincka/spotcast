@@ -1,21 +1,16 @@
-"""Module for the abstract SpotcastEntity class"""
+"""Module for the abstract SpotcastEntity class."""
 
 from abc import ABC, abstractmethod
 from logging import getLogger
 from asyncio import exceptions as asyncio_errors
 
-from homeassistant.components.sensor import (
-    EntityCategory,
-    Entity
-)
+from homeassistant.components.sensor import EntityCategory, Entity
 from homeassistant.const import STATE_UNKNOWN, STATE_OFF
 from requests import exceptions as requests_errors
 
 from custom_components.spotcast.spotify import SpotifyAccount
 from custom_components.spotcast.sessions.exceptions import TokenError
-from custom_components.spotcast.sessions.retry_supervisor import (
-    RetrySupervisor
-)
+from custom_components.spotcast.sessions.retry_supervisor import RetrySupervisor
 
 LOGGER = getLogger(__name__)
 ENTITY_SPECIFIC_ERRORS = (
@@ -30,10 +25,11 @@ ENTITY_CATEGORIES = EntityCategory
 
 
 class SpotcastEntity(ABC, Entity):
-    """A generic abstract Spotcast sensor for Home Assistant. can be
-    customized through its list of constants for the class. A child
-    instance must implement the `icon` property and the `async_update`
-    method
+    """A generic abstract Spotcast sensor for Home Assistant.
+
+    Can be customized through its list of constants for the class. A
+    child instance must implement the `icon` property and the
+    `async_update` method
 
     Constants:
         - GENERIC_NAME(str): The base name of the entity to use in the
@@ -82,7 +78,7 @@ class SpotcastEntity(ABC, Entity):
     ENTITY_CATEGORY: str = None
 
     def __init__(self, account: SpotifyAccount):
-        """Constructor a Spotcast Entity from the account provided"""
+        """Constructor a Spotcast Entity from the account provided."""
         self.account = account
 
         LOGGER.debug(
@@ -100,7 +96,7 @@ class SpotcastEntity(ABC, Entity):
         self.entity_category = self.ENTITY_CATEGORY
 
     def _get_device_info(self):
-        """Builds the device info for the sensor"""
+        """Builds the device info for the sensor."""
         if self.DEVICE_SOURCE is None:
             return None
 
@@ -111,7 +107,7 @@ class SpotcastEntity(ABC, Entity):
 
     @property
     def _generic_id(self) -> str:
-        """Constructs a generic id used for the entity_id"""
+        """Constructs a generic id used for the entity_id."""
         if self.GENERIC_ID is None:
             id = self.GENERIC_NAME.lower()
             id = id.replace(" ", "_")
@@ -121,9 +117,7 @@ class SpotcastEntity(ABC, Entity):
 
     @property
     def _icon_off(self) -> str:
-        """Returns the icon to show if the entity is inactive
-        """
-
+        """Returns the icon to show if the entity is inactive."""
         icon_off = self.ICON_OFF
 
         if icon_off is None:
@@ -133,42 +127,44 @@ class SpotcastEntity(ABC, Entity):
 
     @property
     def extra_state_attributes(self) -> dict:
-        """Returns the extra attributes of the sensor if exist"""
+        """Returns the extra attributes of the sensor if exist."""
         return self._attributes
 
     @property
     def name(self) -> str:
-        """returns the name of the entity"""
+        """Returns the name of the entity."""
         return f"Spotcast - {self.account.name} {self.GENERIC_NAME}"
 
     @property
     def unique_id(self) -> str:
-        """returns a unique id for the entity"""
+        """Returns a unique id for the entity."""
         return f"{self.PLATFORM}.{self.account.id}_{self._generic_id}"
 
     @property
     def _default_attributes(self) -> dict:
-        """Reconstructors default attributes. If no attributes exist
-        for the sensor. None is returned"""
+        """Reconstructors default attributes.
+
+        If no attributes exist for the sensor. None is returned
+        """
         return None
 
     @property
     @abstractmethod
     def icon(self) -> str:
-        """returns the mdi name of the icon to show in Home Assistant
-        """
+        """Returns the mdi name of the icon to show in Home Assistant."""
 
     @abstractmethod
     async def _async_update_process(self):
-        """Asynchronous method implemented by the sensor to update
-        its state and attributes"""
+        """Process to update the sensor data."""
 
     async def async_update(self):
-        """Asynchronous method to manage the update process. The
-        method does not deal with the specific update process of the
+        """Asynchronous method to manage the update process.
+
+        The method does not deal with the specific update process of the
         sensor, but is a generic handler for states and attributes for
         all child classes. The `_async_update_process` must be the
-        implementation for the specific sensor."""
+        implementation for the specific sensor.
+        """
         try:
             await self._async_update_process()
         except POTENTIAL_ERRORS:
