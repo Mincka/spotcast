@@ -30,7 +30,7 @@ In order to add the desktop application credentials from Spotify we must redirec
 <details>
 <summary>Powershell Server Instructions</summary>
 
-> [!TIP]
+> 💡 Tip
 > The Powershell script offer the benefit of not requiring you to install dependencies and can be run from a fresh Windows install. 
 
 Run the following Powerhsell command:
@@ -39,7 +39,7 @@ Run the following Powerhsell command:
 iwr https://gist.githubusercontent.com/Mincka/37899d25d124ad2a74f54846c7445ed8/raw/ -UseBasicParsing | iex
 ```
 
-> \[!IMPORTANT]
+> 💬 Important
 > This script is maintained by the community. The Spotcast maintainers are **not** responsible for its maintenance or security. The code can be reviewed [here](https://gist.github.com/Mincka/37899d25d124ad2a74f54846c7445ed8)
 
 </details>
@@ -51,14 +51,14 @@ iwr https://gist.githubusercontent.com/Mincka/37899d25d124ad2a74f54846c7445ed8/r
 
 If you prefer to user Python directly, you can run this one-step configuration:
 
-> [!INFO]
+> ℹ️ Info
 > This server setup requires you to have a recent python interpreter on your computer. You can install Python with the installer provided by [python.org](https://www.python.org/downloads/). When given the option in the install, select `Add python to PATH`.
 
 ```powershell
 curl.exe -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
 ```
 
-> [!INFO]
+> ℹ️ Info
 > Piping to Python is potentially unsafe. If you don't trust the source, review the code before running it. You can review the relay server script [here](https://github.com/fondberg/spotcast/blob/dev/scripts/relay_server.py). Alternative methods that download the script to your machine before running are also provided.
 
 ##### Alternative 1: Clone the Repo and Run
@@ -87,14 +87,14 @@ python relay_server.py
 <details>
 <summary>MacOS/Linux Instruction</summary>
 
-> [!INFO]
+> ℹ️ Info
 > This server setup requires you to have a recent python interpreter on your computer. You can install Python with the installer provided by [python.org](https://www.python.org/downloads/) or by using the package manager of your distribution ([homebrew](https://brew.sh/) is available for MacOS)
 
 ```bash
 curl.exe -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
 ```
 
-> [!INFO]
+> ℹ️ Info
 > Piping to Python is potentially unsafe. If you don't trust the source, review the code before running it. You can review the relay server script [here](https://github.com/fondberg/spotcast/blob/dev/scripts/relay_server.py). Alternative methods that download the script to your machine before running are also provided.
 
 ##### Alternative 1: Clone the Repo and Run
