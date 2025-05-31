@@ -140,11 +140,7 @@ If you see this message, you're ready for the next step.
 
 ## 3. Setup the Spotcast Integration in Home Assistant
 
-Open Home Assistant and go to:
-
-`Settings -> Devices & Services -> + ADD INTEGRATION -> Spotcast`
-
-Or use this direct link:
+Open Home Assistant and go to: `Settings -> Devices & Services -> + ADD INTEGRATION -> Spotcast` or use this direct link:
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
 
