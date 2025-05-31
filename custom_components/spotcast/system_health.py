@@ -15,19 +15,18 @@ from .const import DOMAIN
 from .spotify.account import SpotifyAccount
 from .sessions import (
     PublicSession,
-    DesktopSession,
 )
 
 LOGGER = getLogger(__name__)
 
 
 @callback
-def async_register(hass: HomeAssistant, register: SystemHealthRegistration):  # pylint: disable=W0613
+def async_register(hass: HomeAssistant, register: SystemHealthRegistration):
     """Registers the system health callbacks."""
     register.async_register_info(system_health_info)
 
 
-async def system_health_info(hass: HomeAssistant) -> dict[str]:  # pylint: disable=W0613
+async def system_health_info(hass: HomeAssistant) -> dict[str]:
     """Get Health info for the info page."""
     health_info = {}
 
@@ -42,8 +41,6 @@ async def system_health_info(hass: HomeAssistant) -> dict[str]:  # pylint: disab
         hass,
         SpotifyController.APP_HOSTNAME,
     )
-
-    health_info[""]
 
     for entry in hass.data[DOMAIN].values():
         account: SpotifyAccount = entry["account"]
