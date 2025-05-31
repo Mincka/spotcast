@@ -1,6 +1,6 @@
 # Spotcast Configuration
 
-> \[!WARNING]
+> [!WARNING]
 > This process is in alpha and is very likely:
 >
 > 1. Unstable
