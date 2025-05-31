@@ -95,6 +95,8 @@ python relay_server.py
 > 
 > This server setup requires you to have a recent python interpreter on your computer. You can install Python with the installer provided by [python.org](https://www.python.org/downloads/) or by using the package manager of your distribution ([homebrew](https://brew.sh/) is available for MacOS)
 
+#### One-Step setup instructions
+
 ```bash
 curl.exe -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
 ```
