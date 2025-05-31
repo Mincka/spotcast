@@ -1,9 +1,5 @@
 {
     "name": "Spotcast",
-    "domains": [
-        "media_player",
-        "sensor"
-    ],
     "homeassistant": "2025.4.0",
     "iot_class": [
         "Cloud Polling"
