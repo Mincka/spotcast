@@ -6,7 +6,7 @@
 > 1. Unstable
 > 2. Subject to change from the feedback of the testers.
 
-This process will guide you to setup Spotcast on Home Assistant.
+This process will guide you to setup of Spotcast on Home Assistant.
 
 ## 1. Create a Spotify Application
 
@@ -15,11 +15,11 @@ This process will guide you to setup Spotcast on Home Assistant.
 >
 > You can setup a secondary application if you want, but this is not necessary.
 
-In order to work with certain part of the API, Spotcast requires access to the Spotify API through a personal Spotify Application. You can follow [these instructions](https://www.home-assistant.io/integrations/spotify/#create-a-spotify-application) from the official Spotify Integration to setup one. Keep note of your Client ID and Client Secret for future steps.
+In order to work with certain parts of the API, Spotcast requires access to the Spotify API through a personal Spotify Application. You can follow [these instructions](https://www.home-assistant.io/integrations/spotify/#create-a-spotify-application) from the official Spotify Integration to create one. Keep note of your Client ID and Client Secret for future steps.
 
 ## 2. Start the relay server
 
-In order to add the desktop application credentials from Spotify we must redirect the connection information from your local computer to Home Assistant. This can be achieved by using a relay server on your local computer. This step is necessary, because Spotify does not allow (for understandable security reason) desktop credentials to be redirect to another location then the device making the connection. Please follow the instruction for you specific Operating System:
+In order to add the desktop application credentials from Spotify, we must redirect the connection information from your local computer to Home Assistant. This can be achieved by using a relay server on your local computer. This step is necessary, because Spotify does not allow (for understandable security reasons) desktop credentials to be redirected to another location than the device making the connection. Please follow the instruction for you specific operating system:
 
 ### Windows
 <details>
@@ -32,7 +32,7 @@ In order to add the desktop application credentials from Spotify we must redirec
 
 > 💡 Tip
 > 
-> The PowerShell script offer the benefit of not requiring you to install dependencies and can be run from a fresh Windows install. 
+> The PowerShell script offers the benefit of not requiring you to install dependencies and can be run from a fresh Windows install. 
 
 Run the following PowerShell command:
 
@@ -42,7 +42,7 @@ iwr https://gist.githubusercontent.com/Mincka/37899d25d124ad2a74f54846c7445ed8/r
 
 > 💬 Important
 > 
-> This script is maintained by the community. The Spotcast maintainers are **not** responsible for its maintenance or security. The code can be reviewed [here](https://gist.github.com/Mincka/37899d25d124ad2a74f54846c7445ed8)
+> Piping any scripts from the internet is potentially unsafe. If you don't trust the source, review the code before running it. This script is maintained by the community. The Spotcast maintainers are **not** responsible for its maintenance or security. The code can be reviewed [here](https://gist.github.com/Mincka/37899d25d124ad2a74f54846c7445ed8).
 
 </details>
 
@@ -55,7 +55,7 @@ If you prefer to user Python directly, you can run this one-step configuration:
 
 > ℹ️ Info
 > 
-> This server setup requires you to have a recent python interpreter on your computer. You can install Python with the installer provided by [python.org](https://www.python.org/downloads/). When given the option in the install, select `Add python to PATH`.
+> This server setup requires you to have a recent python interpreter on your computer. You can install Python with the installer provided by [python.org](https://www.python.org/downloads/). When given the option in the installation wizard, select `Add python to PATH`.
 
 ```powershell
 curl.exe -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
@@ -63,7 +63,7 @@ curl.exe -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev
 
 > ℹ️ Info
 > 
-> Piping to Python is potentially unsafe. If you don't trust the source, review the code before running it. You can review the relay server script [here](https://github.com/fondberg/spotcast/blob/dev/scripts/relay_server.py). Alternative methods that download the script to your machine before running are also provided.
+> Piping any scripts from the internet is potentially unsafe. If you don't trust the source, review the code before running it. You can review the relay server script [here](https://github.com/fondberg/spotcast/blob/dev/scripts/relay_server.py). Alternative methods that download the script to your machine before running are also provided.
 
 ##### Alternative 1: Clone the repository and Run
 
@@ -77,6 +77,8 @@ python scripts/relay_server.py
 ```
 
 ##### Alternative 2: Manual Download and Run
+
+This method allows you to save the file to your computer, to be able to review the code yourself before running it in python.
 
 ```powershell
 curl.exe -o relay_server.py https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py 
@@ -103,11 +105,11 @@ curl.exe -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev
 
 > ℹ️ Info
 > 
-> Piping to Python is potentially unsafe. If you don't trust the source, review the code before running it. You can review the relay server script [here](https://github.com/fondberg/spotcast/blob/dev/scripts/relay_server.py). Alternative methods that download the script to your machine before running are also provided.
+> Piping any scripts from the internet is potentially unsafe. If you don't trust the source, review the code before running it. You can review the relay server script [here](https://github.com/fondberg/spotcast/blob/dev/scripts/relay_server.py). Alternative methods that download the script to your machine before running are also provided.
 
 ##### Alternative 1: Clone the repository and Run
 
-This method requires [git](https://git-scm.com/downloads) to be installed on your computer
+This method requires [git](https://git-scm.com/downloads) to be installed on your computer.
 
 ```bash
 git clone https://github.com/fondberg/spotcast.git
@@ -117,6 +119,8 @@ python scripts/relay_server.py
 ```
 
 ##### Alternative 2: Manual Download and Run
+
+This method allows you to save the file to your computer, to be able to review the code yourself before running it in python.
 
 ```bash
 curl.exe -o relay_server.py https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py 
@@ -135,7 +139,7 @@ Redirecting to: https://my.home-assistant.io/redirect/oauth
 Press CTRL+C to quit the server when done
 ```
 
-If you see this message, you're ready for the next step.
+If you see a similar message, you're ready for the next step.
 
 
 ## 3. Setup the Spotcast Integration in Home Assistant
@@ -144,25 +148,25 @@ Open Home Assistant and go to: `Settings -> Devices & Services -> + ADD INTEGRAT
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
 
-Follow these instructions to finalize the setup in Home Assistant
+Follow these instructions to finalize the setup in Home Assistant:
 
 ### 3.1 Application Credentials
 
 > [!TIP]
-> If you already made a Spotcast in the past on this server, this step will not be required and you can skip to [3.2](#32-public-oauth-authorization).
+> If you already made a Spotcast configuration in the past on this server, this step will not be required and you can skip to [3.2](#32-public-oauth-authorization).
 >
 > If your application credentials for your Spotify Application changed and you need to edit them, Home Assistant doesn't offer you that option when setting an integration with existing application credentials, you need to remove the current credentials manually, which can be done by following [these instructions](https://www.home-assistant.io/integrations/application_credentials/#deleting-application-credentials) from Home Assistant.
 
-Once you see this window below in Home Assistant, Provide a name (to your discretion) and provide the client ID and client secret from your Spotify Application created in [Step 1](#1-create-a-spotify-application).
+Once you see this window below in Home Assistant, provide a name (to your discretion) and provide the client ID and client secret from your Spotify Application created in [Step 1](#1-create-a-spotify-application).
 
 ![Application Credential Step Screenshot](../../assets/images/docs/spotcast_configuration/3_1_application_credentials.png)
 
 ### 3.2 Public OAuth authorization
 
-This step will authorize your account in your Spotify Application. A New window will appear asking you to link account to Home Assistant. Ensure the `Your instance URL:` points to your current Home Assistant server and press the `Link account` button.
+This step will authorize your account in your Spotify Application. A new window will appear asking you to link account to Home Assistant. Ensure the `Your instance URL:` points to your current Home Assistant server and press the `Link account` button.
 
 > [!TIP]
-> Make sure the correct account is signed in. If Spotify doesn't asked you to sign in, it is because an account is already signed. If you are trying to setup am account for someone else in your household, make sure their account is the one signed into your browser.
+> Make sure the correct account is signed in. If Spotify doesn't asked you to log in, it is because a Spotify account is already signed in. If you are trying to setup an account for someone else in your household, make sure their account is the one signed into the browser.
 
 ### 3.3 Desktop Token authorization
 
@@ -175,7 +179,7 @@ If the account under `Spotify for Desktop` is the account you are trying to setu
 > [!CAUTION]
 > If the relay server is not running at this point the setup will fail.
 
-The same window as in step [3.2](#32-public-oauth-authorization) will appear, this is normal, this is to redirect your desktop credentials to Home Assistant. You can press the `Link Account` button.
+The same window as in step [3.2](#32-public-oauth-authorization) will appear. This is normal. This is to redirect your desktop credentials to Home Assistant. You can press the `Link Account` button.
 
 ### Done
 
