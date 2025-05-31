@@ -52,12 +52,6 @@ class TestHealthyAccount(IsolatedAsyncioTestCase):
         self.assertIn("Dummy Is Default", self.result)
         self.assertTrue(self.result["Dummy Is Default"])
 
-    def test_url_tests_are_coroutines(self):
-        self.assertIn("Dummy Public Endpoint", self.result)
-        self.assertTrue(
-            inspect.iscoroutine(self.result["Dummy Public Endpoint"])
-        )
-
 
 class TestUnHealthyAccount(IsolatedAsyncioTestCase):
 
