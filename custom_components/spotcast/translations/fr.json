@@ -28,11 +28,11 @@
                 "description": "Veuillez suivre le [guide de configuration](https://github.com/fondberg/spotcast/blob/dev/docs/config/spotcast_configuration.md) avant de continuer. Confirmez que vous avez démarré le serveur relais.",
                 "data": {
                     "confirmed": "J'ai lu la documentation et j'ai démarré le serveur relais"
-                },
-                "error": {
-                    "must_confirm": "Vous devez confirmer avant de continuer."
                 }
             }
+        },
+        "error": {
+            "must_confirm": "Vous devez confirmer avant de continuer."
         },
         "abort": {
             "connection_error": "Error de connection avec Spotify avec les informations d'identification {account_type}. Si vous avez fournis votre `SP_DC` et `SP_KEY` durant la configuration, veuillez notez que le processus de configuration a drastiquement changé pour V6. Merci de suivre la [nouvelle procédure d'installation](https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0). Pour de l'aide supplémentaire, [ouvrez un ticket](https://github.com/fondberg/spotcast/issues/new/choose).",
