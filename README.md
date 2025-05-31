@@ -46,31 +46,9 @@ Spotcast is compatible with any version since 2025.4.
 
 ### Setup
 
-> [!WARNING]
-> If you need to update your application credentials (changed in secret, new Spotify Application). Please follow [these instructions](https://www.home-assistant.io/integrations/application_credentials/)
-
-> [!IMPORTANT]
-> In order to setup spotcast, you will need to integrate the credentials from the desktop spotify application into Home Assistant. This requires to run a *Relay Server* on your computer to redirect authentication information from your computer to your Home Assistant server. This step must be complete **Before** starting the integraton configuration in Home Assistant.
-
-1. Setup a Spotify Developper Application by following [these instructions](https://www.home-assistant.io/integrations/spotify/#create-a-spotify-application)
-
-2. Start the relay server. Full instruction can be found [here](./docs/config/spotcast_configuration.md). It is **higly recommanded** to read the configuration instruction, but for reference sake the following one-step configuration command is provided (alternatives method provided in the [configuration instructions](./docs/config/spotcast_configuration.md)):
-
-```shell
-curl -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
-```
-
-3. Start the integration configuration by going to `Settings -> Devices & services -> + ADD INTEGRATION -> Spotcast` or by clicking the following link:
+You can setup the integration by following [these instructions](./docs/config/spotcast_configuration.ms) or clicking the following link (links to relevant documentation will be provided in the configuration steps directly):
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
-
-4. If you are setting up Spotcast for the first time, you will be asked to integrate an OAuth application. Please provide your `Client ID` and `Client Secret` that can be found [Spotify's developpper dashboard](https://developer.spotify.com/dashboard).
-
-5. Connect your Spotify Account through your browser
-
-6. You will be informed that the next step requires to open an external window. Accept.
-
-7. Another Spotify Window will open with a button with the text `Continue to the app`. Press the button to finalize the configuration.
 
 > [!TIP]
 > If you are converting script from pre `v5` services. The closest equivalence to `spotcast.start` is `spotcast.play_media`
