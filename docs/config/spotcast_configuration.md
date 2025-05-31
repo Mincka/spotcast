@@ -168,7 +168,7 @@ This step will authorize your account in your Spotify Application. A New window 
 
 A new window will open looking like this:
 
-![Desktop Credential Approval](../../assets/images/docs/spotcast_configuration/3_1_application_credentials.png)
+![Desktop Credential Approval](../../assets/images/docs/spotcast_configuration/3_3_desktop_token.png)
 
 If the account under `Spotify for Desktop` is the account you are trying to setup, press the `Continue to the app` button, otherwise press `Not you?` and connect the proper account.
 
