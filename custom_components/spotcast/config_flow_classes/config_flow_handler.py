@@ -9,6 +9,7 @@ from typing import Any, TYPE_CHECKING
 
 from homeassistant.config_entries import CONN_CLASS_CLOUD_POLL
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.selector import BooleanSelector
 from homeassistant.components.spotify.config_flow import SpotifyFlowHandler
 from homeassistant.config_entries import (
     ConfigFlowResult,
@@ -91,6 +92,12 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         }
     )
 
+    DOCUMENTATION_SCHEMA = vol.Schema(
+        {
+            vol.Required("confirmed", default=False): BooleanSelector(),
+        }
+    )
+
     def __init__(self):
         """Constructor of the Spotcast Config Flow."""
         super().__init__()
@@ -117,6 +124,30 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
     def extra_authorize_data(self) -> dict[str]:
         """Extra data to append to authorization url."""
         return {"scope": ",".join(SpotifyAccount.SCOPE)}
+
+    async def async_step_user(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Create an entry for the flow."""
+        return self.async_show_form(
+            step_id="doc_confirm",
+            data_schema=self.DOCUMENTATION_SCHEMA,
+        )
+
+    async def async_step_doc_confirm(
+        self,
+        user_input: dict[str, Any],
+    ) -> ConfigFlowResult:
+        """Entry flow to validate the user read teh documentation."""
+        if user_input is None or not user_input.get("confirmed", False):
+            return self.async_show_form(
+                step_id="doc_confirm",
+                data_schema=self.DOCUMENTATION_SCHEMA,
+                errors={"confirmed": "must_confirm"},
+            )
+
+        return await self.async_step_pick_implementation()
 
     async def async_get_desktop_token(self, external_data: dict) -> TokenData:
         """Retrives a fresh access_token from spotify dekstop app."""

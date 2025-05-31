@@ -22,6 +22,16 @@
             "reauth_confirm": {
                 "title": "[%key:common::config_flow::title::reauth%]",
                 "description": "The Spotcast integratio needs to re-authenticate your account."
+            },
+            "doc_confirm": {
+                "title": "Start Setup",
+                "description": "Please follow the [setup guide](https://github.com/fondberg/spotcast/blob/dev/docs/config/spotcast_configuration.md) before continuing. Confirm when you have started the relay server.",
+                "data": {
+                    "confirmed": "I have read the documentation and started the relay server"
+                },
+                "error": {
+                    "must_confirm": "You must confirm before proceeding."
+                }
             }
         },
         "abort": {
