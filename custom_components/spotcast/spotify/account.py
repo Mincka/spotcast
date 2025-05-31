@@ -754,7 +754,7 @@ class SpotifyAccount:
         await self.async_ensure_tokens_valid()
 
         return await self._async_get_count(
-            self.apis["public"].current_user_playlists
+            self.apis["private"].current_user_playlists
         )
 
     async def async_playlists(
@@ -821,11 +821,11 @@ class SpotifyAccount:
         return result
 
     async def async_wait_for_device(self, device_id: str, timeout: int = 12):
-        """Asycnhronously wait for a device to become available
+        """Asycnhronously wait for a device to become available.
 
         Args:
-            - device_id(str): the spotify id of the device to wait for
-            - timeout(int): the timeout delay to wait for before
+            device_id(str): the spotify id of the device to wait for
+            timeout(int): the timeout delay to wait for before
                 raising an error.
 
         Raises:
@@ -856,12 +856,12 @@ class SpotifyAccount:
         device_id: str,
         extras: dict,
     ):
-        """Applies extra settings on an account
+        """Applies extra settings on an account.
 
         Args:
-            - account(SpotifyAccount): the account to apply extras to
-            - device_id(str): the device to set the extras to
-            - extras(dict): the extra settings to apply
+            account(SpotifyAccount): the account to apply extras to
+            device_id(str): the device to set the extras to
+            extras(dict): the extra settings to apply
         """
         actions = {
             "volume": self.async_set_volume,
@@ -883,13 +883,15 @@ class SpotifyAccount:
         offset: int = None,
         position: int = None,
         **_,
-    ):
-        """Play the media linked to the uri provided on the device id
-        requested
+    ) -> None:
+        """Play the media linked to the uri provided on the device requested.
 
         Args:
-            - device_id(str): The spotify device id to play media on
-            - context_uri(str): The uri of the media to play
+            device_id(str): The spotify device id to play media on
+            context_uri(str, optional): The uri of the media to play.
+                Defaults to None.
+            uris(list[str], optional): List of uris to play in a
+                custom context. Defaults to None.
 
         Raises:
             - PlaybackError: raised when spotipy raises an error while
@@ -940,12 +942,12 @@ class SpotifyAccount:
         shuffle: bool,
         device_id: str,
     ):
-        """Sets the shuffle mode for a device
+        """Sets the shuffle mode for a device.
 
         Args:
-            - shuffle(bool): Sets the shuffle mode to True or False
+            shuffle(bool): Sets the shuffle mode to True or False
                 based on the value provided
-            - device_id(str): the device to set the shuffle mode on
+            device_id(str): the device to set the shuffle mode on
         """
         await self.async_ensure_tokens_valid()
 
@@ -960,14 +962,14 @@ class SpotifyAccount:
         )
 
     async def async_liked_songs_count(self) -> int:
-        """returns the number of linked songs for an account."""
+        """Returns the number of linked songs for an account."""
         await self.async_ensure_tokens_valid()
         return await self._async_get_count(
             self.apis["public"].current_user_saved_tracks,
         )
 
     async def async_liked_songs(self, force: bool = False) -> list[str]:
-        """Retrieves the list of uris of songs in the user liked songs"""
+        """Retrieves the list of uris of songs in the user liked songs."""
         await self.async_ensure_tokens_valid()
         LOGGER.debug("Getting saved tracks for account `%s`", self.name)
 
@@ -988,7 +990,7 @@ class SpotifyAccount:
         return self.liked_songs
 
     async def async_like_media(self, uris: list[str]):
-        """Adds a list of uris to the user's liked songs"""
+        """Adds a list of uris to the user's liked songs."""
         await self.async_ensure_tokens_valid()
 
         dataset = self._datasets["liked_songs"]
@@ -1008,11 +1010,11 @@ class SpotifyAccount:
         state: str,
         device_id: str,
     ):
-        """Sets the repeat mode for a device
+        """Sets the repeat mode for a device.
 
         Args:
-            - state(str): Sets the repeat mode for the device
-            - device_id(str): the device to set the repeat mode
+            state(str): Sets the repeat mode for the device
+            device_id(str): the device to set the repeat mode
         """
         await self.async_ensure_tokens_valid()
 
