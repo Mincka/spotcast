@@ -46,7 +46,7 @@ Spotcast is compatible with any version since 2025.4.
 
 ### Setup
 
-You can setup the integration by following [these instructions](./docs/config/spotcast_configuration.ms) or clicking the following link (links to relevant documentation will be provided in the configuration steps directly):
+You can setup the integration by following [these instructions](./docs/config/spotcast_configuration.md) or clicking the following link (links to relevant documentation will be provided in the configuration steps directly):
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
 
