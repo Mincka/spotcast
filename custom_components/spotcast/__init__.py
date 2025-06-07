@@ -24,7 +24,7 @@ from .websocket import async_setup_websocket
 from .config_flow import DEFAULT_OPTIONS
 from .spotify import SpotifyAccount
 
-__version__ = "6.0.0-a14"
+__version__ = "6.0.0-a15"
 
 
 LOGGER = getLogger(__name__)
