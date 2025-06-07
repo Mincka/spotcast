@@ -1,4 +1,4 @@
-"""Module for the play saved episodes service
+"""Module for the play saved episodes service.
 
 Functions:
     - async_play_saved_episodes
@@ -18,7 +18,7 @@ from custom_components.spotcast.utils import (
     copy_to_dict,
 )
 from custom_components.spotcast.services.play_custom_context import (
-    async_play_custom_context
+    async_play_custom_context,
 )
 from custom_components.spotcast.services.utils import (
     EXTRAS_SCHEMA,
@@ -26,22 +26,22 @@ from custom_components.spotcast.services.utils import (
 
 LOGGER = getLogger(__name__)
 
-PLAY_SAVED_EPISODES = vol.Schema({
-    vol.Optional("media_player"): cv.ENTITY_SERVICE_FIELDS,
-    vol.Optional("account"): cv.string,
-    vol.Optional("data"): EXTRAS_SCHEMA,
-})
+PLAY_SAVED_EPISODES = vol.Schema(
+    {
+        vol.Optional("media_player"): cv.ENTITY_SERVICE_FIELDS,
+        vol.Optional("account"): cv.string,
+        vol.Optional("data"): EXTRAS_SCHEMA,
+    }
+)
 
 
 async def async_play_saved_episodes(hass: HomeAssistant, call: ServiceCall):
-    """Service to start playing the saved podcast episode on the user
-    account
+    """Start playing the saved podcast episode on the user account.
 
     Args:
-        - hass(HomeAssistant): the Home Assistant Instance
-        - call(ServiceCall): the service call data pack
+        hass(HomeAssistant): the Home Assistant Instance
+        call(ServiceCall): the service call data pack
     """
-
     account_id = call.data.get("account")
     extras = call.data.get("data", {})
 
@@ -52,6 +52,7 @@ async def async_play_saved_episodes(hass: HomeAssistant, call: ServiceCall):
 
     episodes = await account.async_saved_episodes(limit)
     episode_uris = [x["episode"]["uri"] for x in episodes]
+    episode_uris = [x for x in episode_uris if x is not None]
 
     call_data = copy_to_dict(call.data)
     call_data["tracks"] = episode_uris
