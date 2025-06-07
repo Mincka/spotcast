@@ -892,6 +892,10 @@ class SpotifyAccount:
                 Defaults to None.
             uris(list[str], optional): List of uris to play in a
                 custom context. Defaults to None.
+            offset(int, optional): The offset to used in starting media
+                from a context
+            position(int, optional): The position in the song to start
+                at the media.
 
         Raises:
             - PlaybackError: raised when spotipy raises an error while
@@ -921,7 +925,7 @@ class SpotifyAccount:
         if position is not None:
             position = int(position * 1000)
 
-        if context_uri.startswith("spotify:track:"):
+        if context_uri is not None and context_uri.startswith("spotify:track:"):
             uris = [context_uri]
             context_uri = None
 
