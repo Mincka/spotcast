@@ -183,7 +183,10 @@ The same window as in step [3.2](#32-public-oauth-authorization) will appear. Th
 
 ### Done
 
-At this point you should see your Spotify devices and account start to populate in the Home Assistant window. The setup is completed at this point.
+At this point you should see your Spotify devices and account start to populate in the Home Assistant window.
+
+> [!SUCCESS]
+> You have completed the spotcast setup at this point. You can close the relay server by pressing `CTRL+C` in your terminal. The relay server will only be required again for reauthenticating.
 
 ---
 
