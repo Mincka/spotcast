@@ -72,7 +72,7 @@ This method requires [git](https://git-scm.com/downloads) to be installed on you
 ```powershell
 git clone https://github.com/fondberg/spotcast.git
 cd spotcast
-git chekout dev
+git checkout dev
 python scripts/relay_server.py
 ```
 
@@ -114,7 +114,7 @@ This method requires [git](https://git-scm.com/downloads) to be installed on you
 ```bash
 git clone https://github.com/fondberg/spotcast.git
 cd spotcast
-git chekout dev
+git checkout dev
 python scripts/relay_server.py
 ```
 
