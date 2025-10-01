@@ -100,7 +100,7 @@ python relay_server.py
 #### One-Step setup instructions
 
 ```bash
-curl.exe -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
+curl -sSL https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py | python
 ```
 
 > ℹ️ Info
@@ -123,7 +123,7 @@ python scripts/relay_server.py
 This method allows you to save the file to your computer, to be able to review the code yourself before running it in python.
 
 ```bash
-curl.exe -o relay_server.py https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py 
+curl -o relay_server.py https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/scripts/relay_server.py 
 python relay_server.py
 ```
 
