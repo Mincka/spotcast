@@ -749,7 +749,7 @@ class SpotifyAccount:
                 [uri],
             )
             return response[0] or {}
-        except Exception:  # pylint: disable=W0718
+        except SpotifyException:
             # audio-features endpoint may be deprecated or restricted
             LOGGER.debug("Could not fetch audio features for %s", uri)
             return {}
@@ -880,7 +880,7 @@ class SpotifyAccount:
 
             try:
                 await actions[key](value, device_id)
-            except Exception:  # pylint: disable=W0718
+            except SpotifyException:
                 LOGGER.warning(
                     "Could not apply %s=%s to device %s",
                     key,

@@ -3,6 +3,8 @@
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, patch, AsyncMock
 
+from spotipy import SpotifyException
+
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     PrivateSession,
@@ -74,7 +76,7 @@ class TestTrackFeature(IsolatedAsyncioTestCase):
     def test_properly_call_executor(self):
         try:
             self.mocks["hass"].async_add_executor_job.assert_called_with(
-                self.account.apis["private"].audio_features,
+                self.account.apis["public"].audio_features,
                 ["spotify:track:foo"],
             )
         except AssertionError:
@@ -117,3 +119,35 @@ class TestEpisodesFeature(IsolatedAsyncioTestCase):
             self.mocks["hass"].async_add_executor_job.assert_not_called()
         except AssertionError:
             self.fail()
+
+
+class TestTrackFeatureWithException(IsolatedAsyncioTestCase):
+    """Test that SpotifyException is handled gracefully."""
+
+    @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.Spotify", spec=Spotify, new_callable=MagicMock)
+    async def asyncSetUp(self, mock_spotify: MagicMock, mock_store: MagicMock):
+
+        self.mocks = {
+            "hass": MagicMock(spec=HomeAssistant),
+            "public": MagicMock(spec=PublicSession),
+            "private": MagicMock(spec=PrivateSession),
+        }
+
+        self.account = SpotifyAccount(
+            entry_id="12345",
+            hass=self.mocks["hass"],
+            public_session=self.mocks["public"],
+            private_session=self.mocks["private"],
+        )
+
+        self.mocks["hass"].async_add_executor_job = AsyncMock(
+            side_effect=SpotifyException(403, -1, "Forbidden")
+        )
+
+        self.result = await self.account.async_track_features(
+            "spotify:track:foo"
+        )
+
+    def test_returns_empty_dict_on_exception(self):
+        self.assertEqual(self.result, {})
