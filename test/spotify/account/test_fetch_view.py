@@ -8,6 +8,7 @@ from custom_components.spotcast.spotify.account import (
     HomeAssistant,
     PublicSession,
     PrivateSession,
+    Spotify,
     Store,
 )
 
@@ -17,7 +18,8 @@ from test.spotify.account import TEST_MODULE
 class TestPlaylistRetrieval(TestCase):
 
     @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
-    def setUp(self, mock_store: MagicMock):
+    @patch(f"{TEST_MODULE}.Spotify", spec=Spotify, new_callable=MagicMock)
+    def setUp(self, mock_spotify: MagicMock, mock_store: MagicMock):
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
@@ -37,14 +39,14 @@ class TestPlaylistRetrieval(TestCase):
             "country": "CA"
         }
 
-        self.account.apis["private"] = MagicMock()
-        self.account.apis["private"]._get.return_value = ["foo", "bar", "baz"]
+        self.account.apis["public"] = MagicMock()
+        self.account.apis["public"]._get.return_value = ["foo", "bar", "baz"]
 
         self.result = self.account._fetch_view("content/foo", "fr")
 
     def test_proper_call_to_get(self):
         try:
-            self.account.apis["private"]._get.assert_called_with(
+            self.account.apis["public"]._get.assert_called_with(
                 "content/foo",
                 {
                     "content_limit": 25,

@@ -63,7 +63,7 @@ class TestAddToQueueJob(IsolatedAsyncioTestCase):
     def test_proper_executor_job_called(self):
         try:
             self.mocks["hass"].async_add_executor_job.assert_called_with(
-                self.account.apis["private"].add_to_queue,
+                self.account.apis["public"].add_to_queue,
                 "spotify:dummy:uri",
                 None,
             )

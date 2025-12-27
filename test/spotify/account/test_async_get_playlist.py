@@ -97,7 +97,7 @@ class TestPlayslistRetrieval(IsolatedAsyncioTestCase):
     def test_proper_call_to__executor(self):
         try:
             self.mocks["hass"].async_add_executor_job.assert_called_with(
-                self.account.apis["private"].playlist,
+                self.account.apis["public"].playlist,
                 "foo",
                 None,
                 "CA",

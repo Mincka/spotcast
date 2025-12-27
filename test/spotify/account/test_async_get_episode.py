@@ -135,7 +135,7 @@ class TestEpisodeRetrieval(IsolatedAsyncioTestCase):
     def test_proper_call_to_executor(self):
         try:
             self.mocks["hass"].async_add_executor_job.assert_called_with(
-                self.account.apis["private"].episode,
+                self.account.apis["public"].episode,
                 "spotify:episode:foo",
                 "CA",
             )

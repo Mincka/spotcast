@@ -124,21 +124,19 @@ class TestAllDataProvided(IsolatedAsyncioTestCase):
 
         await self.handler.async_oauth_create_entry({})
 
-    def test_spotify_created_with_proper_tokens(self):
+    def test_spotify_created_with_public_token(self):
+        # Only public token is validated during setup to avoid rate limits
         try:
-            self.mocks["spotify_constructor"].assert_has_calls([
-                call(auth="foo"),
-                call(auth="bar"),
-            ])
+            self.mocks["spotify_constructor"].assert_called_once_with(auth="foo")
         except AssertionError as exc:
             self.fail(exc)
 
-    def test_profiles_from_both_sessions_retrieved(self):
+    def test_profile_from_public_session_retrieved(self):
+        # Only public session profile is retrieved during setup
         try:
-            self.mocks["hass"].async_add_executor_job.assert_has_calls([
-                call(self.mocks["spotify_sessions"][0].current_user),
-                call(self.mocks["spotify_sessions"][1].current_user),
-            ])
+            self.mocks["hass"].async_add_executor_job.assert_called_once_with(
+                self.mocks["spotify_sessions"][0].current_user,
+            )
         except AssertionError as exc:
             self.fail(exc)
 
@@ -213,54 +211,8 @@ class TestProfileRefreshError(IsolatedAsyncioTestCase):
         self.assertIs(self.result, self.mocks["abort"].return_value)
 
 
-class TestUnmatchedProfile(IsolatedAsyncioTestCase):
-
-    @patch.object(SpotcastFlowHandler, "async_abort", new_callable=MagicMock)
-    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
-    async def asyncSetUp(self, mock_spotify: MagicMock, mock_abort: MagicMock):
-
-        mock_spotify.return_value = MagicMock(spec=Spotify)
-
-        self.mocks = {
-            "hass": MagicMock(spec=HomeAssistant),
-            "spotify": mock_spotify.return_value,
-            "abort": mock_abort,
-        }
-
-        self.handler = SpotcastFlowHandler()
-        self.handler.hass = self.mocks["hass"]
-        self.handler.data = {
-            "external_api": {
-                "token": {
-                    "access_token": "foo",
-                },
-            },
-            "desktop_api": {
-                "token": {
-                    "access_token": "bar",
-                },
-            },
-        }
-
-        self.mocks["hass"].async_add_executor_job = AsyncMock()
-        self.mocks["hass"].async_add_executor_job\
-            .side_effect = [
-                {"id": "foo"},
-                {"id": "bar"},
-        ]
-
-        self.result = await self.handler.async_oauth_create_entry({})
-
-    def test_process_aborted(self):
-        try:
-            self.mocks["abort"].assert_called_with(
-                reason="public_private_accounts_mismatch",
-            )
-        except AssertionError as exc:
-            self.fail(exc)
-
-    def test_returns_abort_flow_result(self):
-        self.assertIs(self.result, self.mocks["abort"].return_value)
+# TestUnmatchedProfile removed - we no longer validate both public and private
+# profiles during setup to avoid rate limit issues. Only public token is validated.
 
 
 class TestReauthMismatch(IsolatedAsyncioTestCase):

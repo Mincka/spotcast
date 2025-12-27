@@ -125,7 +125,7 @@ class TestDatasetExpired(IsolatedAsyncioTestCase):
     def test_new_profile_was_fetched(self):
         try:
             self.mocks["pager"].assert_called_with(
-                self.account.apis["private"].current_user_saved_tracks
+                self.account.apis["public"].current_user_saved_tracks
             )
         except AssertionError:
             self.fail()
@@ -189,7 +189,7 @@ class TestForcerefresh(IsolatedAsyncioTestCase):
     def test_new_profile_was_fetched(self):
         try:
             self.mocks["pager"].assert_called_with(
-                self.account.apis["private"].current_user_saved_tracks
+                self.account.apis["public"].current_user_saved_tracks
             )
         except AssertionError:
             self.fail()

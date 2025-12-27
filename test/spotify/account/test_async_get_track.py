@@ -130,7 +130,7 @@ class TestSongRetrieval(IsolatedAsyncioTestCase):
     def test_executor_job_properly_called(self):
         try:
             self.mocks["hass"].async_add_executor_job.assert_called_with(
-                self.account.apis["private"].track,
+                self.account.apis["public"].track,
                 "spotify:track:55mJleti2WfWEFNFcBduhc",
                 "CA"
             )

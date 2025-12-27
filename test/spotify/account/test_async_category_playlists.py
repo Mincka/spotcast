@@ -53,7 +53,7 @@ class TestPlaylistRetrieval(IsolatedAsyncioTestCase):
     def test_pager_called_with_proper_arguments(self):
         try:
             self.mocks["pager"].assert_called_with(
-                self.account.apis["private"].category_playlists,
+                self.account.apis["public"].category_playlists,
                 prepends=["12345", "CA"],
                 sub_layer="playlists",
                 max_items=None,

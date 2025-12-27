@@ -48,10 +48,10 @@ class TestPagingApiEndpoint(IsolatedAsyncioTestCase):
             private_session=self.mocks["internal"],
             public_session=self.mocks["external"],
         )
-        self.account.apis["private"].dummy_endpoint = MagicMock()
+        self.account.apis["public"].dummy_endpoint = MagicMock()
 
         self.result = await self.account._async_pager(
-            self.account.apis["private"].dummy_endpoint
+            self.account.apis["public"].dummy_endpoint
         )
 
     def test_proper_result_retrieved(self):
@@ -104,10 +104,10 @@ class TestPagingWithLimit(IsolatedAsyncioTestCase):
             private_session=self.mocks["internal"],
             is_default=True
         )
-        self.account.apis["private"].dummy_endpoint = MagicMock()
+        self.account.apis["public"].dummy_endpoint = MagicMock()
 
         self.result = await self.account._async_pager(
-            self.account.apis["private"].dummy_endpoint,
+            self.account.apis["public"].dummy_endpoint,
             max_items=3,
         )
 
@@ -160,10 +160,10 @@ class TestSubLayeredPager(IsolatedAsyncioTestCase):
             is_default=True
         )
 
-        self.account.apis["private"].dummy_endpoint = MagicMock()
+        self.account.apis["public"].dummy_endpoint = MagicMock()
 
         self.result = await self.account._async_pager(
-            self.account.apis["private"].dummy_endpoint,
+            self.account.apis["public"].dummy_endpoint,
             sub_layer="foo"
         )
 
