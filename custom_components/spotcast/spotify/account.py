@@ -749,9 +749,8 @@ class SpotifyAccount:
                 [uri],
             )
             return response[0] or {}
-        except SpotifyException:
-            # audio-features endpoint may be deprecated or restricted
-            LOGGER.debug("Could not fetch audio features for %s", uri)
+        except SpotifyException as exc:
+            LOGGER.warning("Could not fetch audio features for %s: %s", uri, exc.msg)
             return {}
 
     async def async_playlists_count(self) -> int:
@@ -880,12 +879,13 @@ class SpotifyAccount:
 
             try:
                 await actions[key](value, device_id)
-            except SpotifyException:
+            except SpotifyException as exc:
                 LOGGER.warning(
-                    "Could not apply %s=%s to device %s",
+                    "Could not apply %s=%s to device %s: %s",
                     key,
                     value,
                     device_id,
+                    exc.msg,
                 )
 
     async def async_play_media(
