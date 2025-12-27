@@ -878,7 +878,15 @@ class SpotifyAccount:
             if key not in actions:
                 continue
 
-            await actions[key](value, device_id)
+            try:
+                await actions[key](value, device_id)
+            except Exception:  # pylint: disable=W0718
+                LOGGER.warning(
+                    "Could not apply %s=%s to device %s",
+                    key,
+                    value,
+                    device_id,
+                )
 
     async def async_play_media(
         self,
