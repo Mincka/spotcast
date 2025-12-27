@@ -743,12 +743,16 @@ class SpotifyAccount:
         if uri is None or not uri.startswith("spotify:track:"):
             return {}
 
-        response = await self.hass.async_add_executor_job(
-            self.apis["public"].audio_features,
-            [uri],
-        )
-
-        return response[0] or {}
+        try:
+            response = await self.hass.async_add_executor_job(
+                self.apis["public"].audio_features,
+                [uri],
+            )
+            return response[0] or {}
+        except Exception:  # pylint: disable=W0718
+            # audio-features endpoint may be deprecated or restricted
+            LOGGER.debug("Could not fetch audio features for %s", uri)
+            return {}
 
     async def async_playlists_count(self) -> int:
         """Returns the number of user playlist for an account."""
