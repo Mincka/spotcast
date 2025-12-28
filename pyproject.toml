@@ -78,4 +78,5 @@ dev = [
     "ruff",
     "mypy",
     "bandit",
+    "bump2version>=1.0.1",
 ]
