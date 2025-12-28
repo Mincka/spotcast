@@ -12,19 +12,14 @@ maintainers = [
     { name = "Felix Cusson", email = "felixcusson@gmail.com" }
 ]
 dependencies = [
-    "spotipy>=2.23.0",
+    "atomicwrites-homeassistant>=1.4.1",
+    "spotipy>=2.24.0",
+    "PyChromecast>=14.0.1",
+    "requests>=2.32.3",
     "spotifyaio>=0.8.8",
-    "RapidFuzz>=3.10.1"
-]
-
-[project.optional-dependencies]
-dev = [
-    "pylint",
-    "coverage",
-    "radon",
-    "ruff",
-    "mypy",
-    "bandit",
+    "RapidFuzz>=3.10.1",
+    "pyotp==2.9.0",
+    "homeassistant>=2025.4.4",
 ]
 
 [project.urls]
@@ -73,3 +68,14 @@ convention = "google"
 
 [tool.ruff.per-file-ignores]
 "**/__init__.py" = ["D104"]
+
+[dependency-groups]
+dev = [
+    "time-machine>=3.2.0",
+    "pylint",
+    "coverage",
+    "radon",
+    "ruff",
+    "mypy",
+    "bandit",
+]
