@@ -1,0 +1,23 @@
+version: "3"
+
+vars:
+  UNITTEST_ARGS: discover -s ./test -p test_*.py
+
+tasks:
+  test:
+    cmd: uv run python -m unittest {{.UNITTEST_ARGS}}
+
+  coverage:
+    cmd: uv run coverage run --branch --omit=./test/* -m unittest {{.UNITTEST_ARGS}}
+
+  podman:stable:
+    cmd: podman-compose -f ${PWD}/container/compose.stable.yaml up
+
+  podman:dev:
+    cmd: podman-compose -f ${PWD}/container/compose.dev.yaml up
+
+  podman:beta:
+    cmd: podman-compose -f ${PWD}/container/compose.beta.yaml up
+
+  podman:custom:
+    cmd: podman-compose -f ${PWD}/container/compose.custom_version.yaml up

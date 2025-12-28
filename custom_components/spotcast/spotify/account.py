@@ -750,7 +750,7 @@ class SpotifyAccount:
             )
             return response[0] or {}
         except SpotifyException as exc:
-            LOGGER.warning("Could not fetch audio features for %s: %s", uri, exc.msg)
+            LOGGER.debug("Could not fetch audio features for %s: %s", uri, exc.msg)
             return {}
 
     async def async_playlists_count(self) -> int:
