@@ -15,6 +15,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.const import Platform
+from homeassistant.helpers import entity_registry
 
 from .const import DOMAIN
 from .services import ServiceHandler
@@ -23,6 +24,8 @@ from .sessions.exceptions import TokenRefreshError, InternalServerError
 from .websocket import async_setup_websocket
 from .config_flow import DEFAULT_OPTIONS
 from .spotify import SpotifyAccount
+from .sensor.abstract_entity import SpotcastEntity
+from .sensor.spotify_current_audio_features import SENSORS as AF_SENSORS
 
 __version__ = "6.0.0-a15"
 
@@ -82,7 +85,40 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await async_setup_websocket(hass)
 
+    # remove deprecated entries
+    deprecated_entities = [x(account) for x in AF_SENSORS]
+
+    removed = await async_cleanup_entities(hass, entry, deprecated_entities)
+
+    if removed > 0:
+        LOGGER.info("Removed %d deprecated entities from spotcast.", removed)
+
     return True
+
+
+async def async_cleanup_entities(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    entities: list[SpotcastEntity],
+) -> int:
+    """Removes deprecated entities from registry."""
+    registry = entity_registry.async_get(hass)
+
+    removed = 0
+
+    for entity in entities:
+        entry = registry.async_get(entity.entity_id)
+
+        if entry is None:
+            continue
+
+        if entry.config_entry_id != config_entry.entry_id:
+            continue
+
+        registry.async_remove(entry.entity_id)
+        removed += 1
+
+    return removed
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
