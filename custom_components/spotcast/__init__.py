@@ -27,7 +27,7 @@ from .spotify import SpotifyAccount
 from .sensor.abstract_entity import SpotcastEntity
 from .sensor.spotify_current_audio_features import SENSORS as AF_SENSORS
 
-__version__ = "6.0.0-a15"
+__version__ = "6.0.0-a16"
 
 
 LOGGER = getLogger(__name__)
