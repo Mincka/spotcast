@@ -4,6 +4,8 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, patch, AsyncMock
 from time import time
 
+from spotipy import SpotifyException
+
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     PublicSession,
@@ -139,3 +141,60 @@ class TestSkippedExtras(IsolatedAsyncioTestCase):
                 mock.assert_not_called()
             except AssertionError:
                 self.fail()
+
+
+class TestApplyExtrasWithException(IsolatedAsyncioTestCase):
+    """Test that SpotifyException in extras doesn't crash the call."""
+
+    @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.Spotify", new_callable=MagicMock)
+    async def asyncSetUp(
+            self,
+            mock_spotify: MagicMock,
+            mock_store: MagicMock,
+    ):
+
+        self.mocks = {
+            "internal": MagicMock(spec=PrivateSession),
+            "external": MagicMock(spec=PublicSession),
+            "hass": MagicMock(spec=HomeAssistant),
+        }
+        self.mocks["hass"].loop = MagicMock()
+
+        self.account = SpotifyAccount(
+            entry_id="12345",
+            hass=self.mocks["hass"],
+            public_session=self.mocks["external"],
+            private_session=self.mocks["internal"],
+            is_default=True
+        )
+
+        self.account.async_ensure_tokens_valid = AsyncMock()
+
+        self.account._datasets["profile"].expires_at = time() + 9999
+        self.account._datasets["profile"]._data = {"name": "Dummy"}
+
+        # Make volume raise, but shuffle and repeat succeed
+        self.account.async_set_volume = AsyncMock(
+            side_effect=SpotifyException(403, -1, "Forbidden")
+        )
+        self.account.async_shuffle = AsyncMock()
+        self.account.async_repeat = AsyncMock()
+
+        # Should not raise despite volume failing
+        await self.account.async_apply_extras(
+            "foo",
+            {"volume": 80, "shuffle": True, "repeat": "context"}
+        )
+
+    def test_shuffle_still_called_despite_volume_error(self):
+        try:
+            self.account.async_shuffle.assert_called_with(True, "foo")
+        except AssertionError:
+            self.fail()
+
+    def test_repeat_still_called_despite_volume_error(self):
+        try:
+            self.account.async_repeat.assert_called_with("context", "foo")
+        except AssertionError:
+            self.fail()

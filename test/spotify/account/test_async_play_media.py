@@ -65,7 +65,7 @@ class TestMediaPlayback(IsolatedAsyncioTestCase):
     def test_play_media_was_called(self):
         try:
             self.mocks["hass"].async_add_executor_job.assert_called_with(
-                self.account.apis["private"].start_playback,
+                self.account.apis["public"].start_playback,
                 "foo",
                 "spotify:dummy:uri",
                 None,
@@ -120,7 +120,7 @@ class TestEmptyContext(IsolatedAsyncioTestCase):
     def test_play_media_was_called(self):
         try:
             self.mocks["hass"].async_add_executor_job.assert_called_with(
-                self.account.apis["private"].transfer_playback,
+                self.account.apis["public"].transfer_playback,
                 "foo",
                 True
             )
@@ -175,7 +175,7 @@ class TestFailedTransfer(IsolatedAsyncioTestCase):
     def test_play_media_was_called(self):
         try:
             self.mocks["hass"].async_add_executor_job.assert_called_with(
-                self.account.apis["private"].transfer_playback,
+                self.account.apis["public"].transfer_playback,
                 "foo",
                 True
             )
@@ -232,7 +232,7 @@ class TestMediaPlaybackWithExtras(IsolatedAsyncioTestCase):
     def test_play_media_was_called(self):
         try:
             self.mocks["hass"].async_add_executor_job.assert_called_with(
-                self.account.apis["private"].start_playback,
+                self.account.apis["public"].start_playback,
                 "foo",
                 "spotify:dummy:uri",
                 None,

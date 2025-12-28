@@ -118,7 +118,7 @@ class TestDatasetExpired(IsolatedAsyncioTestCase):
     def test_new_profile_was_fetched(self):
         try:
             self.mocks["pager"].assert_called_with(
-                self.account.apis["private"].current_user_playlists,
+                self.account.apis["public"].current_user_playlists,
                 max_items=None
             )
         except AssertionError:
@@ -176,7 +176,7 @@ class TestForceRefresh(IsolatedAsyncioTestCase):
     def test_new_profile_was_fetched(self):
         try:
             self.mocks["pager"].assert_called_with(
-                self.account.apis["private"].current_user_playlists,
+                self.account.apis["public"].current_user_playlists,
                 max_items=None,
             )
         except AssertionError:

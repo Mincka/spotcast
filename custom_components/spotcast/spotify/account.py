@@ -110,6 +110,7 @@ class SpotifyAccount:
         "playlist-read-private",
         "playlist-read-collaborative",
         "user-library-read",
+        "user-library-modify",
         "user-top-read",
         "user-read-playback-position",
         "user-read-recently-played",
@@ -527,7 +528,7 @@ class SpotifyAccount:
         )
 
         return await self._async_pager(
-            self.apis["private"].current_user_saved_episodes,
+            self.apis["public"].current_user_saved_episodes,
             appends=[self.country],
             max_items=limit,
         )
@@ -546,7 +547,7 @@ class SpotifyAccount:
         LOGGER.debug("Getting track information for `%s`", uri)
 
         result = await self.hass.async_add_executor_job(
-            self.apis["private"].track, uri, self.country
+            self.apis["public"].track, uri, self.country
         )
 
         return result
@@ -589,7 +590,7 @@ class SpotifyAccount:
         album_id = self._id_from_uri(uri)
 
         result = await self.hass.async_add_executor_job(
-            self.apis["private"].album,
+            self.apis["public"].album,
             album_id,
             self.country,
         )
@@ -609,7 +610,7 @@ class SpotifyAccount:
         LOGGER.debug("Fetching Top Tracks for artist `%s`", uri)
 
         result = await self.hass.async_add_executor_job(
-            self.apis["private"].artist_top_tracks,
+            self.apis["public"].artist_top_tracks,
             uri,
             self.country,
         )
@@ -624,7 +625,7 @@ class SpotifyAccount:
         playlist_id = self._id_from_uri(uri)
 
         result = await self._async_pager(
-            function=self.apis["private"].playlist_tracks,
+            function=self.apis["public"].playlist_tracks,
             prepends=[playlist_id, None],
             appends=[self.country],
         )
@@ -655,7 +656,7 @@ class SpotifyAccount:
         LOGGER.debug("Fetching episodes from show `%s`", uri)
 
         result = await self._async_pager(
-            function=self.apis["private"].show_episodes,
+            function=self.apis["public"].show_episodes,
             prepends=[uri],
             appends=[self.country],
             max_items=limit,
@@ -669,7 +670,7 @@ class SpotifyAccount:
         LOGGER.debug("Fetching information from episode `%s`")
 
         result = await self.hass.async_add_executor_job(
-            self.apis["private"].episode,
+            self.apis["public"].episode,
             uri,
             self.country,
         )
@@ -695,7 +696,7 @@ class SpotifyAccount:
             if force or dataset.is_expired():
                 LOGGER.debug("Refreshing playback state dataset")
                 data = await self.hass.async_add_executor_job(
-                    self.apis["private"].current_playback,
+                    self.apis["public"].current_playback,
                     self.country,
                     "episode",
                 )
@@ -742,19 +743,22 @@ class SpotifyAccount:
         if uri is None or not uri.startswith("spotify:track:"):
             return {}
 
-        response = await self.hass.async_add_executor_job(
-            self.apis["private"].audio_features,
-            [uri],
-        )
-
-        return response[0] or {}
+        try:
+            response = await self.hass.async_add_executor_job(
+                self.apis["public"].audio_features,
+                [uri],
+            )
+            return response[0] or {}
+        except SpotifyException as exc:
+            LOGGER.warning("Could not fetch audio features for %s: %s", uri, exc.msg)
+            return {}
 
     async def async_playlists_count(self) -> int:
         """Returns the number of user playlist for an account."""
         await self.async_ensure_tokens_valid()
 
         return await self._async_get_count(
-            self.apis["private"].current_user_playlists
+            self.apis["public"].current_user_playlists
         )
 
     async def async_playlists(
@@ -773,7 +777,7 @@ class SpotifyAccount:
                 LOGGER.debug("Refreshing playlists dataset")
 
                 playlists = await self._async_pager(
-                    self.apis["private"].current_user_playlists,
+                    self.apis["public"].current_user_playlists,
                     max_items=max_items,
                 )
 
@@ -804,7 +808,7 @@ class SpotifyAccount:
         )
 
         search_result = await self.hass.async_add_executor_job(
-            self.apis["private"].search,
+            self.apis["public"].search,
             query.query_string,
             limit,
             0,
@@ -873,7 +877,16 @@ class SpotifyAccount:
             if key not in actions:
                 continue
 
-            await actions[key](value, device_id)
+            try:
+                await actions[key](value, device_id)
+            except SpotifyException as exc:
+                LOGGER.warning(
+                    "Could not apply %s=%s to device %s: %s",
+                    key,
+                    value,
+                    device_id,
+                    exc.msg,
+                )
 
     async def async_play_media(
         self,
@@ -907,7 +920,7 @@ class SpotifyAccount:
             LOGGER.info("transfering playback to device `%s`", device_id)
             try:
                 await self.hass.async_add_executor_job(
-                    self.apis["private"].transfer_playback,
+                    self.apis["public"].transfer_playback,
                     device_id,
                     True,
                 )
@@ -931,7 +944,7 @@ class SpotifyAccount:
 
         try:
             await self.hass.async_add_executor_job(
-                self.apis["private"].start_playback,
+                self.apis["public"].start_playback,
                 device_id,
                 context_uri,
                 uris,
@@ -960,7 +973,7 @@ class SpotifyAccount:
         )
 
         await self.hass.async_add_executor_job(
-            self.apis["private"].shuffle,
+            self.apis["public"].shuffle,
             shuffle,
             device_id,
         )
@@ -984,7 +997,7 @@ class SpotifyAccount:
                 LOGGER.debug("Refreshing liked songs dataset")
 
                 liked_songs = await self._async_pager(
-                    self.apis["private"].current_user_saved_tracks,
+                    self.apis["public"].current_user_saved_tracks,
                 )
 
                 dataset.update(liked_songs)
@@ -1005,7 +1018,7 @@ class SpotifyAccount:
             LOGGER.debug("Expired liked_songs dataset after adding new likes")
 
             await self.hass.async_add_executor_job(
-                self.apis["private"].current_user_saved_tracks_add,
+                self.apis["public"].current_user_saved_tracks_add,
                 uris,
             )
 
@@ -1027,7 +1040,7 @@ class SpotifyAccount:
         )
 
         await self.hass.async_add_executor_job(
-            self.apis["private"].repeat,
+            self.apis["public"].repeat,
             state,
             device_id,
         )
@@ -1048,7 +1061,7 @@ class SpotifyAccount:
         LOGGER.info("Setting volume to %d%% for device `%s`", volume, device_id)
 
         await self.hass.async_add_executor_job(
-            self.apis["private"].volume,
+            self.apis["public"].volume,
             volume,
             device_id,
         )
@@ -1069,7 +1082,7 @@ class SpotifyAccount:
                 LOGGER.debug("Refreshing Browse Categories dataset")
 
                 categories = await self._async_pager(
-                    self.apis["private"].categories,
+                    self.apis["public"].categories,
                     prepends=[self.country, None],
                     sub_layer="categories",
                     max_items=limit,
@@ -1105,7 +1118,7 @@ class SpotifyAccount:
         )
 
         playlists = await self._async_pager(
-            self.apis["private"].category_playlists,
+            self.apis["public"].category_playlists,
             prepends=[category_id, self.country],
             sub_layer="playlists",
             max_items=limit,
@@ -1177,7 +1190,7 @@ class SpotifyAccount:
             "offset": offset,
         }
 
-        return self.apis["private"]._get(url, params)
+        return self.apis["public"]._get(url, params)
 
     async def _async_get_count(
         self,
@@ -1293,7 +1306,7 @@ class SpotifyAccount:
 
         try:
             await self.hass.async_add_executor_job(
-                self.apis["private"].add_to_queue,
+                self.apis["public"].add_to_queue,
                 uri,
                 device_id,
             )

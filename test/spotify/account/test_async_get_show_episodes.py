@@ -55,7 +55,7 @@ class TestShowEpisodesRetrieval(IsolatedAsyncioTestCase):
     def test_pager_properly_called(self):
         try:
             self.account._async_pager.assert_called_with(
-                function=self.account.apis["private"].show_episodes,
+                function=self.account.apis["public"].show_episodes,
                 prepends=["spotify:show:foo"],
                 appends=["CA"],
                 max_items=None,

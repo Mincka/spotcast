@@ -67,7 +67,7 @@ class TestDatasetFresh(IsolatedAsyncioTestCase):
     def test_pager_properly_called(self):
         try:
             self.account._async_pager.assert_called_with(
-                self.account.apis["private"].current_user_saved_episodes,
+                self.account.apis["public"].current_user_saved_episodes,
                 appends=["CA"],
                 max_items=None
             )

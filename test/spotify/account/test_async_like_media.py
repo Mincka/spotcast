@@ -60,7 +60,7 @@ class TestLikeSongs(IsolatedAsyncioTestCase):
     def test_executor_properly_called(self):
         try:
             self.mocks["hass"].async_add_executor_job.assert_called_with(
-                self.account.apis["private"].current_user_saved_tracks_add,
+                self.account.apis["public"].current_user_saved_tracks_add,
                 ["foo", "bar", "baz"]
             )
         except AssertionError:

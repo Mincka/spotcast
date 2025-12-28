@@ -113,7 +113,7 @@ class TestDatasetExpired(IsolatedAsyncioTestCase):
     def test_new_profile_was_not_fetched(self):
         try:
             self.account._async_pager.assert_called_with(
-                self.account.apis["private"].categories,
+                self.account.apis["public"].categories,
                 prepends=[None, None],
                 sub_layer="categories",
                 max_items=None,

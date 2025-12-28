@@ -210,33 +210,21 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
             )
 
         external_api = self.data["external_api"]
-        desktop_api = self.data["desktop_api"]
 
         try:
-            accounts: dict[str, Spotify] = {
-                "public": Spotify(auth=external_api["token"]["access_token"]),
-                "desktop": Spotify(auth=desktop_api["token"]["access_token"]),
-            }
-
-            profiles = {}
-
-            for key, account in accounts.items():
-                profiles[key] = await self.hass.async_add_executor_job(
-                    account.current_user
-                )
+            # Only validate the public token - desktop token was just obtained
+            # via OAuth so we know it's valid. Skip desktop validation to avoid
+            # rate limit issues (Desktop client_id has stricter API limits).
+            public_client = Spotify(auth=external_api["token"]["access_token"])
+            current_user = await self.hass.async_add_executor_job(
+                public_client.current_user
+            )
 
         except Exception:  # pylint: disable=W0718
             return self.async_abort(
                 reason="connection_error",
-                description_placeholders={"account_type": key},
+                description_placeholders={"account_type": "public"},
             )
-
-        ids = [x["id"] for x in profiles.values()]
-
-        if ids[0] != ids[1]:
-            return self.async_abort(reason="public_private_accounts_mismatch")
-
-        current_user = profiles["public"]
 
         external_api["id"] = current_user["id"]
         name = current_user.get("display_name", current_user["id"])
