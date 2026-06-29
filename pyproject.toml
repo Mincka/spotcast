@@ -3,7 +3,7 @@ name = "spotcast"
 version = "6.0.0-a16"
 description = "Home Assistant custom component to start Spotify playback on an idle Chromecast or a Spotify Connect device. Meaning you can target automation for chromecast as well as connect devices."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14.2"
 license = "LICENSE"
 authors = [
     { name = "Niklas Fondberg"},
@@ -13,13 +13,13 @@ maintainers = [
 ]
 dependencies = [
     "atomicwrites-homeassistant>=1.4.1",
-    "spotipy>=2.24.0",
-    "PyChromecast>=14.0.1",
-    "requests>=2.32.3",
-    "spotifyaio>=0.8.8",
-    "RapidFuzz>=3.10.1",
-    "pyotp==2.9.0",
-    "homeassistant>=2025.4.4",
+    "spotipy>=2.26.0",
+    "PyChromecast>=14.0.10",
+    "requests>=2.34.2",
+    "spotifyaio>=2.0.2",
+    "RapidFuzz>=3.14.5",
+    "pyotp==2.10.0",
+    "homeassistant>=2026.4.0",
 ]
 
 [project.urls]
@@ -28,7 +28,7 @@ dependencies = [
 "Source" = "https://github.com/fondberg/spotcast"
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 strict = true
 ignore_missing_imports = true
 show_error_codes = true
@@ -46,7 +46,7 @@ exclude = ["test/"]
 
 [tool.ruff]
 line-length = 80
-target-version = "py313"
+target-version = "py314"
 extend-ignore = ["I001"]
 fix = true
 src = ["./"]

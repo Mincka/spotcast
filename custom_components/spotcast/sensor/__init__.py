@@ -42,7 +42,6 @@ SENSORS = (
     SpotifyProductSensor,
     SpotifyFollowersSensor,
     SpotifyAccountTypeSensor,
-    # *AUDIO_FEATURES_SENSORS,
 )
 
 

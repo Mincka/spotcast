@@ -103,28 +103,6 @@
                 }
             }
         },
-        "play_category": {
-            "name": "Playlist from Category",
-            "description": "Plays a random playlist from a Browse Category",
-            "fields": {
-                "media_player": {
-                    "name": "Target",
-                    "description": "A Single Media Player compatible with Spotcast"
-                },
-                "category": {
-                    "name": "Category",
-                    "description": "A Category name or ID. A fuzzy match is applied on the name, but an ID must be an exact match."
-                },
-                "account": {
-                    "name": "Spotify Account",
-                    "description": "The id of the Spotify account to use. Takes the default account otherwise."
-                },
-                "data": {
-                    "name": "Data",
-                    "description": "Additional modifiers when starting media playback"
-                }
-            }
-        },
         "play_custom_context": {
             "name": "Play Custom Context",
             "description": "Starts playback from a custom list of tracks URIs",

@@ -62,7 +62,6 @@ You can setup the integration by following [these instructions](./docs/config/sp
 | [spotcast.play_liked_songs](./docs/services/play_liked_songs.md)       | Starts playback on a Chromecast or Spotify Connect device using the user's saved tracks as context.                  |
 | [spotcast.play_dj](./docs/services/play_dj.md)                         | Starts playback on a Chromecast or Spotify Connect device using the dj feature as context.                           |
 | [spotcast.play_from_search](./docs/services/play_from_search.md)       | Starts playback on a Chromecast or Spotify Connect device using a search result as a context.                        |
-| [spotcast.play_category](./docs/services/play_category.md)             | Starts playback on a Chromecast or Spotify Connect device using a random playlist from a Browse Category as context. |
 | [spotcast.play_custom_context](./docs/services/play_custom_context.md) | Starts playback on a Chromecast or Spotify Connect device using a list of uris as context                            |
 | [spotcast.transfer_playback](./docs/services/transfer_playback.md)     | Transfers the active or most recent playback on the device provided                                                  |
 | [spotcast.add_to_queue](./docs/services/add_to_queue.md)               | Adds songs the the playback queue. Fails and returns an error if there is no active playback                         |
@@ -123,7 +122,7 @@ Spotcast provides multiple websocket API endpoints:
 | [`spotcast/categories`](./docs/websocket/categories.md)    | Provides a list of [Browse categories](https://developer.spotify.com/documentation/web-api/reference/get-a-category) an account has access to                                         |
 | [`spotcast/devices`](./docs/websocket/devices.md)          | Provides a list of Spotify Connect Devices available to the account                                                                                                                   |
 | [`spotcast/player`](./docs/websocket/player.md)            | Provides the playback state of an account                                                                                                                                             |
-| [`spotcast/playlists`](./docs/websocket/playlists.md)      | Provides the list of playlists. Either the user's playlist of the playlists part of a [Browse Category](https://developer.spotify.com/documentation/web-api/reference/get-a-category) |
+| [`spotcast/playlists`](./docs/websocket/playlists.md)      | Provides the list of the user's playlists                                                                                                                                            |
 
 
 ## Contribute

@@ -1,6 +1,6 @@
 # Playlists
 
-Provides a list of playlists based on a Browse categories
+Provides the list of the user's playlists
 
 ## Request
 
@@ -8,7 +8,6 @@ Provides a list of playlists based on a Browse categories
 {
     "id": 7,
     "type": "spotcast/playlists",
-    "category": "metal",
     "account": "01JDG07KSBTYWZGJSBJ1EW6XEF",
     "limit": 20
 }
@@ -20,11 +19,7 @@ The id of the transaction. Must be an increment of the last transaction id.
 
 ### `type` (str)
 
-The endpoint of the websocket to reach. Must be `spotcast/categories`
-
-### `category` (str)
-
-A Browse category in Spotify. Can be a category name, id, or `user` to retrieve user's playlists
+The endpoint of the websocket to reach. Must be `spotcast/playlists`
 
 ### `account` (str)
 
@@ -36,7 +31,7 @@ The entry id of the account used to get the active playback state. Defaults to t
 
 *Optional*
 
-Sets a limit to the number of playlists to retrieve in a category
+Sets a limit to the number of playlists to retrieve
 
 ## Response
 
@@ -47,7 +42,7 @@ Sets a limit to the number of playlists to retrieve in a category
     "result": {
         "total": 20,
         "account": "01JDG07KSBTYWZGJSBJ1EW6XEF",
-        "category": "0JQ5DAqbMKFDkd668ypn6O",
+        "category": "user",
         "playlists": [
             {...},
             {...}
@@ -82,8 +77,8 @@ The result of the transaction
 >
 > #### `category` (str)
 >
-> The id of the category used in the query
+> Always `user`. Kept for backward compatibility with earlier versions that supported Browse Category drilldown (removed after Spotify deprecated the category playlists endpoint).
 > 
 > #### `playlists` (list[dict])
 > 
-> List of the playlists retrieved that are part of the requested category. See [Get Playlist](https://developer.spotify.com/documentation/web-api/reference/get-playlist) for details about the fields
+> List of the user's playlists. See [Get Playlist](https://developer.spotify.com/documentation/web-api/reference/get-playlist) for details about the fields

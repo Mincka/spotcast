@@ -124,8 +124,7 @@ class TestDatasetExpired(IsolatedAsyncioTestCase):
         self.assertEqual(self.result, {
             "item": {
                 "uri": "foo"
-            },
-            "audio_features": {}
+            }
         })
 
 
@@ -241,8 +240,7 @@ class TestForceRefresh(IsolatedAsyncioTestCase):
             {
                 "item": {
                     "uri": "foo"
-                },
-                "audio_features": {}
+                }
             }
 
         )

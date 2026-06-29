@@ -197,7 +197,6 @@ class SpotifyAccount:
             1,
             f"spotcast_{entry_id}_last_state",
         )
-        self.current_item = {"uri": None, "audio_features": {}}
 
         for name, dataset in self.DATASETS.items():
             refresh_rate = dataset["refresh_factor"] * self._base_refresh_rate
@@ -703,10 +702,7 @@ class SpotifyAccount:
 
                 if data is None:
                     data = {}
-                    self.current_item = {"uri": None, "audio_features": {}}
-
                 else:
-                    data = await self._async_add_audio_features(data)
                     self._last_playback_state = data
                     await self._playback_store.async_save(data)
 
@@ -715,43 +711,6 @@ class SpotifyAccount:
                 LOGGER.debug("Using Cached playback state dataset")
 
         return self.playback_state
-
-    async def _async_add_audio_features(self, playback_state: dict) -> dict:
-        """Adds the audio_features to the current playback state."""
-        playback_state = playback_state or {}
-
-        current_item = playback_state.get("item")
-
-        if current_item is None:
-            current_item = {}
-
-        current_uri = current_item.get("uri")
-        last_uri = self.current_item["uri"]
-
-        if current_uri is None:
-            return playback_state
-
-        if current_uri != last_uri:
-            audio_features = await self.async_track_features(current_uri)
-            self.current_item["audio_features"] = audio_features
-
-        playback_state["audio_features"] = self.current_item["audio_features"]
-        return playback_state
-
-    async def async_track_features(self, uri: str) -> dict:
-        """Returns the track audio features."""
-        if uri is None or not uri.startswith("spotify:track:"):
-            return {}
-
-        try:
-            response = await self.hass.async_add_executor_job(
-                self.apis["public"].audio_features,
-                [uri],
-            )
-            return response[0] or {}
-        except SpotifyException as exc:
-            LOGGER.debug("Could not fetch audio features for %s: %s", uri, exc.msg)
-            return {}
 
     async def async_playlists_count(self) -> int:
         """Returns the number of user playlist for an account."""
@@ -1093,38 +1052,6 @@ class SpotifyAccount:
                 LOGGER.debug("Using cached Browse Categories dataset")
 
         return self.categories
-
-    async def async_category_playlists(
-        self,
-        category_id: str,
-        limit: int = None,
-    ) -> list[str]:
-        """Fetches the playlist associated with a browse category
-
-        Args:
-            - category_id(str): the id of of the category to retreive
-                playlists from
-            - limit(int, optional): the maxmimum number of item to
-                retrieve. Retrieves all if None. Defaults to None.
-
-        Returns:
-            - list[str]: list of playlists linked to the category id
-                provided
-        """
-        await self.async_ensure_tokens_valid()
-        LOGGER.debug(
-            "Retrieving playlist linked to category id `%s`",
-            category_id,
-        )
-
-        playlists = await self._async_pager(
-            self.apis["public"].category_playlists,
-            prepends=[category_id, self.country],
-            sub_layer="playlists",
-            max_items=limit,
-        )
-
-        return playlists
 
     async def async_view(
         self,

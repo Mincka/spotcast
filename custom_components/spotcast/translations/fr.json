@@ -103,28 +103,6 @@
                 }
             }
         },
-        "play_category": {
-            "name": "Liste de lecture d'une catégorie'",
-            "description": "Joue une liste de lecture aléatoir depuis une catégorie de navigation.",
-            "fields": {
-                "media_player": {
-                    "name": "Cible",
-                    "description": "Un lecteur multimedia compatible avec Spotcast."
-                },
-                "category": {
-                    "name": "Catégorie",
-                    "description": "Le nom ou l'ID d'une catégorie. Une correspondance floue est appliqué sur le nom, mais un ID doit être exact."
-                },
-                "account": {
-                    "name": "Compte Spotify",
-                    "description": "L'ID du compte Spotify à utiliser. Utilise le compte par défaut sinon."
-                },
-                "data": {
-                    "name": "Data",
-                    "description": "Modificateurs additionels lors du démarrage de la lecture."
-                }
-            }
-        },
         "play_custom_context": {
             "name": "Lire un context personalisé",
             "description": "Démarre une lecture avec une liste personalisé de chansons.",
