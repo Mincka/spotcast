@@ -15,7 +15,7 @@ dependencies = [
     "atomicwrites-homeassistant>=1.4.1",
     "spotipy>=2.26.0",
     "PyChromecast>=14.0.10",
-    "requests>=2.34.2",
+    "requests>=2.33.1",
     "spotifyaio>=2.0.2",
     "RapidFuzz>=3.14.5",
     "pyotp==2.10.0",
