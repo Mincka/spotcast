@@ -60,7 +60,10 @@ class TestExternalApiEntry(IsolatedAsyncioTestCase):
         try:
             self.mocks["external"].assert_called_with(
                 step_id="desktop_api",
-                url="https://foo.bar"
+                url="https://foo.bar",
+                description_placeholders={
+                    "release_url": "https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0",
+                },
             )
         except AssertionError as exc:
             self.fail(exc)
@@ -202,7 +205,11 @@ class TestProfileRefreshError(IsolatedAsyncioTestCase):
         try:
             self.mocks["abort"].assert_called_with(
                 reason="connection_error",
-                description_placeholders={"account_type": "public"}
+                description_placeholders={
+                    "account_type": "public",
+                    "release_url": "https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0",
+                    "ticket_url": "https://github.com/fondberg/spotcast/issues/new/choose",
+                },
             )
         except AssertionError as exc:
             self.fail(exc)
