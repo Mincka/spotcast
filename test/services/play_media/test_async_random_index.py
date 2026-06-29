@@ -3,6 +3,8 @@
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, AsyncMock, patch
 
+from spotipy import SpotifyException
+
 from custom_components.spotcast.services.play_media import (
     async_random_index,
     SpotifyAccount,
@@ -116,4 +118,48 @@ class TestInvalidContextUri(IsolatedAsyncioTestCase):
             self.resut = await async_random_index(
                 self.mocks["account"],
                 "spotify:track:foo",
+            )
+
+
+class TestPlaylistNotFound(IsolatedAsyncioTestCase):
+    """Spotify 404s on its own editorial/algorithmic playlists when
+    fetched through the Web API. Random start must degrade to the first
+    track instead of raising. See issues #570 and #599."""
+
+    async def asyncSetUp(self):
+
+        self.mocks = {
+            "account": MagicMock(spec=SpotifyAccount)
+        }
+
+        self.mocks["account"].async_get_playlist = AsyncMock(
+            side_effect=SpotifyException(404, -1, "Resource not found")
+        )
+
+        self.resut = await async_random_index(
+            self.mocks["account"],
+            "spotify:playlist:37i9dQZF1DX4sWSpwq3LiO",
+        )
+
+    def test_degrades_to_first_track(self):
+        self.assertEqual(self.resut, 0)
+
+
+class TestPlaylistOtherSpotifyError(IsolatedAsyncioTestCase):
+    """Non-404 Spotify errors must still propagate."""
+
+    async def test_error_reraised(self):
+
+        self.mocks = {
+            "account": MagicMock(spec=SpotifyAccount)
+        }
+
+        self.mocks["account"].async_get_playlist = AsyncMock(
+            side_effect=SpotifyException(500, -1, "Server Error")
+        )
+
+        with self.assertRaises(SpotifyException):
+            await async_random_index(
+                self.mocks["account"],
+                "spotify:playlist:foo",
             )

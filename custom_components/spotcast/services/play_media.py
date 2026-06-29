@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 import voluptuous as vol
+from spotipy import SpotifyException
 
 
 from custom_components.spotcast.media_player.exceptions import (
@@ -189,8 +190,20 @@ async def async_random_index(account: SpotifyAccount, uri: str) -> int:
         album = await account.async_get_album(uri)
         count = album["total_tracks"]
     elif uri.startswith("spotify:playlist:"):
-        playlist = await account.async_get_playlist(uri)
-        count = playlist["tracks"]["total"]
+        try:
+            playlist = await account.async_get_playlist(uri)
+            count = playlist["tracks"]["total"]
+        except SpotifyException as exc:
+            if exc.http_status != 404:
+                raise
+            LOGGER.warning(
+                "Spotify returned 404 for playlist `%s` (likely a Spotify "
+                "editorial/algorithmic playlist no longer exposed through "
+                "the Web API). Starting at the first track instead of a "
+                "random offset.",
+                uri,
+            )
+            return 0
     elif uri == account.liked_songs_uri:
         count = await account.async_liked_songs_count()
     else:

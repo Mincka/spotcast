@@ -3,6 +3,8 @@
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, AsyncMock, patch
 
+from spotipy import SpotifyException
+
 from custom_components.spotcast.services.transfer_playback import (
     async_rebuild_playback,
     SpotifyAccount,
@@ -673,3 +675,62 @@ class TestArtistContext(IsolatedAsyncioTestCase):
 
     def test_offset_removed(self):
         self.assertIsNone(self.result["data"]["offset"])
+
+
+class TestPlaylistContextNotFound(IsolatedAsyncioTestCase):
+    """Spotify 404s on its own editorial/algorithmic playlists. The
+    playback rebuild must degrade to the first track (offset 0) instead
+    of raising. See issues #570 and #599."""
+
+    @patch(f"{TEST_MODULE}.async_track_index")
+    async def asyncSetUp(self, mock_index: AsyncMock):
+
+        self.mocks = {
+            "account": MagicMock(spec=SpotifyAccount),
+            "index": mock_index,
+        }
+
+        self.mocks["account"].async_last_playback_state = AsyncMock()
+        self.mocks["account"].async_last_playback_state.return_value = {
+            "repeat_state": "context",
+            "shuffle_state": True,
+            "context": {
+                "uri": "spotify:playlist:37i9dQZF1DX4sWSpwq3LiO",
+                "type": "playlist"
+            },
+            "item": {
+                "album": {
+                    "uri": "spotify:album:baz"
+                },
+                "uri": "spotify:track:bar"
+            }
+        }
+
+        self.mocks["account"].async_get_playlist_tracks = AsyncMock(
+            side_effect=SpotifyException(404, -1, "Resource not found")
+        )
+
+        self.call_data = {
+            "media_player": {
+                "entity_id": [
+                    "media_player.foo"
+                ]
+            },
+            "data": {
+                "position": 5
+            }
+        }
+
+        self.result = await async_rebuild_playback(
+            self.call_data,
+            self.mocks["account"],
+        )
+
+    def test_degrades_to_first_track(self):
+        self.assertEqual(self.result["data"]["offset"], 0)
+
+    def test_playlist_uri_kept(self):
+        self.assertEqual(
+            self.result["spotify_uri"],
+            "spotify:playlist:37i9dQZF1DX4sWSpwq3LiO",
+        )

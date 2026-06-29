@@ -11,6 +11,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.util.read_only_dict import ReadOnlyDict
 from homeassistant.exceptions import ServiceValidationError
 import voluptuous as vol
+from spotipy import SpotifyException
 
 
 from custom_components.spotcast.spotify.account import SpotifyAccount
@@ -142,8 +143,21 @@ async def async_rebuild_playback(
         tracks = []
 
         if context_type == "playlist":
-            tracks = await account.async_get_playlist_tracks(context_uri)
-            tracks = [x["track"]["uri"] for x in tracks]
+            try:
+                playlist_tracks = await account.async_get_playlist_tracks(
+                    context_uri
+                )
+                tracks = [x["track"]["uri"] for x in playlist_tracks]
+            except SpotifyException as exc:
+                if exc.http_status != 404:
+                    raise
+                LOGGER.warning(
+                    "Spotify returned 404 for playlist `%s` (likely a "
+                    "Spotify editorial/algorithmic playlist no longer "
+                    "exposed through the Web API). Rebuilding playback "
+                    "from the first track.",
+                    context_uri,
+                )
         else:
             tracks = await account.async_liked_songs()
 
