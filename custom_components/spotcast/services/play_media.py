@@ -19,7 +19,10 @@ from custom_components.spotcast.media_player.exceptions import (
 )
 from custom_components.spotcast.spotify import SpotifyAccount
 from custom_components.spotcast.utils import get_account_entry
-from custom_components.spotcast.spotify.utils import url_to_uri
+from custom_components.spotcast.spotify.utils import (
+    url_to_uri,
+    suppress_playlist_404_logs,
+)
 from custom_components.spotcast.media_player.utils import (
     async_media_player_from_id,
 )
@@ -30,6 +33,12 @@ from custom_components.spotcast.services.utils import (
 )
 
 LOGGER = getLogger(__name__)
+
+# Spotify 404s on its own editorial/algorithmic playlists, so their track
+# count is unavailable. Such playlists are always well above this many
+# tracks, so a pseudo-random start within the first N keeps `random`
+# meaningful without risking an out-of-range offset (see #570).
+_RANDOM_FALLBACK_ITEMS = 25
 
 PLAY_MEDIA_SCHEMA = vol.Schema(
     {
@@ -191,7 +200,8 @@ async def async_random_index(account: SpotifyAccount, uri: str) -> int:
         count = album["total_tracks"]
     elif uri.startswith("spotify:playlist:"):
         try:
-            playlist = await account.async_get_playlist(uri)
+            with suppress_playlist_404_logs():
+                playlist = await account.async_get_playlist(uri)
             count = playlist["tracks"]["total"]
         except SpotifyException as exc:
             if exc.http_status != 404:
@@ -199,11 +209,12 @@ async def async_random_index(account: SpotifyAccount, uri: str) -> int:
             LOGGER.warning(
                 "Spotify returned 404 for playlist `%s` (likely a Spotify "
                 "editorial/algorithmic playlist no longer exposed through "
-                "the Web API). Starting at the first track instead of a "
-                "random offset.",
+                "the Web API). Using a pseudo-random start offset within "
+                "the first %d tracks.",
                 uri,
+                _RANDOM_FALLBACK_ITEMS,
             )
-            return 0
+            return randint(0, _RANDOM_FALLBACK_ITEMS - 1)
     elif uri == account.liked_songs_uri:
         count = await account.async_liked_songs_count()
     else:

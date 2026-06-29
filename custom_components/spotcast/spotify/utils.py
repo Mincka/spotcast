@@ -1,5 +1,10 @@
 """Utility functions for interacting with Spotify"""
 
+import logging
+from contextlib import contextmanager
+
+_SPOTIPY_LOGGER = logging.getLogger("spotipy.client")
+
 
 def select_image_url(images: list[dict]) -> str:
     """Returns the highest resolution image available according to the
@@ -57,3 +62,28 @@ def url_to_uri(url: str) -> str:
     uri = ":".join(elems)
 
     return uri
+
+
+@contextmanager
+def suppress_playlist_404_logs():
+    """Silence spotipy's ERROR log for an expected playlist 404.
+
+    Spotify returns 404 for its own editorial/algorithmic playlists
+    (`37i9...`) when their content is requested through the Web API.
+    spotipy logs the HTTP error itself (`spotipy/client.py`) *before*
+    raising `SpotifyException`, so a `try/except` around the call cannot
+    prevent the noisy ERROR line. Spotcast expects and handles this 404,
+    so drop only that record for the duration of the call. Any other
+    spotipy error (including non-playlist 404s) still logs normally.
+    """
+
+    def _drop_expected_404(record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        return not ("returned 404" in message and "playlists/" in message)
+
+    _SPOTIPY_LOGGER.addFilter(_drop_expected_404)
+
+    try:
+        yield
+    finally:
+        _SPOTIPY_LOGGER.removeFilter(_drop_expected_404)
