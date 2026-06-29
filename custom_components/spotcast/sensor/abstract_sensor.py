@@ -4,7 +4,6 @@ from logging import getLogger
 
 from homeassistant.components.sensor import (
     SensorStateClass,
-    SensorEntityDescription,
     EntityCategory,
     SensorEntity,
     SensorDeviceClass,

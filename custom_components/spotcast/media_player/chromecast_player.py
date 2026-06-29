@@ -1,14 +1,9 @@
 """Module containing the chromecast media player implementation"""
 
 from logging import getLogger
-from uuid import UUID
 from hashlib import md5
 
-from pychromecast import (
-    Chromecast as ParentChromecast,
-    HostServiceInfo,
-    CastInfo,
-)
+from pychromecast import Chromecast as ParentChromecast
 
 import pychromecast  # pylint: disable=unused-import
 

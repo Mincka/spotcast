@@ -12,7 +12,6 @@ from asyncio import Lock
 from random import randrange
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import (
-    ContentTypeError,
     ClientOSError,
     ClientResponseError,
 )
