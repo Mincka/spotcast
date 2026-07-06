@@ -7,6 +7,7 @@ Functions:
 from logging import getLogger
 
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.util.read_only_dict import ReadOnlyDict
 import voluptuous as vol
@@ -97,6 +98,12 @@ async def async_play_from_search(hass: HomeAssistant, call: ServiceCall):
             call_data.pop(key)
 
     best_candidate = get_best_candidate(search_term, search_result)
+
+    if best_candidate is None:
+        raise ServiceValidationError(
+            f"No search results found for `{search_term}`"
+        )
+
     items = search_result[best_candidate]
 
     context_uri = items[0]["uri"]

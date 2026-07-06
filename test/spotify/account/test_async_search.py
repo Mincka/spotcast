@@ -55,3 +55,42 @@ class TestSearchQuery(IsolatedAsyncioTestCase):
 
     def test_proper_result_provided(self):
         self.assertEqual(self.result, {"artists": ["foo", "bar", "baz"]})
+
+
+class TestSearchQueryWithNoneItems(IsolatedAsyncioTestCase):
+
+    @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
+    @patch.object(SpotifyAccount, "_async_pager")
+    async def asyncSetUp(self, mock_pager: AsyncMock, mock_store: MagicMock):
+
+        self.mocks = {
+            "hass": MagicMock(spec=HomeAssistant),
+            "external": MagicMock(spec=PublicSession),
+            "internal": MagicMock(spec=PrivateSession),
+            "pager": mock_pager,
+        }
+
+        self.account = SpotifyAccount(
+            entry_id="12345",
+            hass=self.mocks["hass"],
+            public_session=self.mocks["external"],
+            private_session=self.mocks["internal"],
+        )
+        self.account._datasets["profile"].expires_at = time() + 999
+        self.account._datasets["profile"]._data = {
+            "country": "CA"
+        }
+
+        self.query = SearchQuery(
+            search="foo",
+            item_types="artist",
+        )
+
+        self.mocks["hass"].async_add_executor_job = AsyncMock(
+            return_value={"artists": {"items": ["foo", None, "bar"]}}
+        )
+
+        self.result = await self.account.async_search(self.query)
+
+    def test_none_items_are_stripped(self):
+        self.assertEqual(self.result, {"artists": ["foo", "bar"]})

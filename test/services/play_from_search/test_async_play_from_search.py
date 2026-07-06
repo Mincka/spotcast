@@ -4,6 +4,7 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, AsyncMock, patch
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.spotcast.services.play_from_search import (
     async_play_from_search,
@@ -61,3 +62,34 @@ class TestPlayFromSearch(IsolatedAsyncioTestCase):
             self.mocks["call"].data.get("spotify_uri"),
             "spotify:artist:foo",
         )
+
+
+class TestNoSearchResults(IsolatedAsyncioTestCase):
+
+    @patch(f"{TEST_MODULE}.async_play_media")
+    @patch.object(SpotifyAccount, "async_from_config_entry")
+    @patch(f"{TEST_MODULE}.get_account_entry", new_callable=MagicMock)
+    async def test_raises_service_validation_error(
+        self,
+        mock_entry: MagicMock,
+        mock_account: AsyncMock,
+        mock_play: AsyncMock,
+    ):
+
+        mock_entry.return_value = MagicMock(spec=ConfigEntry)
+        mock_account.return_value = MagicMock(spec=SpotifyAccount)
+        mock_account.return_value.async_search = AsyncMock(return_value={
+            "artists": [],
+            "tracks": [],
+        })
+
+        call = MagicMock(spec=ServiceCall)
+        call.data = {
+            "search_term": "foo",
+            "item_types": ["track", "artist"],
+        }
+
+        with self.assertRaises(ServiceValidationError):
+            await async_play_from_search(MagicMock(spec=HomeAssistant), call)
+
+        mock_play.assert_not_called()
