@@ -202,7 +202,17 @@ async def async_random_index(account: SpotifyAccount, uri: str) -> int:
         try:
             with suppress_playlist_404_logs():
                 playlist = await account.async_get_playlist(uri)
-            count = playlist["tracks"]["total"]
+            tracks = playlist.get("tracks") or playlist.get("items") or {}
+            count = tracks.get("total")
+            if count is None:
+                LOGGER.warning(
+                    "Could not determine the track count for playlist "
+                    "`%s`. Using a pseudo-random start offset within the "
+                    "first %d tracks.",
+                    uri,
+                    _RANDOM_FALLBACK_ITEMS,
+                )
+                return randint(0, _RANDOM_FALLBACK_ITEMS - 1)
         except SpotifyException as exc:
             if exc.http_status != 404:
                 raise

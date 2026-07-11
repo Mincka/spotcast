@@ -780,7 +780,7 @@ class SpotifyAccount:
             key = f"{item_type}s"
             result[key] = [
                 item
-                for item in search_result[key]["items"]
+                for item in (search_result[key]["items"] or [])
                 if item is not None
             ]
 

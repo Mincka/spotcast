@@ -177,3 +177,69 @@ class TestPlaylistOtherSpotifyError(IsolatedAsyncioTestCase):
                 self.mocks["account"],
                 "spotify:playlist:foo",
             )
+
+
+class TestPlaylistWithItemsKeyRandInt(IsolatedAsyncioTestCase):
+
+    @patch(f"{TEST_MODULE}.randint", new_callable=MagicMock)
+    async def asyncSetUp(self, mock_random: MagicMock):
+
+        mock_random.return_value = 7
+
+        self.mocks = {
+            "account": MagicMock(spec=SpotifyAccount)
+        }
+
+        self.mocks["account"].async_get_playlist = AsyncMock()
+        self.mocks["account"].async_get_playlist.return_value = {
+            "items": {
+                "total": 53
+            }
+        }
+        self.resut = await async_random_index(
+            self.mocks["account"],
+            "spotify:playlist:foo",
+        )
+
+    def test_received_expected_index(self):
+        self.assertEqual(self.resut, 7)
+
+    def test_randint_called_with_item_count(self):
+        try:
+            self.mocks["account"].async_get_playlist.assert_called()
+        except AssertionError:
+            self.fail()
+
+
+class TestPlaylistWithoutTrackCountRandInt(IsolatedAsyncioTestCase):
+
+    @patch(f"{TEST_MODULE}.randint", new_callable=MagicMock)
+    async def asyncSetUp(self, mock_random: MagicMock):
+
+        mock_random.return_value = 3
+        self.mock_random = mock_random
+
+        self.mocks = {
+            "account": MagicMock(spec=SpotifyAccount)
+        }
+
+        self.mocks["account"].async_get_playlist = AsyncMock()
+        self.mocks["account"].async_get_playlist.return_value = {
+            "id": "foo"
+        }
+        self.resut = await async_random_index(
+            self.mocks["account"],
+            "spotify:playlist:foo",
+        )
+
+    def test_received_expected_index(self):
+        self.assertEqual(self.resut, 3)
+
+    def test_falls_back_to_default_item_window(self):
+        try:
+            self.mock_random.assert_called_with(
+                0,
+                _RANDOM_FALLBACK_ITEMS - 1,
+            )
+        except AssertionError as exc:
+            self.fail(exc)
