@@ -1,5 +1,5 @@
-name: Report an issue with Spotcast
-description: Report an issue with Spotcast
+name: Bug report
+description: Report a problem with Spotcast (stable or pre-release)
 labels:
   - bug
   - pending-triage
@@ -9,86 +9,66 @@ body:
   - type: markdown
     attributes:
       value: |
-        This issue form is for reporting bugs only!
+        Thanks for taking the time to report a problem! Before filing, please check the [configuration guide](https://github.com/Mincka/spotcast/blob/main/docs/config/spotcast_configuration.md) for setup questions. If you are upgrading from v5, the configuration process changed completely; see the [README](https://github.com/Mincka/spotcast#upgrading-from-v5).
+  - type: checkboxes
+    id: latest_version
+    attributes:
+      label: Version check
+      options:
+        - label: I am running the latest release (or latest pre-release, when testing one) of Spotcast.
+          required: true
   - type: textarea
     validations:
       required: true
     attributes:
       label: The problem
       description: >-
-        Describe the issue you are experiencing here, to communicate to the maintainers. Tell us what you were trying to do and what happened.
-
-        Provide a clear and concise description of what the problem is.
-  - type: markdown
-    attributes:
-      value: |
-        ## Environment
-  - type: textarea
-    validations:
-      required: true
-    attributes:
-      label: System Health details
-      description: >
-        Can be found in [Settings ⇒ System ⇒ Repairs ⇒ Three Dots in Upper Right ⇒ System information](https://my.home-assistant.io/redirect/system_health).
-
-        [![Open your Home Assistant instance and show the system information.](https://my.home-assistant.io/badges/system_health.svg)](https://my.home-assistant.io/redirect/system_health/)
+        What were you trying to do, what did you expect, and what happened instead?
   - type: input
     validations:
       required: true
     attributes:
-      label: Spotcast Version
-      description: >
-        What version of spotcast are you running.
-
-        [![Open your Home Assistant instance and show an integration.](https://my.home-assistant.io/badges/integration.svg)](https://my.home-assistant.io/redirect/integration/?domain=spotcast)
+      label: Spotcast version
+      description: >-
+        Visible in [Settings ⇒ Devices & services ⇒ Spotcast](https://my.home-assistant.io/redirect/integration/?domain=spotcast) or in HACS. Pre-releases welcome; just give the exact version.
+      placeholder: "6.0.0"
   - type: dropdown
     validations:
       required: true
     attributes:
       label: What type of installation are you running?
       description: >
-        Can be found in: [Settings ⇒ System ⇒ Repairs ⇒ Three Dots in Upper Right ⇒ System information](https://my.home-assistant.io/redirect/system_health/).
-
-        [![Open your Home Assistant instance and show the system information.](https://my.home-assistant.io/badges/system_health.svg)](https://my.home-assistant.io/redirect/system_health/)
+        Can be found in [Settings ⇒ System ⇒ Repairs ⇒ Three Dots in Upper Right ⇒ System information](https://my.home-assistant.io/redirect/system_health/).
       multiple: false
       options:
         - Home Assistant OS
         - Home Assistant Container
         - Home Assistant Supervised
         - Home Assistant Core
-  - type: markdown
+  - type: textarea
+    validations:
+      required: true
     attributes:
-      value: |
-        # Details
+      label: System Health details
+      description: >
+        Copy from [Settings ⇒ System ⇒ Repairs ⇒ Three Dots in Upper Right ⇒ System information](https://my.home-assistant.io/redirect/system_health/).
   - type: textarea
     attributes:
-      label: Diagnostics information
-      placeholder: "drag-and-drop the diagnostics data file here (do not copy-and-paste the content)"
+      label: Debug logs
+      placeholder: "Drag-and-drop the downloaded log file here (do not copy-and-paste the content)."
       description: >-
-        Enable `debug logs` for Spotcast ([Settings ⇒ Devices & services ⇒ Spotcast ⇒ Enable debug logging](https://my.home-assistant.io/redirect/integration/?domain=spotcast))
-
-        [![Open your Home Assistant instance and show the Spotcast Integration](https://my.home-assistant.io/badges/integration.svg)](https://my.home-assistant.io/redirect/integration/?domain=spotcast)
-
-        If your issue is with installing Spotcast, please provide HACS `debug logs` ([Settings ⇒ Devices & services ⇒ HACS ⇒ Enable debug logging](https://my.home-assistant.io/redirect/integration/?domain=hacs))
-
-        [![Open your Home Assistant instance and show the HACS Integration](https://my.home-assistant.io/badges/integration.svg)](https://my.home-assistant.io/redirect/integration/?domain=HACS)
-
-        Once enabled, reattempt the steps that lead to your issue and disable the `debug logs`. A file will be downloaded by your browser. <ins>drag-and-drop that file into the textbox below.</ins>
-
-        **Providing Debug Logs generally allows pinpointing defects and thus resolving issues faster.**
+        Debug logs usually make the difference between a quick fix and a long back-and-forth. Follow the [debug log guide](https://github.com/Mincka/spotcast/blob/main/docs/support/provide_a_debug_log.md): enable debug logging for Spotcast ([Settings ⇒ Devices & services ⇒ Spotcast](https://my.home-assistant.io/redirect/integration/?domain=spotcast)), reproduce the issue, disable debug logging, then drag the downloaded file here. For installation problems, provide HACS debug logs instead.
   - type: textarea
     attributes:
       label: Example YAML snippet
       description: |
-        If applicable, please provide an example piece of YAML that can help reproduce the problem.
-        This can be from an automation, script, or scene.
+        If applicable, the automation, script or action call that reproduces the problem.
       render: yaml
   - type: textarea
     attributes:
-      label: Anything in the logs that might be useful for us?
-      description: For example, error message, or stack traces.
+      label: Anything in the logs that might be useful?
+      description: Error messages or stack traces from Settings ⇒ System ⇒ Logs.
       render: txt
   - type: textarea
     attributes:
       label: Additional information
-      description: If you have any additional information for us, use the field below.
