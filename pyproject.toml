@@ -9,7 +9,7 @@ authors = [
     { name = "Niklas Fondberg"},
 ]
 maintainers = [
-    { name = "Felix Cusson", email = "felixcusson@gmail.com" }
+    { name = "Julien Ehrhart", email = "julien.ehrhart@gmail.com" }
 ]
 dependencies = [
     "atomicwrites-homeassistant>=1.4.1",
@@ -23,9 +23,9 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/fondberg/spotcast"
-"Bug Reports" = "https://github.com/fondberg/spotcast/issues/new?template=bug_report.yml"
-"Source" = "https://github.com/fondberg/spotcast"
+"Homepage" = "https://github.com/Mincka/spotcast"
+"Bug Reports" = "https://github.com/Mincka/spotcast/issues/new?template=bug_report.yml"
+"Source" = "https://github.com/Mincka/spotcast"
 
 [tool.mypy]
 python_version = "3.14"

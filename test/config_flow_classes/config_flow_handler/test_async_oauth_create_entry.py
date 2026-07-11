@@ -62,7 +62,7 @@ class TestExternalApiEntry(IsolatedAsyncioTestCase):
                 step_id="desktop_api",
                 url="https://foo.bar",
                 description_placeholders={
-                    "release_url": "https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0",
+                    "release_url": "https://github.com/Mincka/spotcast/blob/main/docs/config/spotcast_configuration.md",
                 },
             )
         except AssertionError as exc:
@@ -207,8 +207,8 @@ class TestProfileRefreshError(IsolatedAsyncioTestCase):
                 reason="connection_error",
                 description_placeholders={
                     "account_type": "public",
-                    "release_url": "https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0",
-                    "ticket_url": "https://github.com/fondberg/spotcast/issues/new/choose",
+                    "release_url": "https://github.com/Mincka/spotcast/blob/main/docs/config/spotcast_configuration.md",
+                    "ticket_url": "https://github.com/Mincka/spotcast/issues/new/choose",
                 },
             )
         except AssertionError as exc:

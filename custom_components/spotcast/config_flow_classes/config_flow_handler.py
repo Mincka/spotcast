@@ -42,10 +42,13 @@ from .options_flow_handler import (
 
 LOGGER = getLogger(__name__)
 
-_RELEASE_URL = "https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0"
-_TICKET_URL = "https://github.com/fondberg/spotcast/issues/new/choose"
+_RELEASE_URL = (
+    "https://github.com/Mincka/spotcast/blob/main/docs/config/"
+    "spotcast_configuration.md"
+)
+_TICKET_URL = "https://github.com/Mincka/spotcast/issues/new/choose"
 _SETUP_GUIDE_URL = (
-    "https://github.com/fondberg/spotcast/blob/dev/docs/config/"
+    "https://github.com/Mincka/spotcast/blob/main/docs/config/"
     "spotcast_configuration.md"
 )
 
