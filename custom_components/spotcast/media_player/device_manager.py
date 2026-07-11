@@ -6,6 +6,7 @@ Classes:
 """
 
 from logging import getLogger
+from time import time
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import async_get as async_get_dr
@@ -47,6 +48,8 @@ class DeviceManager:
         "Echo Speaker",
     )
 
+    STALE_DEVICE_TIMEOUT = 7 * 24 * 3600
+
     def __init__(
         self,
         account: SpotifyAccount,
@@ -55,6 +58,7 @@ class DeviceManager:
 
         self.tracked_devices: dict[str, SpotifyDevice] = {}
         self.unavailable_devices: dict[str, SpotifyDevice] = {}
+        self.unavailable_since: dict[str, float] = {}
 
         self._account = account
         self.async_add_entities = async_add_entitites
@@ -94,10 +98,11 @@ class DeviceManager:
             device = self.tracked_devices.pop(id)
 
             if device.device_data["type"] in self.DELETE_ON_UNAVAILABLE:
-                device.async_remove(force_remove=True)
+                await device.async_remove(force_remove=True)
                 self.remove_device(device.device_info["identifiers"])
             else:
                 self.unavailable_devices[id] = device
+                self.unavailable_since[id] = time()
 
         for id, device in current_devices.items():
 
@@ -121,6 +126,7 @@ class DeviceManager:
                     self._account.name,
                 )
                 self.tracked_devices[id] = self.unavailable_devices.pop(id)
+                self.unavailable_since.pop(id, None)
                 self.tracked_devices[id].is_unavailable = False
 
             elif (
@@ -151,6 +157,43 @@ class DeviceManager:
                 device.playback_state = playback_state
             else:
                 device.playback_state = {}
+
+        await self.async_purge_stale_devices()
+
+    async def async_purge_stale_devices(self):
+        """Removes devices that have been unavailable for longer than
+        the grace period. Spotify session devices (e.g. Jams) get a
+        new id every session and would otherwise accumulate forever.
+        """
+        now = time()
+
+        for id in list(self.unavailable_devices):
+
+            elapsed = now - self.unavailable_since.get(id, now)
+
+            if elapsed < self.STALE_DEVICE_TIMEOUT:
+                continue
+
+            device = self.unavailable_devices.pop(id)
+            self.unavailable_since.pop(id, None)
+
+            LOGGER.info(
+                "Removing device `%s` for account `%s`. Unavailable for "
+                "more than %d days",
+                device.name,
+                self._account.name,
+                self.STALE_DEVICE_TIMEOUT // 86400,
+            )
+
+            await device.async_remove(force_remove=True)
+
+            try:
+                self.remove_device(device.device_info["identifiers"])
+            except KeyError:
+                LOGGER.debug(
+                    "Device `%s` was already absent from the registry",
+                    device.name,
+                )
 
     def remove_device(
             self,
