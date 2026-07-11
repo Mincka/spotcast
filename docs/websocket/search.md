@@ -26,7 +26,7 @@ The endpoint of the WebSocket to reach. Must be `spotcast/search`.
 
 The search query string. This can be any term, such as a track name, album, artist, playlist name, or genre.
 
-### `searchType` (str)
+### `search_type` (str)
 
 *Optional*
 
