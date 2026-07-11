@@ -10,6 +10,12 @@
 [![spotcast](https://img.shields.io/github/release/fondberg/spotcast.svg?1)](https://github.com/fondberg/spotcast)
 ![Maintenance](https://img.shields.io/maintenance/yes/2025.svg)
 
+> [!WARNING]
+> **This project is abandoned and no longer maintained.**
+> Due to Spotify's hostility toward third-party developers, their political stances, and a lack of time on my part, I have decided to discontinue Spotcast indefinitely. No PRs will be reviewed or merged.
+>
+> If you wish to continue development, please fork this repository. A maintained fork may be listed here in the future.
+
 > [!INFO]
 > Spotcast V6 requires Premium in order to work.
 
