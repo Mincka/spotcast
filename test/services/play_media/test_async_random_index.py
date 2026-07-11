@@ -3,10 +3,13 @@
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, AsyncMock, patch
 
+from spotipy import SpotifyException
+
 from custom_components.spotcast.services.play_media import (
     async_random_index,
     SpotifyAccount,
     ServiceValidationError,
+    _RANDOM_FALLBACK_ITEMS,
 )
 
 TEST_MODULE = "custom_components.spotcast.services.play_media"
@@ -116,4 +119,61 @@ class TestInvalidContextUri(IsolatedAsyncioTestCase):
             self.resut = await async_random_index(
                 self.mocks["account"],
                 "spotify:track:foo",
+            )
+
+
+class TestPlaylistNotFound(IsolatedAsyncioTestCase):
+    """Spotify 404s on its own editorial/algorithmic playlists when
+    fetched through the Web API. Random start must fall back to a pseudo-
+    random offset within the first `_RANDOM_FALLBACK_ITEMS` tracks instead
+    of raising. See issues #570 and #599."""
+
+    @patch(f"{TEST_MODULE}.randint", new_callable=MagicMock)
+    async def asyncSetUp(self, mock_random: MagicMock):
+
+        mock_random.return_value = 7
+
+        self.mocks = {
+            "account": MagicMock(spec=SpotifyAccount),
+            "random": mock_random,
+        }
+
+        self.mocks["account"].async_get_playlist = AsyncMock(
+            side_effect=SpotifyException(404, -1, "Resource not found")
+        )
+
+        self.resut = await async_random_index(
+            self.mocks["account"],
+            "spotify:playlist:37i9dQZF1DX4sWSpwq3LiO",
+        )
+
+    def test_returns_pseudo_random_offset(self):
+        self.assertEqual(self.resut, 7)
+
+    def test_offset_bounded_to_fallback_range(self):
+        try:
+            self.mocks["random"].assert_called_once_with(
+                0, _RANDOM_FALLBACK_ITEMS - 1
+            )
+        except AssertionError as exc:
+            self.fail(exc)
+
+
+class TestPlaylistOtherSpotifyError(IsolatedAsyncioTestCase):
+    """Non-404 Spotify errors must still propagate."""
+
+    async def test_error_reraised(self):
+
+        self.mocks = {
+            "account": MagicMock(spec=SpotifyAccount)
+        }
+
+        self.mocks["account"].async_get_playlist = AsyncMock(
+            side_effect=SpotifyException(500, -1, "Server Error")
+        )
+
+        with self.assertRaises(SpotifyException):
+            await async_random_index(
+                self.mocks["account"],
+                "spotify:playlist:foo",
             )

@@ -11,9 +11,11 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.util.read_only_dict import ReadOnlyDict
 from homeassistant.exceptions import ServiceValidationError
 import voluptuous as vol
+from spotipy import SpotifyException
 
 
 from custom_components.spotcast.spotify.account import SpotifyAccount
+from custom_components.spotcast.spotify.utils import suppress_playlist_404_logs
 from custom_components.spotcast.services.play_media import (
     async_play_media,
     async_track_index,
@@ -139,13 +141,9 @@ async def async_rebuild_playback(
     # finding the current uri in the list
     elif context_type in ("playlist", "collection"):
 
-        tracks = []
-
-        if context_type == "playlist":
-            tracks = await account.async_get_playlist_tracks(context_uri)
-            tracks = [x["track"]["uri"] for x in tracks]
-        else:
-            tracks = await account.async_liked_songs()
+        tracks = await _async_context_track_uris(
+            account, context_type, context_uri
+        )
 
         try:
             track_index = tracks.index(current_item["uri"])
@@ -158,3 +156,33 @@ async def async_rebuild_playback(
         call_data["data"]["offset"] = track_index
 
     return call_data
+
+
+async def _async_context_track_uris(
+    account: SpotifyAccount,
+    context_type: str,
+    context_uri: str,
+) -> list[str]:
+    """Returns the track uris of a playlist or collection context.
+
+    Spotify 404s on its own editorial/algorithmic playlists, so treat
+    that as an empty track list and let the caller rebuild playback from
+    the first track. See issues #570 and #599.
+    """
+    if context_type != "playlist":
+        return await account.async_liked_songs()
+
+    try:
+        with suppress_playlist_404_logs():
+            tracks = await account.async_get_playlist_tracks(context_uri)
+        return [x["track"]["uri"] for x in tracks]
+    except SpotifyException as exc:
+        if exc.http_status != 404:
+            raise
+        LOGGER.warning(
+            "Spotify returned 404 for playlist `%s` (likely a Spotify "
+            "editorial/algorithmic playlist no longer exposed through the "
+            "Web API). Rebuilding playback from the first track.",
+            context_uri,
+        )
+        return []
