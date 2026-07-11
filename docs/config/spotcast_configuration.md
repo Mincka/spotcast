@@ -1,6 +1,16 @@
 # Spotcast Configuration
 
-This guide walks you through the setup of Spotcast in Home Assistant.
+This guide walks you through the setup of Spotcast in Home Assistant. The setup has three parts:
+
+1. Create a Spotify Application (or reuse the one from the official Spotify integration).
+2. Start a small relay server on your computer (only needed during setup).
+3. Run the Spotcast config flow in Home Assistant.
+
+## Prerequisites
+
+- A **Spotify Premium** account.
+- Home Assistant `2026.4` or newer, with Spotcast [installed](../../README.md#installation).
+- A computer with a web browser. The relay server (step 2) and the browser used to complete the setup (step 3) **must be on the same computer**.
 
 ## 1. Create a Spotify Application
 
@@ -9,11 +19,20 @@ This guide walks you through the setup of Spotcast in Home Assistant.
 >
 > You can set up a secondary application if you want, but this is not necessary.
 
-In order to work with certain parts of the API, Spotcast requires access to the Spotify API through a personal Spotify Application. You can follow [these instructions](https://www.home-assistant.io/integrations/spotify/#create-a-spotify-application) from the official Spotify integration to create one. Keep note of your Client ID and Client Secret for future steps.
+In order to work with certain parts of the API, Spotcast requires access to the Spotify API through a personal Spotify Application. You can follow [these instructions](https://www.home-assistant.io/integrations/spotify/#create-a-spotify-application) from the official Spotify integration to create one. In short:
+
+1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and create an app.
+2. In the app settings, add `https://my.home-assistant.io/redirect/oauth` as a **Redirect URI**.
+3. Keep note of your **Client ID** and **Client Secret** for step 3.
 
 ## 2. Start the relay server
 
-In order to add the desktop application credentials from Spotify, we must redirect the connection information from your local computer to Home Assistant. This can be achieved by using a relay server on your local computer. This step is necessary because Spotify does not allow (for understandable security reasons) desktop credentials to be redirected to another location than the device making the connection. Please follow the instructions for your specific operating system:
+In order to add the desktop application credentials from Spotify, we must redirect the connection information from your local computer to Home Assistant. This can be achieved by using a relay server on your local computer. This step is necessary because Spotify does not allow (for understandable security reasons) desktop credentials to be redirected to another location than the device making the connection.
+
+> [!IMPORTANT]
+> Run the relay server on the **same computer** where you will complete the setup in your web browser, and keep it running until the setup is done. It is only needed during setup (and later for reauthentication).
+
+Please follow the instructions for your specific operating system:
 
 ### Windows
 
@@ -34,7 +53,7 @@ Run the following PowerShell command:
 iwr https://raw.githubusercontent.com/Mincka/spotcast/main/scripts/relay_server.ps1 -UseBasicParsing | iex
 ```
 
-> [!IMPORTANT]
+> [!CAUTION]
 > Piping any script from the internet is potentially unsafe. If you don't trust the source, review the code before running it. The script is part of this repository and can be reviewed [here](https://github.com/Mincka/spotcast/blob/main/scripts/relay_server.ps1).
 
 ##### Alternative: Manual Download and Run
@@ -62,7 +81,7 @@ If you prefer to use Python directly, you can run this one-step configuration:
 curl.exe -sSL https://raw.githubusercontent.com/Mincka/spotcast/main/scripts/relay_server.py | python
 ```
 
-> [!IMPORTANT]
+> [!CAUTION]
 > Piping any script from the internet is potentially unsafe. If you don't trust the source, review the code before running it. You can review the relay server script [here](https://github.com/Mincka/spotcast/blob/main/scripts/relay_server.py). Alternative methods that download the script to your machine before running are also provided.
 
 ##### Alternative 1: Clone the repository and Run
@@ -101,7 +120,7 @@ python relay_server.py
 curl -sSL https://raw.githubusercontent.com/Mincka/spotcast/main/scripts/relay_server.py | python
 ```
 
-> [!IMPORTANT]
+> [!CAUTION]
 > Piping any script from the internet is potentially unsafe. If you don't trust the source, review the code before running it. You can review the relay server script [here](https://github.com/Mincka/spotcast/blob/main/scripts/relay_server.py). Alternative methods that download the script to your machine before running are also provided.
 
 ##### Alternative 1: Clone the repository and Run
@@ -127,7 +146,7 @@ python relay_server.py
 
 ### Validation
 
-Once started, the relay server will show something like:
+Once started, the relay server confirms it is listening. The Python server shows:
 
 ```text
 Relay server running on http://127.0.0.1:8080/login
@@ -135,7 +154,19 @@ Redirecting to: https://my.home-assistant.io/redirect/oauth
 Press CTRL+C to quit the server when done
 ```
 
+The PowerShell server shows:
+
+```text
+Relay server running at http://127.0.0.1:8080/login
+Target redirect URL: https://my.home-assistant.io/redirect/oauth
+Open the Spotcast integration setup in Home Assistant.
+(Press Ctrl+C to cancel.)
+```
+
 If you see a similar message, you're ready for the next step.
+
+> [!TIP]
+> If the server fails to start because port `8080` is already in use, stop the application using that port and start the relay server again.
 
 
 ## 3. Setup the Spotcast Integration in Home Assistant
@@ -161,7 +192,7 @@ Once you see this window below in Home Assistant, provide a name (to your discre
 
 This step will authorize your account in your Spotify Application. A new window will appear asking you to link the account to Home Assistant. Ensure the `Your instance URL:` points to your current Home Assistant server and press the `Link account` button.
 
-> [!TIP]
+> [!IMPORTANT]
 > Make sure the correct account is signed in. If Spotify doesn't ask you to log in, it is because a Spotify account is already signed in. If you are trying to set up an account for someone else in your household, make sure their account is the one signed into the browser.
 
 ### 3.3 Desktop Token authorization

@@ -27,9 +27,10 @@ If you are looking for comprehensive Spotify control from Home Assistant (full m
 
 ## Installation
 
-### HACS (recommended)
+### HACS (custom repository)
 
-Spotcast is installed as a [HACS](https://hacs.xyz/) custom repository (submission to the HACS default store is planned):
+> [!NOTE]
+> Spotcast is **not yet available in the HACS default store**; submission is planned once v6.0.0 is released. Until then, it can still be installed through HACS by adding it as a custom repository:
 
 1. In Home Assistant, open **HACS**.
 2. Open the menu (⋮ top right) and select **Custom repositories**.
@@ -52,7 +53,7 @@ Or use this direct link:
 
 ### Minimum Home Assistant version
 
-Spotcast is compatible with Home Assistant `2025.4` and later.
+Spotcast is compatible with Home Assistant `2026.4` and later.
 
 ### Official Spotify integration
 
