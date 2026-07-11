@@ -1,136 +1,165 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/images/logo/white/128.png">
   <source media="(prefers-color-scheme: light)" srcset="./assets/images/logo/dark_gray/128.png">
-  <img alt="Spotcast" src="https://raw.githubusercontent.com/fondberg/spotcast/refs/heads/dev/assets/images/logo/green/128.png">
+  <img alt="Spotcast" src="https://raw.githubusercontent.com/Mincka/spotcast/main/assets/images/logo/green/128.png">
 </picture>
 
 ------------------------------------------------------------------------------
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
-[![spotcast](https://img.shields.io/github/release/fondberg/spotcast.svg?1)](https://github.com/fondberg/spotcast)
-![Maintenance](https://img.shields.io/maintenance/yes/2025.svg)
+[![release](https://img.shields.io/github/v/release/Mincka/spotcast?include_prereleases)](https://github.com/Mincka/spotcast/releases)
+[![tests](https://github.com/Mincka/spotcast/actions/workflows/unittest.yml/badge.svg?branch=main)](https://github.com/Mincka/spotcast/actions/workflows/unittest.yml)
+[![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
+![maintenance](https://img.shields.io/maintenance/yes/2026.svg)
 
-> [!INFO]
-> Spotcast V6 requires Premium in order to work.
+Spotcast is a Home Assistant custom integration that starts Spotify playback on an idle Chromecast or Spotify Connect device, so your automations can target both device families the same way.
 
-Home Assistant custom component to start Spotify playback on an idle Chromecast or a Spotify Connect device. Meaning you can target automation for chromecast as well as connect devices.
+> [!IMPORTANT]
+> Spotcast requires a **Spotify Premium** account to work.
 
-This component is not meant to be a full Spotify chromecast media_player but only serves to start the playback. Controlling the chromecast device and the Spotify playback after the initial start is done in their respective components. Because starting playback using the API requires more powerful token the username and password used for browser login is used.
+> [!NOTE]
+> This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project, created by Niklas Fondberg ([@fondberg](https://github.com/fondberg)) and maintained through v5 and the v6 rewrite by Felix Cusson ([@fcusson](https://github.com/fcusson)). Development now happens here, starting with the v6 release.
 
-Used by [Spotify-Card-V2](https://github.com/mikevanes/spotify-card-v2)
+## Project scope
+
+Spotcast focuses on one thing and aims to do it well: **starting and transferring Spotify playback from Home Assistant automations**, including on devices that are not signed into your Spotify account (like Chromecast speakers). It intentionally keeps side features minimal.
+
+If you are looking for comprehensive Spotify control from Home Assistant (full media player, browsing, favorites management, near-complete Web API coverage), have a look at [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) and its companion [SpotifyPlus Card](https://github.com/thlucas1/spotifyplus_card) - they complement Spotcast rather than compete with it.
 
 ## Installation
 
-### HACS
+### HACS (custom repository)
 
-This component is easiest installed using [HACS](https://github.com/custom-components/hacs). You can add the integration by clicking the button below or searching for `spotcast` in your `HACS pannel`
+> [!NOTE]
+> Spotcast is **not yet available in the HACS default store**; submission is planned once v6.0.0 is released. Until then, it can still be installed through HACS by adding it as a custom repository:
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=fondberg&repository=spotcast&category=integration)
+1. In Home Assistant, open **HACS**.
+2. Open the menu (⋮ top right) and select **Custom repositories**.
+3. Add `https://github.com/Mincka/spotcast` with type **Integration**.
+4. Search for `Spotcast` in HACS and download it.
+5. Restart Home Assistant.
+
+Or use this direct link:
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Mincka&repository=spotcast&category=integration)
 
 ### Manual installation
 
-1. Download this project (In Github, click the `<> Code` button and select `Download ZIP`)
-2. Extract the zip file.
-3. Copy all files from custom_components/spotcast/ to custom_components/spotcast/ inside your config Home Assistant directory.
-2. Reboot your Home Assistant.
+1. Download the latest release from the [releases page](https://github.com/Mincka/spotcast/releases) (or in GitHub, click the `<> Code` button and select `Download ZIP`).
+2. Extract the archive.
+3. Copy the `custom_components/spotcast/` folder into the `custom_components/` folder of your Home Assistant configuration directory.
+4. Restart Home Assistant.
 
 ## Configuration
 
 ### Minimum Home Assistant version
 
-Spotcast is compatible with any version since 2025.4.
+Spotcast is compatible with Home Assistant `2026.4` and later.
 
-### Official Spotify Integration
+### Official Spotify integration
 
-> [!NOTE]
-> Note that starting with `v5.0.0`, [Home Assistant Spotify Integration](https://www.home-assistant.io/integrations/spotify/) is no longer a requirement **except for Media Browsing**. Click the following link to setup the spotify integration:
+The [Home Assistant Spotify integration](https://www.home-assistant.io/integrations/spotify/) is **not required** by Spotcast, except for media browsing. You can set it up here:
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotify)
 
 ### Setup
 
-You can setup the integration by following [these instructions](./docs/config/spotcast_configuration.md) or clicking the following link (links to relevant documentation will be provided in the configuration steps directly):
+Follow the [configuration guide](./docs/config/spotcast_configuration.md) or click the link below to start the config flow (links to the relevant documentation are provided directly in the configuration steps):
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
 
-> [!TIP]
-> If you are converting script from pre `v5` services. The closest equivalence to `spotcast.start` is `spotcast.play_media`
+## Actions
 
-| Service Name                                                           | Description                                                                                                          |
-| :---                                                                   | :---                                                                                                                 |
-| [spotcast.play_media](./docs/services/play_media.md)                   | Starts playback on a Chromecast or Spotify Connect device using the provided uri as context.                         |
-| [spotcast.play_liked_songs](./docs/services/play_liked_songs.md)       | Starts playback on a Chromecast or Spotify Connect device using the user's saved tracks as context.                  |
-| [spotcast.play_dj](./docs/services/play_dj.md)                         | Starts playback on a Chromecast or Spotify Connect device using the dj feature as context.                           |
-| [spotcast.play_from_search](./docs/services/play_from_search.md)       | Starts playback on a Chromecast or Spotify Connect device using a search result as a context.                        |
-| [spotcast.play_custom_context](./docs/services/play_custom_context.md) | Starts playback on a Chromecast or Spotify Connect device using a list of uris as context                            |
-| [spotcast.transfer_playback](./docs/services/transfer_playback.md)     | Transfers the active or most recent playback on the device provided                                                  |
-| [spotcast.add_to_queue](./docs/services/add_to_queue.md)               | Adds songs the the playback queue. Fails and returns an error if there is no active playback                         |
-| [spotcast.play_saved_episodes](./docs/services/play_saved_episodes.md) | Plays the list of podcast episodes part of the `Saved Episodes` playlist                                             |
+| Action                                                                 | Description                                                                                          |
+| :---                                                                   | :---                                                                                                 |
+| [spotcast.play_media](./docs/services/play_media.md)                   | Starts playback on a Chromecast or Spotify Connect device using the provided URI as context.         |
+| [spotcast.play_liked_songs](./docs/services/play_liked_songs.md)       | Starts playback on a Chromecast or Spotify Connect device using the user's saved tracks as context.  |
+| [spotcast.play_dj](./docs/services/play_dj.md)                         | Starts playback on a Chromecast or Spotify Connect device using the DJ feature as context.           |
+| [spotcast.play_from_search](./docs/services/play_from_search.md)       | Starts playback on a Chromecast or Spotify Connect device using a search result as context.          |
+| [spotcast.play_custom_context](./docs/services/play_custom_context.md) | Starts playback on a Chromecast or Spotify Connect device using a list of URIs as context.           |
+| [spotcast.play_saved_episodes](./docs/services/play_saved_episodes.md) | Plays the podcast episodes from the user's `Saved Episodes` list.                                    |
+| [spotcast.transfer_playback](./docs/services/transfer_playback.md)     | Transfers the active or most recent playback to the provided device.                                 |
+| [spotcast.add_to_queue](./docs/services/add_to_queue.md)               | Adds songs to the playback queue. Fails and returns an error if there is no active playback.         |
+| [spotcast.like_media](./docs/services/like_media.md)                   | Adds a list of media URIs to the user's liked content.                                               |
 
 ### Data
 
-Multiple options originally in the `spotcast.start` service has been moved to the `data` section. Here is a list of common ones. Some service could have additional options. Look at the service definition for more information on them.
+Playback actions accept a common `data` section. Here is a list of the common options; some actions have additional options, see each action's documentation for details.
 
-| Option          | type                      | default | description                                                                                                         |
-| :---:           | :---:                     | :---:   | :---                                                                                                                |
-| `position`      | `positive_float`          | `0.000` | The position to start playback (in seconds) of where to start the playback of the first item in the context         |
-| `offset`        | `positive_int`            | `0`     | The item in the context to start the playback at. The position is zero based and cannot be negative                 |
-| `volume`        | `int`, `range 0-100`      | `null`  | The percentage (as an integer of the percentage value) to start plaback at. Volume is kept unchanged if `null`      |
-| `repeat`        | `track \| context \| off` | `null`  | The repeat mode is kept the same if `null`                                                                          |
-| `shuffle`       | `bool`                    | `null`  | Sets the playback to shuffle if `True`. Is kept unchanged if `null`.                                                |
-| `limit`         | `positive_int`            | `null`  | sets the maximum amount of items that can be retrieved from a spotify api endpoint. Retrieves all items if `null`.  |
-| `random`        | `bool`                    | `False` | Sets the context playback to a random song of the context. Only available for albums, playlists and custom contexts |
-| `track_context` | `track \| album`          | `album` | Sets the context of a track. If it's `album` other songs from the album will play when the song ends. If it's `track` nothing will play when the song ends.  |
+| Option          | Type                      | Default | Description                                                                                                          |
+| :---:           | :---:                     | :---:   | :---                                                                                                                 |
+| `position`      | `positive_float`          | `0.000` | The position (in seconds) at which to start playback of the first item in the context.                              |
+| `offset`        | `positive_int`            | `0`     | The item in the context to start playback at. Zero based and cannot be negative.                                     |
+| `volume`        | `int`, `range 0-100`      | `null`  | The volume percentage (as an integer) to start playback at. Volume is kept unchanged if `null`.                      |
+| `repeat`        | `track \| context \| off` | `null`  | The repeat mode. Kept unchanged if `null`.                                                                           |
+| `shuffle`       | `bool`                    | `null`  | Sets the playback to shuffle if `True`. Kept unchanged if `null`.                                                    |
+| `limit`         | `positive_int`            | `null`  | The maximum number of items retrieved from a Spotify API endpoint. Retrieves all items if `null`.                    |
+| `random`        | `bool`                    | `False` | Starts the context playback at a random item. Only available for albums, playlists and custom contexts.              |
+| `track_context` | `track \| album`          | `album` | Sets the context of a track. With `album`, the rest of the album plays after the song ends; with `track`, playback stops. |
 
+## Entities
 
-## Entitites
-
-Spotcast creates multiple entities for each Spotify accounts.
+Spotcast creates multiple entities for each Spotify account.
 
 ### Sensors
 
-| example name                        | description                                                                           | states          |
-| :---                               | :---                                                                                  | :---:           |
-| `sensor.[...]_spotify_profile`      | Reports the profile of the Spotify Account. Provide attributes linked to the account. | `ok\|unknown`   |
-| `sensor.[...]_spotify_devices`      | Tracks the number of devices available for the account.                               | `int`           |
-| `sensor.[...]_spotify_followers`    | Tracks the number of followers the account has.                                       | `int`           |
-| `sensor.[...]_spotify_liked_songs`  | Tracks the number of songs liked by the account.                                      | `int`           |
-| `sensor.[...]_spotify_playlists`    | Tracks the number of playlists created by the account.                                | `int`           |
-| `sensor.[...]_spotify_account_type` | Diagnostic sensor that reports the type of account connected through spotcast         | `user`          |
-| `sensor.[...]_spotify_product`      | Diagnostic sensor that reports the subscription level of the account.                 | `premium\|free` |
+| Example name                        | Description                                                                            | States          |
+| :---                                | :---                                                                                   | :---:           |
+| `sensor.[...]_spotify_profile`      | Reports the profile of the Spotify account. Provides attributes linked to the account. | `ok\|unknown`   |
+| `sensor.[...]_spotify_devices`      | Tracks the number of devices available for the account.                                | `int`           |
+| `sensor.[...]_spotify_followers`    | Tracks the number of followers the account has.                                        | `int`           |
+| `sensor.[...]_spotify_liked_songs`  | Tracks the number of songs liked by the account.                                       | `int`           |
+| `sensor.[...]_spotify_playlists`    | Tracks the number of playlists created by the account.                                 | `int`           |
+| `sensor.[...]_spotify_account_type` | Diagnostic sensor that reports the type of account connected through Spotcast.         | `user`          |
+| `sensor.[...]_spotify_product`      | Diagnostic sensor that reports the subscription level of the account.                  | `premium\|free` |
 
-### Binary Sensors
+### Binary sensors
 
-| example name                               | description                                                                                 |
-| :---                                      | :---                                                                                        |
-| `sensor.[...]_is_default_spotcast_account` | Diagnostic sensor that confirm if the account is currently the default account for spotcast |
-| `sensor.[...]_spotify_profile_malfunction` | Diagnostic error sensor that turns on when an connection issue happens with the API         |
+| Example name                                      | Description                                                                                    |
+| :---                                              | :---                                                                                           |
+| `binary_sensor.[...]_is_default_spotcast_account` | Diagnostic sensor that confirms if the account is currently the default account for Spotcast.  |
+| `binary_sensor.[...]_spotify_profile_malfunction` | Diagnostic error sensor that turns on when a connection issue happens with the API.            |
 
+### Media players
 
-### Media Players
+Spotcast creates `media_player` entities and devices to represent Spotify Connect devices linked to a Spotcast account. These media players do not implement any playback functionality and are meant to be used in action calls when starting playback on a Spotify Connect device.
 
-Spotcast will create `media_player` entities and devices to represent Spotify Connect Devices linked to a Spotcast account. These media players do not implement any functionality and are ment to be used in service call when starting playback on a spotify connect device.
+## WebSocket API
 
-## Websocket API
+Spotcast provides multiple WebSocket API endpoints, used for example by companion frontend cards:
 
-Spotcast provides multiple websocket API endpoints:
+| Endpoint                                                    | Description                                                                                                                                     |
+| :---                                                        | :---                                                                                                                                            |
+| [`spotcast/accounts`](./docs/websocket/accounts.md)         | Provides a list of accounts linked to Spotcast.                                                                                                 |
+| [`spotcast/castdevices`](./docs/websocket/cast_devices.md)  | Provides a list of Chromecast devices available in Home Assistant.                                                                              |
+| [`spotcast/categories`](./docs/websocket/categories.md)     | Provides a list of [Browse categories](https://developer.spotify.com/documentation/web-api/reference/get-categories) an account has access to.  |
+| [`spotcast/devices`](./docs/websocket/devices.md)           | Provides a list of Spotify Connect devices available to the account.                                                                            |
+| [`spotcast/liked_media`](./docs/websocket/liked_media.md)   | Provides the list of liked tracks for an account.                                                                                               |
+| [`spotcast/player`](./docs/websocket/player.md)             | Provides the playback state of an account.                                                                                                      |
+| [`spotcast/playlists`](./docs/websocket/playlists.md)       | Provides the list of the user's playlists.                                                                                                      |
+| [`spotcast/search`](./docs/websocket/search.md)             | Searches Spotify for playlists, tracks, albums or artists.                                                                                      |
+| [`spotcast/tracks`](./docs/websocket/tracks.md)             | Provides the list of tracks in a playlist.                                                                                                      |
+| [`spotcast/view`](./docs/websocket/view.md)                 | Provides the list of playlists from a Spotify view (e.g. `recently-played`).                                                                    |
 
-| endpoint                                                   | description                                                                                                                                                                           |
-| :---                                                       | :---                                                                                                                                                                                  |
-| [`spotcast/accounts`](./docs/websocket/accounts.md)        | Provides a list of accounts linked to spotcast                                                                                                                                        |
-| [`spotcast/castdevices`](./docs/websocket/cast_devices.md) | Provides a list of Chromecast devices available in Home Assistant                                                                                                                     |
-| [`spotcast/categories`](./docs/websocket/categories.md)    | Provides a list of [Browse categories](https://developer.spotify.com/documentation/web-api/reference/get-a-category) an account has access to                                         |
-| [`spotcast/devices`](./docs/websocket/devices.md)          | Provides a list of Spotify Connect Devices available to the account                                                                                                                   |
-| [`spotcast/player`](./docs/websocket/player.md)            | Provides the playback state of an account                                                                                                                                             |
-| [`spotcast/playlists`](./docs/websocket/playlists.md)      | Provides the list of the user's playlists                                                                                                                                            |
+## Upgrading from v5
 
+The v6 rewrite changed both the configuration flow and the action names:
 
-## Contribute
+- Configuration no longer uses `sp_dc`/`sp_key` cookies in YAML. Accounts are set up through the UI with OAuth and a one-time desktop token relay. Follow the [configuration guide](./docs/config/spotcast_configuration.md).
+- The `spotcast.start` service was replaced by a set of dedicated actions. The closest equivalent to `spotcast.start` is [`spotcast.play_media`](./docs/services/play_media.md), with most of its former options now under the `data` section.
+- `spotcast.play_category` was removed, following the deprecation of the corresponding Spotify Web API endpoints.
 
-Please do! Open a Pull Request with your improvements. This project was made possible by the original creator Niklas Fondberg. All improvements are greatly appreciated.
+## Related projects
 
-In order for a pull request to be approve, you will have to provide a full test coverage of you code. A pylint score >=9/10 is also required.
+- [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) and [SpotifyPlus Card](https://github.com/thlucas1/spotifyplus_card) - a comprehensive Spotify integration and card, recommended when you need full Spotify control beyond starting playback.
+
+## Contributing
+
+Contributions are welcome! Please read the [contributing guidelines](./CONTRIBUTING.md) for the branch model, development setup and quality gates (test coverage and pylint score).
+
+## Credits
+
+Spotcast was created by [Niklas Fondberg](https://github.com/fondberg), who passed away in 2024. This project continues in his memory. It was maintained, including the complete v5/v6 rewrite, by [Felix Cusson](https://github.com/fcusson). Thanks to them and to all the [contributors](https://github.com/Mincka/spotcast/graphs/contributors) who made this project possible. It is now maintained by [Julien Ehrhart](https://github.com/Mincka).
 
 ## License
 
-Apache 2.0
+[Apache 2.0](./LICENSE) - see also the [NOTICE](./NOTICE) file.

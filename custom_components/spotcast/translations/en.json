@@ -8,20 +8,13 @@
                 },
                 "description": "Please make sure to follow the steps explained [here]({release_url}) on how to get your Access & Refresh Tokens."
             },
-            "internal_api": {
-                "data": {
-                    "sp_dc": "SP DC",
-                    "sp_key": "SP Key"
-                },
-                "description": "Go to [Spotify]({spotify_url}) and log in. Then get the `sp_dc` and `sp_key` from the developpper console. See [this tutorial]({tutorial_url}) for more information"
-            },
             "pick_implementation": {
-                "title": "Importing Spotcast YAML configuration",
-                "description": "Press OK to complete import."
+                "title": "Application Credentials",
+                "description": "Select the application credentials to use for this account."
             },
             "reauth_confirm": {
                 "title": "[%key:common::config_flow::title::reauth%]",
-                "description": "The Spotcast integratio needs to re-authenticate your account."
+                "description": "The Spotcast integration needs to re-authenticate your account."
             },
             "doc_confirm": {
                 "title": "Start Setup",
@@ -35,10 +28,10 @@
             "must_confirm": "You must confirm before proceeding."
         },
         "abort": {
-            "connection_error": "Unable to connect to Spotify using the {account_type} credentials. If you provided your `SP_DC` and `SP_KEY` in the configuration, please note that V6 configuration has changed drastically. Make sure to read the [new installation process]({release_url}). For more help, [Open a ticket]({ticket_url}).",
+            "connection_error": "Unable to connect to Spotify using the {account_type} credentials. If you are upgrading from v5, note that the configuration process changed completely in v6. Make sure to follow the [installation guide]({release_url}). For more help, [open a ticket]({ticket_url}).",
             "already_configured": "This account is already configured in Home Assistant",
             "reauth_account_mismatch": "The account provided does not match the account being reauthenticated",
-            "public_private_accounts_mismatch": "The profile from the OAuth credentials and the desktop credentials are for 2 different accounts. Make sure to provide information from the same account. If you are already logged in to Spotify on your browser. Home Assistant won,t ask you to connect to a different account and will use the currently logged in user.",
+            "public_private_accounts_mismatch": "The profile from the OAuth credentials and the desktop credentials are for 2 different accounts. Make sure to provide information from the same account. If you are already logged in to Spotify on your browser, Home Assistant won't ask you to connect to a different account and will use the currently logged-in user.",
             "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
         }
     },

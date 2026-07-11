@@ -1,6 +1,6 @@
 [project]
 name = "spotcast"
-version = "6.0.0-a16"
+version = "6.0.0"
 description = "Home Assistant custom component to start Spotify playback on an idle Chromecast or a Spotify Connect device. Meaning you can target automation for chromecast as well as connect devices."
 readme = "README.md"
 requires-python = ">=3.14.2"
@@ -9,7 +9,7 @@ authors = [
     { name = "Niklas Fondberg"},
 ]
 maintainers = [
-    { name = "Felix Cusson", email = "felixcusson@gmail.com" }
+    { name = "Julien Ehrhart", email = "julien.ehrhart@gmail.com" }
 ]
 dependencies = [
     "atomicwrites-homeassistant>=1.4.1",
@@ -18,14 +18,13 @@ dependencies = [
     "requests>=2.33.1",
     "spotifyaio>=2.0.2",
     "RapidFuzz>=3.14.5",
-    "pyotp==2.10.0",
     "homeassistant>=2026.4.0",
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/fondberg/spotcast"
-"Bug Reports" = "https://github.com/fondberg/spotcast/issues/new?template=bug_report.yml"
-"Source" = "https://github.com/fondberg/spotcast"
+"Homepage" = "https://github.com/Mincka/spotcast"
+"Bug Reports" = "https://github.com/Mincka/spotcast/issues/new?template=bug_report.yml"
+"Source" = "https://github.com/Mincka/spotcast"
 
 [tool.mypy]
 python_version = "3.14"

@@ -9,7 +9,7 @@ from spotipy import SpotifyException
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     PublicSession,
-    PrivateSession,
+    DesktopSession,
     HomeAssistant,
     Store,
 )
@@ -28,7 +28,7 @@ class TestAppliedExtras(IsolatedAsyncioTestCase):
     ):
 
         self.mocks = {
-            "internal": MagicMock(spec=PrivateSession),
+            "internal": MagicMock(spec=DesktopSession),
             "external": MagicMock(spec=PublicSession),
             "hass": MagicMock(spec=HomeAssistant),
         }
@@ -93,7 +93,7 @@ class TestSkippedExtras(IsolatedAsyncioTestCase):
     ):
 
         self.mocks = {
-            "internal": MagicMock(spec=PrivateSession),
+            "internal": MagicMock(spec=DesktopSession),
             "external": MagicMock(spec=PublicSession),
             "hass": MagicMock(spec=HomeAssistant),
         }
@@ -155,7 +155,7 @@ class TestApplyExtrasWithException(IsolatedAsyncioTestCase):
     ):
 
         self.mocks = {
-            "internal": MagicMock(spec=PrivateSession),
+            "internal": MagicMock(spec=DesktopSession),
             "external": MagicMock(spec=PublicSession),
             "hass": MagicMock(spec=HomeAssistant),
         }

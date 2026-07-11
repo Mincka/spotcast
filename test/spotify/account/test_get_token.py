@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     PublicSession,
-    PrivateSession,
+    DesktopSession,
     HomeAssistant,
     Store,
 )
@@ -26,7 +26,7 @@ class TestDataRetention(TestCase):
             mock_store: MagicMock,
     ):
 
-        mock_internal = MagicMock(spec=PrivateSession)
+        mock_internal = MagicMock(spec=DesktopSession)
         mock_external = MagicMock(spec=PublicSession)
         mock_hass = MagicMock(spec=HomeAssistant)
         mock_hass.loop = MagicMock()

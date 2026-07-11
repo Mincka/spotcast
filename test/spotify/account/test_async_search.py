@@ -8,7 +8,7 @@ from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     HomeAssistant,
     PublicSession,
-    PrivateSession,
+    DesktopSession,
     SearchQuery,
     Store,
 )
@@ -25,7 +25,7 @@ class TestSearchQuery(IsolatedAsyncioTestCase):
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
             "external": MagicMock(spec=PublicSession),
-            "internal": MagicMock(spec=PrivateSession),
+            "internal": MagicMock(spec=DesktopSession),
             "pager": mock_pager,
         }
 
@@ -66,7 +66,7 @@ class TestSearchQueryWithNoneItems(IsolatedAsyncioTestCase):
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
             "external": MagicMock(spec=PublicSession),
-            "internal": MagicMock(spec=PrivateSession),
+            "internal": MagicMock(spec=DesktopSession),
             "pager": mock_pager,
         }
 

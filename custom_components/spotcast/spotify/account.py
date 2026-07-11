@@ -26,7 +26,6 @@ from custom_components.spotcast.const import DOMAIN
 from custom_components.spotcast.sessions import (
     DesktopSession,
     PublicSession,
-    PrivateSession,
     ConnectionSession,
     async_get_config_entry_implementation,
 )

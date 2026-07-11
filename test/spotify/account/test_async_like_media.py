@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch, AsyncMock
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     PublicSession,
-    PrivateSession,
+    DesktopSession,
     HomeAssistant,
     Spotify,
     Store,
@@ -26,7 +26,7 @@ class TestLikeSongs(IsolatedAsyncioTestCase):
     ):
 
         self.mocks = {
-            "internal": MagicMock(spec=PrivateSession),
+            "internal": MagicMock(spec=DesktopSession),
             "external": MagicMock(spec=PublicSession),
             "hass": MagicMock(spec=HomeAssistant),
         }

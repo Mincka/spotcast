@@ -2,7 +2,6 @@
 
 Classes:
     - TokenRefreshError
-    - ExpiredSpotifyCookiesError
 """
 
 from homeassistant.exceptions import HomeAssistantError
@@ -12,10 +11,6 @@ from custom_components.spotcast.spotify.exceptions import TokenError
 
 class TokenRefreshError(TokenError):
     """Raised when a token refresh fails."""
-
-
-class ExpiredSpotifyCookiesError(TokenRefreshError):
-    """Raised if the sp_dc and sp_key are expired."""
 
 
 class InternalServerError(HomeAssistantError):
@@ -31,7 +26,3 @@ class InternalServerError(HomeAssistantError):
 
 class UpstreamServerNotready(HomeAssistantError):
     """Upstream server is not ready to receive communication again."""
-
-
-class TOTPError(TokenRefreshError):
-    """Raised when the time based one time password is invalid."""

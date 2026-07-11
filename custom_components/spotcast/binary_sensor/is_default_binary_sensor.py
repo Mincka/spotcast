@@ -6,10 +6,7 @@ Classes
 
 from logging import getLogger
 
-from homeassistant.components.binary_sensor import (
-    EntityCategory
-)
-from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.const import STATE_OFF, STATE_ON, EntityCategory
 
 from custom_components.spotcast.binary_sensor.abstract_binary_sensor import (
     SpotcastBinarySensor

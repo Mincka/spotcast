@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch, AsyncMock
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     PublicSession,
-    PrivateSession,
+    DesktopSession,
     HomeAssistant,
     Spotify,
     Store,
@@ -24,7 +24,7 @@ class TestPagingApiEndpoint(IsolatedAsyncioTestCase):
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
             "external": MagicMock(spec=PublicSession),
-            "internal": MagicMock(spec=PrivateSession),
+            "internal": MagicMock(spec=DesktopSession),
             "spotify": mock_spotify,
         }
 
@@ -67,7 +67,7 @@ class TestSubLayeredPager(IsolatedAsyncioTestCase):
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
             "external": MagicMock(spec=PublicSession),
-            "internal": MagicMock(spec=PrivateSession),
+            "internal": MagicMock(spec=DesktopSession),
             "spotify": mock_spotify,
         }
 

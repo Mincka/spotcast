@@ -4,7 +4,7 @@ labels:
   - enhancement
   - pending-triage
 assignees:
-  - fcusson
+  - Mincka
 body:
   - type: markdown
     attributes:

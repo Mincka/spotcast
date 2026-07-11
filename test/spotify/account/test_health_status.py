@@ -8,7 +8,7 @@ from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     HomeAssistant,
     PublicSession,
-    PrivateSession,
+    DesktopSession,
     DeviceInfo,
     DeviceEntryType,
     Spotify,
@@ -24,7 +24,7 @@ class TestHealthStatus(TestCase):
     @patch(f"{TEST_MODULE}.Spotify", spec=Spotify)
     def setUp(self, mock_spotify: MagicMock, mock_store: MagicMock):
 
-        mock_internal = MagicMock(spec=PrivateSession)
+        mock_internal = MagicMock(spec=DesktopSession)
         mock_external = MagicMock(spec=PublicSession)
 
         mock_internal.is_healthy = True

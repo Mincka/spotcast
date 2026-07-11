@@ -5,7 +5,7 @@ from time import time
 
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
-    PrivateSession,
+    DesktopSession,
     HomeAssistant,
     PublicSession,
     Spotify,
@@ -28,7 +28,7 @@ class TestDatasetFresh(IsolatedAsyncioTestCase):
         mock_spotify.return_value = MagicMock(spec=SpotifyAccount)
 
         self.mocks = {
-            "internal": MagicMock(spec=PrivateSession),
+            "internal": MagicMock(spec=DesktopSession),
             "external": MagicMock(spec=PublicSession),
             "hass": MagicMock(spec=HomeAssistant),
             "spotify": mock_spotify.return_value,

@@ -7,7 +7,7 @@ from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     HomeAssistant,
     PublicSession,
-    PrivateSession,
+    DesktopSession,
     Store,
 )
 
@@ -21,7 +21,7 @@ class TestExistingState(IsolatedAsyncioTestCase):
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
-            "private": MagicMock(spec=PrivateSession),
+            "private": MagicMock(spec=DesktopSession),
             "public": MagicMock(spec=PublicSession),
         }
 
@@ -48,7 +48,7 @@ class TestNoState(IsolatedAsyncioTestCase):
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
-            "private": MagicMock(spec=PrivateSession),
+            "private": MagicMock(spec=DesktopSession),
             "public": MagicMock(spec=PublicSession),
             "store": mock_store.return_value,
         }
