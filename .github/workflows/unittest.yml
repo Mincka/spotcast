@@ -5,12 +5,15 @@ on:
   push:
     branches:
       - main
-      - dev
       - release/*
     paths-ignore:
       - docs/*
       - "*.md"
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   Test:
@@ -20,6 +23,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
+          cache: pip
       - run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi 

@@ -9,14 +9,14 @@ Spotcast v6 is a complete rewrite of the integration.
 ### Highlights
 
 - **New configuration flow**: accounts are set up through the UI using OAuth application credentials and a one-time desktop token relay. The `sp_dc`/`sp_key` YAML configuration is gone. See the [configuration guide](./docs/config/spotcast_configuration.md).
-- **New actions**: the `spotcast.start` service is replaced by dedicated actions — `play_media`, `play_liked_songs`, `play_dj`, `play_from_search`, `play_custom_context`, `play_saved_episodes`, `transfer_playback`, `add_to_queue` and `like_media`.
+- **New actions**: the `spotcast.start` service is replaced by dedicated actions - `play_media`, `play_liked_songs`, `play_dj`, `play_from_search`, `play_custom_context`, `play_saved_episodes`, `transfer_playback`, `add_to_queue` and `like_media`.
 - **WebSocket API**: endpoints for accounts, devices, cast devices, categories, playlists, tracks, liked media, search, views and playback state, usable by frontend cards.
 - **Entities**: sensors, binary sensors and media players are created for each Spotify account.
 - **Multi-account support** with a default account and per-call account selection.
 
 ### Changes consolidated from the original repository's pending pull requests
 
-- Removed deprecated Spotify Web API usage (audio features, category playlists — `spotcast.play_category` is gone) and modernized the integration for recent Home Assistant and Python versions ([fondberg/spotcast#610](https://github.com/fondberg/spotcast/pull/610)).
+- Removed deprecated Spotify Web API usage (audio features, category playlists - `spotcast.play_category` is gone) and modernized the integration for recent Home Assistant and Python versions ([fondberg/spotcast#610](https://github.com/fondberg/spotcast/pull/610)).
 - Graceful handling of Spotify 404 responses on editorial/algorithmic playlists ([fondberg/spotcast#611](https://github.com/fondberg/spotcast/pull/611)).
 - Dead code cleanup ([fondberg/spotcast#612](https://github.com/fondberg/spotcast/pull/612)).
 - Device names are sanitized into valid entity IDs, fixing accounts and devices with non-ASCII characters ([fondberg/spotcast#614](https://github.com/fondberg/spotcast/pull/614)).

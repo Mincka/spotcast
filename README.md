@@ -23,7 +23,7 @@ Spotcast is a Home Assistant custom integration that starts Spotify playback on 
 
 Spotcast focuses on one thing and aims to do it well: **starting and transferring Spotify playback from Home Assistant automations**, including on devices that are not signed into your Spotify account (like Chromecast speakers). It intentionally keeps side features minimal.
 
-If you are looking for comprehensive Spotify control from Home Assistant (full media player, browsing, favorites management, near-complete Web API coverage), have a look at [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) and its companion [SpotifyPlus Card](https://github.com/thlucas1/spotifyplus_card) — they complement Spotcast rather than compete with it.
+If you are looking for comprehensive Spotify control from Home Assistant (full media player, browsing, favorites management, near-complete Web API coverage), have a look at [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) and its companion [SpotifyPlus Card](https://github.com/thlucas1/spotifyplus_card) - they complement Spotcast rather than compete with it.
 
 ## Installation
 
@@ -149,7 +149,7 @@ The v6 rewrite changed both the configuration flow and the action names:
 
 ## Related projects
 
-- [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) and [SpotifyPlus Card](https://github.com/thlucas1/spotifyplus_card) — a comprehensive Spotify integration and card, recommended when you need full Spotify control beyond starting playback.
+- [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) and [SpotifyPlus Card](https://github.com/thlucas1/spotifyplus_card) - a comprehensive Spotify integration and card, recommended when you need full Spotify control beyond starting playback.
 
 ## Contributing
 
@@ -157,8 +157,8 @@ Contributions are welcome! Please read the [contributing guidelines](./CONTRIBUT
 
 ## Credits
 
-Spotcast was created by [Niklas Fondberg](https://github.com/fondberg) and maintained, including the complete v5/v6 rewrite, by [Felix Cusson](https://github.com/fcusson). Thanks to them and to all the [contributors](https://github.com/Mincka/spotcast/graphs/contributors) who made this project possible. It is now maintained by [Julien Ehrhart](https://github.com/Mincka).
+Spotcast was created by [Niklas Fondberg](https://github.com/fondberg), who passed away in 2024. This project continues in his memory. It was maintained, including the complete v5/v6 rewrite, by [Felix Cusson](https://github.com/fcusson). Thanks to them and to all the [contributors](https://github.com/Mincka/spotcast/graphs/contributors) who made this project possible. It is now maintained by [Julien Ehrhart](https://github.com/Mincka).
 
 ## License
 
-[Apache 2.0](./LICENSE) — see also the [NOTICE](./NOTICE) file.
+[Apache 2.0](./LICENSE) - see also the [NOTICE](./NOTICE) file.

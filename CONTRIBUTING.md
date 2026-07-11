@@ -4,9 +4,12 @@ Thank you for considering a contribution to Spotcast! This document explains how
 
 ## Branch model
 
-- `main` — stable branch; releases are tagged from here.
-- `dev` — integration branch; **open your pull requests against `dev`**.
-- Use descriptive branch names such as `feature/<topic>`, `bugfix/<topic>` or `chore/<topic>`.
+The project uses trunk-based development:
+
+- `main` is the only long-lived branch; it is protected and releases are tagged from it. **Open your pull requests against `main`.**
+- Work happens on short-lived branches with descriptive names such as `feature/<topic>`, `bugfix/<topic>` or `chore/<topic>`.
+- Pre-releases (alpha/beta) are published as GitHub pre-releases from `main`; HACS users can opt into them by enabling beta versions.
+- `release/<version>` branches are only created when an older release needs a hotfix while `main` has moved on.
 
 ## Development setup
 

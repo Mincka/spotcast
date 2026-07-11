@@ -1,13 +1,17 @@
 Spotcast
-Copyright 2019-2026 Niklas Fondberg and the Spotcast contributors
+Copyright 2019-2026 The Spotcast Authors
 
-This product is a continuation of the original Spotcast project
-(https://github.com/fondberg/spotcast), created in 2019 by
-Niklas Fondberg (https://github.com/fondberg) and maintained,
-including the complete v5/v6 rewrite, by Felix Cusson
-(https://github.com/fcusson).
+Spotcast was created in 2019 by Niklas Fondberg
+(https://github.com/fondberg) and maintained, including the complete
+v5/v6 rewrite, by Felix Cusson (https://github.com/fcusson).
 
-It is maintained since 2026 by Julien Ehrhart
-(https://github.com/Mincka) at https://github.com/Mincka/spotcast.
+This repository (https://github.com/Mincka/spotcast) is the
+continuation of the original project
+(https://github.com/fondberg/spotcast) and is maintained since 2026
+by Julien Ehrhart (https://github.com/Mincka).
+
+Each contributor retains copyright over their contributions. The term
+"The Spotcast Authors" refers to all contributors to the project, as
+recorded in the version control history.
 
 Licensed under the Apache License, Version 2.0. See the LICENSE file.
