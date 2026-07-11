@@ -140,40 +140,6 @@ play_saved_episodes:
       required: false
       selector:
         object:
-play_category:
-  name: Playlist from Category
-  description: Play a random playlist from a browse category
-  fields:
-    media_player:
-      name: Media Player
-      required: false
-      selector:
-        target:
-          entity:
-            - domain: media_player
-              integration: cast
-            - domain: media_player
-              integration: spotcast
-    category:
-      name: Category
-      description: A Category name or ID. A fuzzy match is applied on the name, but an ID must be an exact match.
-      example: Made For You
-      required: true
-      selector:
-        text:
-    account:
-      name: Spotify Account
-      description: The id of the spotify account to use. Takes the default account otherwise
-      required: false
-      selector:
-        config_entry:
-          integration: spotcast
-    data:
-      name: Data
-      description: Additional modifiers for the service call.
-      required: false
-      selector:
-        object:
 play_custom_context:
   name: Play Custom Context
   description: Play media from a custom list of tracks URIs

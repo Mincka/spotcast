@@ -6,14 +6,14 @@
                     "access_token": "Access Token",
                     "refresh_token": "Refresh Token"
                 },
-                "description": "Please make sure to follow the steps explained [here](https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0) on how to get your Access & Refresh Tokens."
+                "description": "Please make sure to follow the steps explained [here]({release_url}) on how to get your Access & Refresh Tokens."
             },
             "internal_api": {
                 "data": {
                     "sp_dc": "SP DC",
                     "sp_key": "SP Key"
                 },
-                "description": "Go to [Spotify](https://open.spotify.com) and log in. Then get the `sp_dc` and `sp_key` from the developpper console. See [this tutorial](https://github.com/fondberg/spotcast/blob/dev/docs/config/obtaining_sp_dc_and_sp_key.md) for more information"
+                "description": "Go to [Spotify]({spotify_url}) and log in. Then get the `sp_dc` and `sp_key` from the developpper console. See [this tutorial]({tutorial_url}) for more information"
             },
             "pick_implementation": {
                 "title": "Importing Spotcast YAML configuration",
@@ -25,7 +25,7 @@
             },
             "doc_confirm": {
                 "title": "Start Setup",
-                "description": "Please follow the [setup guide](https://github.com/fondberg/spotcast/blob/dev/docs/config/spotcast_configuration.md) before continuing. Confirm when you have started the relay server.",
+                "description": "Please follow the [setup guide]({setup_guide}) before continuing. Confirm when you have started the relay server.",
                 "data": {
                     "confirmed": "I have read the documentation and started the relay server"
                 }
@@ -35,7 +35,7 @@
             "must_confirm": "You must confirm before proceeding."
         },
         "abort": {
-            "connection_error": "Unable to connect to Spotify using the {account_type} credentials. If you provided your `SP_DC` and `SP_KEY` in the configuration, please note that V6 configuration has changed drastically. Make sure to read the [new installation process](https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0). For more help, [Open a ticket](https://github.com/fondberg/spotcast/issues/new/choose).",
+            "connection_error": "Unable to connect to Spotify using the {account_type} credentials. If you provided your `SP_DC` and `SP_KEY` in the configuration, please note that V6 configuration has changed drastically. Make sure to read the [new installation process]({release_url}). For more help, [Open a ticket]({ticket_url}).",
             "already_configured": "This account is already configured in Home Assistant",
             "reauth_account_mismatch": "The account provided does not match the account being reauthenticated",
             "public_private_accounts_mismatch": "The profile from the OAuth credentials and the desktop credentials are for 2 different accounts. Make sure to provide information from the same account. If you are already logged in to Spotify on your browser. Home Assistant won,t ask you to connect to a different account and will use the currently logged in user.",
@@ -100,28 +100,6 @@
                 "account": {
                     "name": "Spotify Account",
                     "description": "The ID of the Spotify account to use. Takes the default account otherwise."
-                }
-            }
-        },
-        "play_category": {
-            "name": "Playlist from Category",
-            "description": "Plays a random playlist from a Browse Category",
-            "fields": {
-                "media_player": {
-                    "name": "Target",
-                    "description": "A Single Media Player compatible with Spotcast"
-                },
-                "category": {
-                    "name": "Category",
-                    "description": "A Category name or ID. A fuzzy match is applied on the name, but an ID must be an exact match."
-                },
-                "account": {
-                    "name": "Spotify Account",
-                    "description": "The id of the Spotify account to use. Takes the default account otherwise."
-                },
-                "data": {
-                    "name": "Data",
-                    "description": "Additional modifiers when starting media playback"
                 }
             }
         },

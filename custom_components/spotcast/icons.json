@@ -12,9 +12,6 @@
         "transfer_playback": {
             "service": "mdi:transfer"
         },
-        "play_category": {
-            "service": "mdi:dice-multiple"
-        },
         "play_custom_context": {
             "service": "mdi:playlist-music"
         },

@@ -42,6 +42,13 @@ from .options_flow_handler import (
 
 LOGGER = getLogger(__name__)
 
+_RELEASE_URL = "https://github.com/fondberg/spotcast/releases/tag/v6.0.0-a0"
+_TICKET_URL = "https://github.com/fondberg/spotcast/issues/new/choose"
+_SETUP_GUIDE_URL = (
+    "https://github.com/fondberg/spotcast/blob/dev/docs/config/"
+    "spotcast_configuration.md"
+)
+
 
 class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
     """Handler of the Config Flow for Spotcast.
@@ -133,6 +140,7 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         return self.async_show_form(
             step_id="doc_confirm",
             data_schema=self.DOCUMENTATION_SCHEMA,
+            description_placeholders={"setup_guide": _SETUP_GUIDE_URL},
         )
 
     async def async_step_doc_confirm(
@@ -145,6 +153,7 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
                 step_id="doc_confirm",
                 data_schema=self.DOCUMENTATION_SCHEMA,
                 errors={"confirmed": "must_confirm"},
+                description_placeholders={"setup_guide": _SETUP_GUIDE_URL},
             )
 
         return await self.async_step_pick_implementation()
@@ -207,6 +216,7 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
             return self.async_external_step(
                 step_id="desktop_api",
                 url=url,
+                description_placeholders={"release_url": _RELEASE_URL},
             )
 
         external_api = self.data["external_api"]
@@ -223,7 +233,11 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         except Exception:  # pylint: disable=W0718
             return self.async_abort(
                 reason="connection_error",
-                description_placeholders={"account_type": "public"},
+                description_placeholders={
+                    "account_type": "public",
+                    "release_url": _RELEASE_URL,
+                    "ticket_url": _TICKET_URL,
+                },
             )
 
         external_api["id"] = current_user["id"]

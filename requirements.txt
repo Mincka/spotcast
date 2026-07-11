@@ -1,8 +1,8 @@
 atomicwrites-homeassistant>=1.4.1
-homeassistant>=2024.8.3
-spotipy>=2.24.0
-PyChromecast>=14.0.1
-requests>=2.32.3
-spotifyaio>=0.8.8
-RapidFuzz>=3.10.1
-pyotp==2.9.0
+homeassistant>=2026.4.0
+spotipy>=2.26.0
+PyChromecast>=14.0.10
+requests>=2.33.1
+spotifyaio>=2.0.2
+RapidFuzz>=3.14.5
+pyotp==2.10.0

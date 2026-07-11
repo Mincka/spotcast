@@ -43,7 +43,3 @@ class AmbiguousDeviceIdError(ServiceValidationError):
 class UnmanagedSelectionError(ServiceValidationError):
     """Raised when a target selector provides a target selection
     that spotcast can't manage"""
-
-
-class InvalidCategoryError(ServiceValidationError):
-    """Raised when an invalid category id is provided"""

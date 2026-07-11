@@ -19,14 +19,12 @@ TEST_MODULE = "custom_components.spotcast"
 
 class TestEntryRegistration(IsolatedAsyncioTestCase):
 
-    @patch(f"{TEST_MODULE}.async_cleanup_entities")
     @patch(f"{TEST_MODULE}.async_setup_websocket")
     @patch.object(SpotifyAccount, "async_from_config_entry")
     async def asyncSetUp(
         self,
         mock_account: AsyncMock,
         mock_websocket: AsyncMock,
-        mock_cleanup: AsyncMock,
     ):
 
         mock_account.return_value = MagicMock(spec=SpotifyAccount)
@@ -37,7 +35,6 @@ class TestEntryRegistration(IsolatedAsyncioTestCase):
             "entry": MagicMock(spec=ConfigEntry),
             "forward_entry": AsyncMock(),
             "register_service": MagicMock(),
-            "cleanup": mock_cleanup,
         }
 
         self.mocks["hass"].data = {}
@@ -52,8 +49,6 @@ class TestEntryRegistration(IsolatedAsyncioTestCase):
         self.mocks["hass"].services = MagicMock()
         self.mocks["hass"].services\
             .async_register = self.mocks["register_service"]
-
-        self.mocks["cleanup"].return_value = 0
 
         self.result = await async_setup_entry(
             self.mocks["hass"],
@@ -79,14 +74,12 @@ class TestEntryRegistration(IsolatedAsyncioTestCase):
 
 class TestDefaultOptionsSet(IsolatedAsyncioTestCase):
 
-    @patch(f"{TEST_MODULE}.async_cleanup_entities")
     @patch(f"{TEST_MODULE}.async_setup_websocket")
     @patch.object(SpotifyAccount, "async_from_config_entry")
     async def asyncSetUp(
         self,
         mock_account: MagicMock,
         mock_websocket: AsyncMock,
-        mock_cleanup: AsyncMock,
     ):
 
         mock_account.return_value = MagicMock(spec=SpotifyAccount)
@@ -97,7 +90,6 @@ class TestDefaultOptionsSet(IsolatedAsyncioTestCase):
             "entry": MagicMock(spec=ConfigEntry),
             "forward_entry": AsyncMock(),
             "register_service": MagicMock(),
-            "cleanup": mock_cleanup,
         }
 
         self.mocks["hass"].data = {}
@@ -111,8 +103,6 @@ class TestDefaultOptionsSet(IsolatedAsyncioTestCase):
         self.mocks["hass"].services = MagicMock()
         self.mocks["hass"].services\
             .async_register = self.mocks["register_service"]
-
-        self.mocks["cleanup"].return_value = 1
 
         self.result = await async_setup_entry(
             self.mocks["hass"],
