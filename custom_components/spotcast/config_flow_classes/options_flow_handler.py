@@ -10,7 +10,7 @@ from types import MappingProxyType
 from homeassistant.helpers import config_validation as cv
 from homeassistant.config_entries import (
     OptionsFlow,
-    FlowResult,
+    ConfigFlowResult,
 )
 import voluptuous as vol
 
@@ -40,7 +40,7 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
     async def async_step_init(
         self,
         user_input: dict[str] | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Initial Step for the Option Configuration Flow"""
 
         options = copy_to_dict(self.config_entry.options)
@@ -118,7 +118,7 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
     async def async_step_apply_options(
         self,
         user_input: dict[str]
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Step to apply the options configured"""
 
         if user_input["set_default"]:

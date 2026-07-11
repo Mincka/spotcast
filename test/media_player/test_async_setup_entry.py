@@ -59,8 +59,8 @@ class TestMediaPlayerSetup(IsolatedAsyncioTestCase):
         except AssertionError:
             self.fail()
 
-    async def test_listener_saved_in_data(self):
-        self.assertEqual(
-            self.mock_hass.data["spotcast"]["12345"]["device_listener"],
-            "foo",
-        )
+    async def test_listener_registered_for_unload(self):
+        try:
+            self.mock_entry.async_on_unload.assert_called_with("foo")
+        except AssertionError:
+            self.fail()

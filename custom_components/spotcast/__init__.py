@@ -96,13 +96,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not unload_ok:
         return False
 
-    entry_data = hass.data[DOMAIN].get(entry.entry_id)
-    listener = entry_data.get("device_listener")
-
-    if listener is not None:
-        listener()
-
-    hass.data[DOMAIN].pop(entry.entry_id)
+    hass.data[DOMAIN].pop(entry.entry_id, None)
 
     # check if no entry remaining
     if len(hass.data[DOMAIN]) == 0:

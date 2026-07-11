@@ -6,7 +6,7 @@ Classes:
 
 from logging import getLogger
 
-from homeassistant.components.sensor import EntityCategory
+from homeassistant.const import EntityCategory
 
 from custom_components.spotcast.sensor.abstract_sensor import SpotcastSensor
 

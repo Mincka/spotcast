@@ -14,6 +14,10 @@
     "integration_type": "service",
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/Mincka/spotcast/issues",
+    "loggers": [
+        "spotipy",
+        "pychromecast"
+    ],
     "requirements": [
         "spotipy>=2.26.0",
         "RapidFuzz>=3.14.5"

@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from logging import getLogger
 from asyncio import exceptions as asyncio_errors
 
-from homeassistant.components.sensor import EntityCategory, Entity
-from homeassistant.const import STATE_UNKNOWN, STATE_OFF
+from homeassistant.helpers.entity import Entity
+from homeassistant.const import STATE_UNKNOWN, STATE_OFF, EntityCategory
 from requests import exceptions as requests_errors
 
 from custom_components.spotcast.spotify import SpotifyAccount
