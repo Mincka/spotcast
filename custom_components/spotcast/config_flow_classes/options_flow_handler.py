@@ -32,7 +32,10 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
         "init": vol.Schema(
             {
                 vol.Required("set_default"): bool,
-                vol.Required("base_refresh_rate"): cv.positive_int,
+                vol.Required("base_refresh_rate"): vol.All(
+                    cv.positive_int,
+                    vol.Range(min=5),
+                ),
             }
         )
     }
@@ -61,7 +64,11 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
         )
 
     def set_default_user(self) -> dict:
-        """Set the current user as default for spotcast"""
+        """Set the current user as default for spotcast.
+
+        The entry update listener applies the change to the loaded
+        accounts when the entries are updated.
+        """
 
         entries = self.hass.config_entries.async_entries(DOMAIN)
         old_default = None
@@ -74,8 +81,6 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
 
             if is_default:
                 old_default = entry.title
-                self.hass.data[DOMAIN][entry.entry_id]["account"]\
-                    .is_default = False
 
             self.hass.config_entries.async_update_entry(
                 entry,
@@ -89,11 +94,12 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
         )
 
         self._options["is_default"] = True
-        self.hass.data[DOMAIN][self.config_entry.entry_id]["account"]\
-            .is_default = True
 
     def set_base_refresh_rate(self, new_refresh_rate: int):
-        """Sets the base refresh rate for the account
+        """Sets the base refresh rate for the account.
+
+        The entry update listener applies the change to the account
+        and its coordinator when the entry is updated.
 
         Args:
             - new_refresh_rate(int): the new refresh rate to set for
@@ -109,9 +115,6 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
             self.config_entry.title,
             new_refresh_rate,
         )
-        entry_id = self.config_entry.entry_id
-        self.hass.data[DOMAIN][entry_id]["account"]\
-            .base_refresh_rate = new_refresh_rate
 
         self._options["base_refresh_rate"] = new_refresh_rate
 

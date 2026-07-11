@@ -107,12 +107,13 @@ class TestUserSwitchToDefault(TestCase):
         except AssertionError:
             self.fail()
 
-    def test_current_account_set_to_default(self):
+    def test_options_set_to_default(self):
+        self.assertTrue(self.handler._options["is_default"])
+
+    def test_accounts_not_poked_directly(self):
         self.assertTrue(
             self.mocks["hass"].data["spotcast"]["12345"]["account"].is_default
         )
-
-    def test_other_account_set_to_default(self):
         self.assertFalse(
             self.mocks["hass"].data["spotcast"]["23456"]["account"].is_default
         )
