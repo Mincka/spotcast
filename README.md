@@ -16,6 +16,9 @@ Spotcast is a Home Assistant custom integration that starts Spotify playback on 
 > [!IMPORTANT]
 > Spotcast requires a **Spotify Premium** account to work.
 
+> [!WARNING]
+> Some Spotcast features need permissions that Spotify does not grant to regular third-party applications. To obtain them, Spotcast authenticates one session under the identity of the official Spotify desktop application (this is why the setup involves a desktop token and a relay server). This method is not officially supported by Spotify and may stop working without notice if Spotify changes its authentication systems. We do our best to adapt quickly when that happens, but temporary breakage is always possible.
+
 > [!NOTE]
 > This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project, created by Niklas Fondberg ([@fondberg](https://github.com/fondberg)) and maintained through v5 and the v6 rewrite by Felix Cusson ([@fcusson](https://github.com/fcusson)). Development now happens here, starting with the v6 release.
 
