@@ -15,6 +15,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.const import Platform
+from homeassistant.helpers.device_registry import DeviceEntry
 
 from .const import DOMAIN
 from .services import ServiceHandler
@@ -110,6 +111,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_setup_websocket(hass)
 
     return True
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    device_entry: DeviceEntry,
+) -> bool:
+    """Allows removing a device from the UI unless Spotify currently
+    reports it as an available Spotify Connect device."""
+    entry_data = hass.data.get(DOMAIN, {}).get(entry.entry_id) or {}
+    account = entry_data.get("account")
+
+    if account is None:
+        return True
+
+    active_ids = {device["id"] for device in account.devices}
+
+    return not any(
+        identifier in active_ids
+        for domain, identifier in device_entry.identifiers
+        if domain == DOMAIN
+    )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
