@@ -2,34 +2,25 @@
 
 from abc import ABC, abstractmethod
 from logging import getLogger
-from asyncio import exceptions as asyncio_errors
 
-from homeassistant.helpers.entity import Entity
+from homeassistant.core import callback
 from homeassistant.const import STATE_UNKNOWN, STATE_OFF, EntityCategory
-from requests import exceptions as requests_errors
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.spotify import SpotifyAccount
-from custom_components.spotcast.sessions.exceptions import TokenError
-from custom_components.spotcast.sessions.retry_supervisor import RetrySupervisor
 
 LOGGER = getLogger(__name__)
-ENTITY_SPECIFIC_ERRORS = (
-    TokenError,
-    requests_errors.RetryError,
-    asyncio_errors.TimeoutError,
-)
-POTENTIAL_ERRORS = (
-    RetrySupervisor.SUPERVISED_EXCEPTIONS + ENTITY_SPECIFIC_ERRORS
-)
 ENTITY_CATEGORIES = EntityCategory
 
 
-class SpotcastEntity(ABC, Entity):
-    """A generic abstract Spotcast sensor for Home Assistant.
+class SpotcastEntity(CoordinatorEntity[SpotcastCoordinator], ABC):
+    """A generic abstract Spotcast entity for Home Assistant.
 
-    Can be customized through its list of constants for the class. A
-    child instance must implement the `icon` property and the
-    `async_update` method
+    Refreshed by the account's SpotcastCoordinator instead of
+    per-entity polling. Can be customized through its list of
+    constants for the class. A child instance must implement the
+    `icon` property and the `_update_from_coordinator` method.
 
     Constants:
         - GENERIC_NAME(str): The base name of the entity to use in the
@@ -53,6 +44,7 @@ class SpotcastEntity(ABC, Entity):
             the instance is of. Defaults to None.
 
     Attributes:
+        - account(SpotifyAccount): the account linked to the entity
         - entity_id(str): the the entity id used by the entity
         - entity_category(str): entity_category based on the
             `ENTITY_CATEGORY` constant
@@ -65,7 +57,10 @@ class SpotcastEntity(ABC, Entity):
         - icon(str, abstract): the icon of the entity
 
     Methods:
-        - async_update(abstract)
+        - async_added_to_hass
+        - _handle_coordinator_update
+        - _handle_update_failure
+        - _update_from_coordinator(abstract)
     """
 
     GENERIC_NAME: str = "Abstract Spotcast"
@@ -77,9 +72,15 @@ class SpotcastEntity(ABC, Entity):
     INACTIVE_STATE: str | int = STATE_OFF
     ENTITY_CATEGORY: str = None
 
-    def __init__(self, account: SpotifyAccount):
-        """Constructor a Spotcast Entity from the account provided."""
-        self.account = account
+    def __init__(self, coordinator: SpotcastCoordinator):
+        """Constructor a Spotcast Entity from the coordinator provided.
+
+        Args:
+            coordinator(SpotcastCoordinator): the coordinator in
+                charge of refreshing the entity's account
+        """
+        super().__init__(coordinator)
+        self.account: SpotifyAccount = coordinator.account
 
         LOGGER.debug(
             "Loading %s sensor for %s",
@@ -154,19 +155,37 @@ class SpotcastEntity(ABC, Entity):
         """Returns the mdi name of the icon to show in Home Assistant."""
 
     @abstractmethod
-    async def _async_update_process(self):
-        """Process to update the sensor data."""
+    def _update_from_coordinator(self):
+        """Updates the entity state from the coordinator data.
 
-    async def async_update(self):
-        """Asynchronous method to manage the update process.
-
-        The method does not deal with the specific update process of the
-        sensor, but is a generic handler for states and attributes for
-        all child classes. The `_async_update_process` must be the
-        implementation for the specific sensor.
+        Called after each successful coordinator refresh. Reads from
+        `self.coordinator.data` or the account's cached datasets.
         """
-        try:
-            await self._async_update_process()
-        except POTENTIAL_ERRORS:
-            self._attr_state = STATE_UNKNOWN
-            self._attributes = self._default_attributes
+
+    def _handle_update_failure(self):
+        """Resets the entity state after a failed coordinator refresh."""
+        self._attr_state = STATE_UNKNOWN
+        self._attributes = self._default_attributes
+
+    @callback
+    def _handle_coordinator_update(self):
+        """Handles updated data from the coordinator.
+
+        The method does not deal with the specific update process of
+        the sensor, but is a generic handler for states and attributes
+        for all child classes. The `_update_from_coordinator` must be
+        the implementation for the specific sensor.
+        """
+        if self.coordinator.last_update_success:
+            self._update_from_coordinator()
+        else:
+            self._handle_update_failure()
+
+        super()._handle_coordinator_update()
+
+    async def async_added_to_hass(self):
+        """Applies the current coordinator data when added to hass."""
+        await super().async_added_to_hass()
+
+        if self.coordinator.data is not None:
+            self._handle_coordinator_update()

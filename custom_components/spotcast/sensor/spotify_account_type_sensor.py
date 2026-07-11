@@ -18,7 +18,7 @@ class SpotifyAccountTypeSensor(SpotcastSensor):
     of Spotify Account
 
     Methods:
-        - async_update
+        - _update_from_coordinator
     """
 
     GENERIC_NAME = "Spotify Account Type"
@@ -26,10 +26,10 @@ class SpotifyAccountTypeSensor(SpotcastSensor):
     ENTITY_CATEGORY = EntityCategory.DIAGNOSTIC
     STATE_CLASS = None
 
-    async def _async_update_process(self):
-        """Updates the account type asynchronously"""
+    def _update_from_coordinator(self):
+        """Updates the account type from the coordinator data"""
 
-        profile = await self.account.async_profile()
+        profile = self.coordinator.data["profile"]
 
         LOGGER.debug(
             "Type retrieve for account id `%s`", profile["id"],

@@ -3,6 +3,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
+from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.sensor.abstract_entity import (
     SpotcastEntity,
     SpotifyAccount,
@@ -17,7 +18,7 @@ class EntityWithoutOffIcon(SpotcastEntity):
     def icon(self):
         ...
 
-    async def _async_update_process(self):
+    def _update_from_coordinator(self):
         ...
 
 
@@ -30,12 +31,14 @@ class TestIconDefinition(TestCase):
     def setUp(self):
 
         self.mocks = {
-            "account": MagicMock(spec=SpotifyAccount)
+            "coordinator": MagicMock(spec=SpotcastCoordinator)
         }
 
+        self.mocks["coordinator"].account = MagicMock(spec=SpotifyAccount)
+
         self.entities = {
-            "with": EntityWithOffIcon(self.mocks["account"]),
-            "without": EntityWithoutOffIcon(self.mocks["account"]),
+            "with": EntityWithOffIcon(self.mocks["coordinator"]),
+            "without": EntityWithoutOffIcon(self.mocks["coordinator"]),
         }
 
     def test_entity_without_off_icon_returns_icon_with_off_added(self):

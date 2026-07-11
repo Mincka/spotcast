@@ -1,27 +1,41 @@
 """Module to test the async_setup_entry"""
 
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock
 
+from custom_components.spotcast.coordinator import SpotcastCoordinator
+from custom_components.spotcast.spotify import SpotifyAccount
 from custom_components.spotcast.binary_sensor import (
     async_setup_entry,
     HomeAssistant,
     ConfigEntry,
     AddEntitiesCallback,
-    SpotifyAccount,
 )
 
 
 class TestSetupEntry(IsolatedAsyncioTestCase):
 
-    @patch.object(SpotifyAccount, "async_from_config_entry")
-    async def asyncSetUp(self, mock_account: AsyncMock):
+    async def asyncSetUp(self):
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
             "entry": MagicMock(spec=ConfigEntry),
-            "account": mock_account.return_value,
+            "coordinator": MagicMock(spec=SpotcastCoordinator),
+            "account": MagicMock(spec=SpotifyAccount),
             "add_entities": MagicMock(spec=AddEntitiesCallback),
+        }
+
+        self.mocks["account"].id = "dummy_account"
+        self.mocks["coordinator"].account = self.mocks["account"]
+
+        self.mocks["entry"].entry_id = "12345"
+        self.mocks["hass"].data = {
+            "spotcast": {
+                "12345": {
+                    "account": self.mocks["account"],
+                    "coordinator": self.mocks["coordinator"],
+                }
+            }
         }
 
         await async_setup_entry(

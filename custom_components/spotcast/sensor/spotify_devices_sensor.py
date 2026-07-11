@@ -19,7 +19,7 @@ class SpotifyDevicesSensor(SpotcastSensor):
         - state_class(self): the state class of the sensor
 
     Methods:
-        - async_update
+        - _update_from_coordinator
     """
 
     GENERIC_NAME = "Spotify Devices"
@@ -33,14 +33,9 @@ class SpotifyDevicesSensor(SpotcastSensor):
             "devices": []
         }
 
-    async def _async_update_process(self):
-        """Updates the available devices asynchronously"""
-        devices = await self.account.async_devices()
-
-        LOGGER.debug(
-            "Getting Spotify Device for account %s",
-            self.account.name
-        )
+    def _update_from_coordinator(self):
+        """Updates the available devices from the coordinator data"""
+        devices = self.coordinator.data["devices"]
 
         device_count = len(devices)
 

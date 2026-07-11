@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.const import STATE_UNKNOWN
 
+from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.spotify import SpotifyAccount
 from custom_components.spotcast.sensor.spotify_profile_sensor import (
     SpotifyProfileSensor,
@@ -15,9 +16,11 @@ from custom_components.spotcast.sensor.spotify_profile_sensor import (
 class TestEntityPicture(TestCase):
 
     def setUp(self):
+        self.coordinator = MagicMock(spec=SpotcastCoordinator)
         self.account = MagicMock(spec=SpotifyAccount)
         self.account.image_link = "http://dummy-image.com/1"
-        self.sensor = SpotifyProfileSensor(self.account)
+        self.coordinator.account = self.account
+        self.sensor = SpotifyProfileSensor(self.coordinator)
 
     def test_image_link_returned_when_state_ok(self):
         self.sensor._attr_state = STATE_OK

@@ -3,6 +3,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
+from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.sensor.abstract_entity import (
     SpotcastEntity,
     SpotifyAccount,
@@ -20,15 +21,16 @@ class DummyEntity(SpotcastEntity):
     def _default_attributes(self):
         return {"foo": []}
 
-    async def _async_update_process(self):
+    def _update_from_coordinator(self):
         ...
 
 
 class TestExtraAttributes(TestCase):
 
     def setUp(self):
-        self.account = MagicMock(spec=SpotifyAccount)
-        self.entity = DummyEntity(self.account)
+        self.coordinator = MagicMock(spec=SpotcastCoordinator)
+        self.coordinator.account = MagicMock(spec=SpotifyAccount)
+        self.entity = DummyEntity(self.coordinator)
 
     def test_with_extra_attributes(self):
         self.assertEqual(self.entity.extra_state_attributes, {"foo": []})

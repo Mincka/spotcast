@@ -3,6 +3,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
+from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.sensor.abstract_entity import (
     SpotcastEntity,
     SpotifyAccount,
@@ -16,16 +17,18 @@ class DummyEntity(SpotcastEntity):
     def icon(self):
         ...
 
-    async def _async_update_process(self):
+    def _update_from_coordinator(self):
         ...
 
 
 class TestNameDefinition(TestCase):
 
     def setUp(self):
+        self.coordinator = MagicMock(spec=SpotcastCoordinator)
         self.account = MagicMock(spec=SpotifyAccount)
         self.account.name = "Dummy Account"
-        self.entity = DummyEntity(self.account)
+        self.coordinator.account = self.account
+        self.entity = DummyEntity(self.coordinator)
 
     def test_name_value_is_as_expected(self):
         self.assertEqual(

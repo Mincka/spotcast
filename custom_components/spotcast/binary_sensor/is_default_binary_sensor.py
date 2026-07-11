@@ -20,7 +20,8 @@ class IsDefaultBinarySensor(SpotcastBinarySensor):
     default Spotcast account
 
     Methods:
-        - async_update
+        - _update_from_coordinator
+        - _handle_update_failure
     """
 
     GENERIC_NAME = "Default Account"
@@ -29,12 +30,20 @@ class IsDefaultBinarySensor(SpotcastBinarySensor):
     ICON_OFF = ICON
     ENTITY_CATEGORY = EntityCategory.DIAGNOSTIC
 
-    async def _async_update_process(self):
-        """Updates based on the is_default proerty of account
-        asynchornously"""
+    @property
+    def available(self) -> bool:
+        """The sensor relies on local data and is always available."""
+        return True
+
+    def _update_from_coordinator(self):
+        """Updates based on the is_default property of the account"""
         LOGGER.debug(
             "Updating default state sensor for `%s`",
             self.account.entry_id,
         )
 
         self._attr_state = STATE_ON if self.account.is_default else STATE_OFF
+
+    def _handle_update_failure(self):
+        """Keeps reporting the local data on coordinator failure."""
+        self._update_from_coordinator()

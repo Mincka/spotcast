@@ -1,0 +1,31 @@
+"""Module to test the _update_from_coordinator function"""
+
+from unittest import TestCase
+from unittest.mock import MagicMock
+
+from custom_components.spotcast.coordinator import SpotcastCoordinator
+from custom_components.spotcast.spotify import SpotifyAccount
+from custom_components.spotcast.sensor.spotify_product_sensor import (
+    SpotifyProductSensor,
+)
+
+
+class TestSuccessfulUpdate(TestCase):
+
+    def setUp(self):
+
+        self.coordinator = MagicMock(spec=SpotcastCoordinator)
+        self.coordinator.account = MagicMock(spec=SpotifyAccount)
+        self.coordinator.account.name = "Dummy Account"
+        self.coordinator.data = {
+            "profile": {
+                "id": "dummy_id",
+                "product": "premium",
+            }
+        }
+
+        self.sensor = SpotifyProductSensor(self.coordinator)
+        self.sensor._update_from_coordinator()
+
+    def test_attribute_state_was_set_to_product(self):
+        self.assertEqual(self.sensor.state, "premium")

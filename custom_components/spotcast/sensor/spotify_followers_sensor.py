@@ -19,7 +19,7 @@ class SpotifyFollowersSensor(SpotcastSensor):
         - state_class(str): the state class of the sensor
 
     Methods:
-        - async_update
+        - _update_from_coordinator
     """
 
     GENERIC_NAME = "Spotify Followers"
@@ -27,16 +27,11 @@ class SpotifyFollowersSensor(SpotcastSensor):
     ICON_OFF = ICON
     UNITS_OF_MEASURE = "followers"
 
-    async def _async_update_process(self):
-        """Updates the number of followers asynchornously"""
-        self._profile = await self.account.async_profile()
+    def _update_from_coordinator(self):
+        """Updates the number of followers from the coordinator data"""
+        profile = self.coordinator.data["profile"]
 
-        LOGGER.debug(
-            "Getting Spotify followers for account `%s`",
-            self.account.name
-        )
-
-        follower_count = self._profile["followers"]["total"]
+        follower_count = profile["followers"]["total"]
 
         LOGGER.debug(
             "Found %d followers for spotify account `%s`",

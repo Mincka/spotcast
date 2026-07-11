@@ -6,21 +6,23 @@ from unittest.mock import MagicMock
 from homeassistant.const import STATE_UNKNOWN, STATE_ON, STATE_OFF
 
 from custom_components.spotcast.sensor.abstract_sensor import SpotcastSensor
+from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.spotify import SpotifyAccount
 
 
 class DummySensor(SpotcastSensor):
     UNITS_OF_MEASURE = "foos"
 
-    async def _async_update_process(self):
+    def _update_from_coordinator(self):
         ...
 
 
 class TestIconValue(TestCase):
 
     def setUp(self):
-        self.account = MagicMock(spec=SpotifyAccount)
-        self.sensor = DummySensor(self.account)
+        self.coordinator = MagicMock(spec=SpotcastCoordinator)
+        self.coordinator.account = MagicMock(spec=SpotifyAccount)
+        self.sensor = DummySensor(self.coordinator)
 
     def test_unknown_state(self):
         self.sensor._attr_state = STATE_UNKNOWN

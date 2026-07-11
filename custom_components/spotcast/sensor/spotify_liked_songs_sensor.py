@@ -19,17 +19,17 @@ class SpotifyLikedSongsSensor(SpotcastSensor):
         - state_class(str): the state class of the sensor
 
     Methods:
-        - async_update
+        - _update_from_coordinator
     """
 
     GENERIC_NAME = "Spotify Liked Songs"
     ICON = "mdi:music-note"
     UNITS_OF_MEASURE = "songs"
 
-    async def _async_update_process(self):
-        """Updates the number of liked songs asynchronously"""
+    def _update_from_coordinator(self):
+        """Updates the number of liked songs from the coordinator data"""
 
-        count = await self.account.async_liked_songs_count()
+        count = self.coordinator.data["liked_songs_count"]
 
         LOGGER.debug(
             "Found %d liked songs for spotify account `%s`",

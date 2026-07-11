@@ -20,7 +20,7 @@ class SpotifyProductSensor(SpotcastSensor):
     Spotify Account
 
     Methods:
-        - async_update
+        - _update_from_coordinator
     """
 
     GENERIC_NAME = "Spotify Product"
@@ -29,15 +29,10 @@ class SpotifyProductSensor(SpotcastSensor):
     ENTITY_CATEGORY = EntityCategory.DIAGNOSTIC
     STATE_CLASS = None
 
-    async def _async_update_process(self):
-        """Updates the substription product asynchornously"""
+    def _update_from_coordinator(self):
+        """Updates the substription product from the coordinator data"""
 
-        profile = await self.account.async_profile()
-
-        LOGGER.debug(
-            "Getting Spotify Subscription Type `%s`",
-            self.account.name
-        )
+        profile = self.coordinator.data["profile"]
 
         LOGGER.debug(
             "Account `%s` has the `%s` subscription",
