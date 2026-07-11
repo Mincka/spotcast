@@ -4,6 +4,12 @@
 [![spotcast](https://img.shields.io/github/release/fondberg/spotcast.svg?1)](https://github.com/fondberg/spotcast)
 ![Maintenance](https://img.shields.io/maintenance/yes/2025.svg)
 
+> [!WARNING]
+> **This project is abandoned and no longer maintained.**
+> Due to Spotify's hostility toward third-party developers, their political stances, and a lack of time on my part, I have decided to discontinue Spotcast indefinitely. No PRs will be reviewed or merged.
+>
+> If you wish to continue development, please fork this repository. A maintained fork may be listed here in the future.
+
 Home Assistant custom component to start Spotify playback on an idle chromecast device or a Spotify Connect device (thanks to @kleinc80) which means that you can target your automation for chromecast as well as connect devices.
 
 Spotcast implements a cast platform (requires Home Assistant Core 2022.2.0 or later), which enables Google Cast media player entities to play Spotify URI as well as to browse the Spotify library.
