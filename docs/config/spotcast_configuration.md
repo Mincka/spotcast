@@ -6,6 +6,9 @@ This guide walks you through the setup of Spotcast in Home Assistant. The setup 
 2. Start a small relay server on your computer (only needed during setup).
 3. Run the Spotcast config flow in Home Assistant.
 
+> [!WARNING]
+> Why is a relay server needed at all? Some Spotcast features require permissions that Spotify only grants to its own applications. During setup, Spotcast therefore authenticates one session under the identity of the official Spotify desktop application, and the relay server is needed to hand that authorization over to Home Assistant. Because this method is not officially supported by Spotify, it may stop working without notice if Spotify changes its authentication systems.
+
 ## Prerequisites
 
 - A **Spotify Premium** account.
