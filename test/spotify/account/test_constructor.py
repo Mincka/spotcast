@@ -8,7 +8,7 @@ from homeassistant.helpers.storage import Store
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     PublicSession,
-    PrivateSession,
+    DesktopSession,
     HomeAssistant,
     Dataset,
     Spotify,
@@ -25,7 +25,7 @@ class TestDataRetention(TestCase):
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
-            "private": MagicMock(spec=PrivateSession),
+            "private": MagicMock(spec=DesktopSession),
             "public": MagicMock(spec=PublicSession),
             "spotify": mock_spotify,
         }
@@ -51,7 +51,7 @@ class TestDataRetention(TestCase):
         self.assertIsInstance(self.account.sessions["public"], PublicSession)
         self.assertIsInstance(
             self.account.sessions["private"],
-            PrivateSession
+            DesktopSession
         )
 
     def test_spotify_created_with_proper_auth(self):

@@ -7,7 +7,7 @@ from time import time
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     HomeAssistant,
-    PrivateSession,
+    DesktopSession,
     PublicSession,
     Store,
 )
@@ -23,7 +23,7 @@ class TestSongRetrieval(IsolatedAsyncioTestCase):
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
-            "internal": MagicMock(spec=PrivateSession),
+            "internal": MagicMock(spec=DesktopSession),
             "external": MagicMock(spec=PublicSession),
         }
 

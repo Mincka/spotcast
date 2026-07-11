@@ -6,9 +6,6 @@ Functions:
 
 from logging import getLogger
 from types import MappingProxyType
-import json
-from json.decoder import JSONDecodeError
-from urllib.parse import unquote as urldecode
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
@@ -132,29 +129,7 @@ def ensure_default_data(hass: HomeAssistant, entry_id: str) -> HomeAssistant:
     if entry_id not in domain_data:
         domain_data[entry_id] = {}
 
-    for key in ("account", "device_listener"):
-        if key not in domain_data[entry_id]:
-            domain_data[entry_id][key] = None
+    if "account" not in domain_data[entry_id]:
+        domain_data[entry_id]["account"] = None
 
     return hass
-
-
-def is_valid_json(raw_data: str) -> bool:
-    """Returns True if th raw data can be converted to json"""
-    try:
-        json.loads(raw_data)
-        return True
-    except JSONDecodeError:
-        return False
-
-
-def query_from_url(url: str) -> dict[str, str]:
-    """Extracts the query part from a url"""
-
-    if url is None or url == "":
-        return {}
-
-    query = url.split("?", maxsplit=1)[-1]
-    query = dict([x.split("=") for x in query.split("&")])
-    query = {urldecode(x): urldecode(y) for x, y in query.items()}
-    return query

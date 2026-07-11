@@ -22,6 +22,10 @@ Spotcast v6 is a complete rewrite of the integration. It requires **Home Assista
 - Device names are sanitized into valid entity IDs, fixing accounts and devices with non-ASCII characters ([fondberg/spotcast#614](https://github.com/fondberg/spotcast/pull/614)).
 - `play_from_search` no longer fails when Spotify search results contain null entries ([fondberg/spotcast#616](https://github.com/fondberg/spotcast/pull/616)).
 
+### Removed
+
+- The legacy cookie-based (`sp_dc`/`sp_key`) private API machinery is gone entirely: v6 authenticates through OAuth application credentials and a desktop token. This also removes the `pyotp` dependency and the cookie-extraction documentation.
+
 ### Project changes
 
 - The project is now maintained at [Mincka/spotcast](https://github.com/Mincka/spotcast); see the [NOTICE](./NOTICE) file for attribution.

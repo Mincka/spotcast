@@ -8,16 +8,9 @@
                 },
                 "description": "Please make sure to follow the steps explained [here]({release_url}) on how to get your Access & Refresh Tokens."
             },
-            "internal_api": {
-                "data": {
-                    "sp_dc": "SP DC",
-                    "sp_key": "SP Key"
-                },
-                "description": "Go to [Spotify]({spotify_url}) and log in. Then get the `sp_dc` and `sp_key` from the developer console. See [this tutorial]({tutorial_url}) for more information"
-            },
             "pick_implementation": {
-                "title": "Importing Spotcast YAML configuration",
-                "description": "Press OK to complete import."
+                "title": "Application Credentials",
+                "description": "Select the application credentials to use for this account."
             },
             "reauth_confirm": {
                 "title": "[%key:common::config_flow::title::reauth%]",

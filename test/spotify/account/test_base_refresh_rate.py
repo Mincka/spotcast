@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 from custom_components.spotcast.spotify.account import (
     SpotifyAccount,
     PublicSession,
-    PrivateSession,
+    DesktopSession,
     HomeAssistant,
     Spotify,
     Store,
@@ -21,7 +21,7 @@ class TestGetter(TestCase):
     @patch(f"{TEST_MODULE}.Spotify", spec=Spotify, new_callable=MagicMock)
     def setUp(self, mock_spotify: MagicMock, mock_store: MagicMock):
 
-        mock_internal = MagicMock(spec=PrivateSession)
+        mock_internal = MagicMock(spec=DesktopSession)
         mock_external = MagicMock(spec=PublicSession)
 
         self.mock_spotify = mock_spotify
@@ -52,7 +52,7 @@ class TestSetter(TestCase):
     @patch(f"{TEST_MODULE}.Spotify", spec=Spotify, new_callable=MagicMock)
     def setUp(self, mock_spotify: MagicMock, mock_store: MagicMock):
 
-        mock_internal = MagicMock(spec=PrivateSession)
+        mock_internal = MagicMock(spec=DesktopSession)
         mock_external = MagicMock(spec=PublicSession)
 
         self.mock_spotify = mock_spotify

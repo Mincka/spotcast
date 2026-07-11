@@ -8,16 +8,9 @@
                 },
                 "description": "Merci de suivre la procédure décrite [ici]({release_url}) pour récupérer vos jetons d'accès et d'actualisation"
             },
-            "internal_api": {
-                "data": {
-                    "sp_dc": "SP DC",
-                    "sp_key": "SP Key"
-                },
-                "description": "Allez sur [Spotify]({spotify_url}) et connectez vous. Ensuite, récupérez les valeurs de `SP_DC` et `SP_KEY` dans la console de développeur. Consultez [ce tutoriel]({tutorial_url}) pour plus d'information"
-            },
             "pick_implementation": {
-                "title": "Import de la configuration YAML de Spotcast",
-                "description": "Appuyez sur ok pour continuer"
+                "title": "Informations d'identification de l'application",
+                "description": "Sélectionnez les informations d'identification à utiliser pour ce compte."
             },
             "reauth_config": {
                 "title": "[%key:common::config_flow::title::reauth%]",
@@ -38,7 +31,7 @@
             "connection_error": "Erreur de connexion à Spotify avec les informations d'identification {account_type}. Si vous effectuez une mise à jour depuis la v5, notez que le processus de configuration a complètement changé en v6. Merci de suivre le [guide d'installation]({release_url}). Pour de l'aide supplémentaire, [ouvrez un ticket]({ticket_url}).",
             "already_configured": "Ce compte est déjà configuré dans Home Assistant",
             "reauth_account_mismatch": "Le compte fourni ne concorde pas avec le compte Spotify étant réauthentifié",
-            "public_private_accounts_mismatch": "Le profil lié aux informations d'identification OAuth et celui des Cookies de navigateurs web sont pour des comptes différents. Faites attention à fournir les informations pour le même compte. Si vous êtes déjà connecté à Spotify dans votre navigateur web, Home Assistant ne vous demandera pas de vous connecter à un autre compte et utilisera le compte actuel.",
+            "public_private_accounts_mismatch": "Le profil lié aux informations d'identification OAuth et celui des informations d'identification du client de bureau sont pour des comptes différents. Faites attention à fournir les informations pour le même compte. Si vous êtes déjà connecté à Spotify dans votre navigateur web, Home Assistant ne vous demandera pas de vous connecter à un autre compte et utilisera le compte actuel.",
             "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
         }
     },

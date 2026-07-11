@@ -65,15 +65,12 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         - VERSION(int): The major version of the config
         - MINOR_VERSION(int): the minor version of the config
         - CONNECTION_CLASS(str): The type of integration being setup
-        - INTERNAL_API_SCEHMA(vol.Schema): the schema for the
-            internal api setup
 
     Properties:
         - extra_authorize_data(dict[str]): Provides additional
             information required for the OAuth authorisation
 
     Methods:
-        - async_step_internal_api
         - async_oauth_create_entry
         - async_step_reauth_confirm
 
@@ -85,15 +82,6 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
     VERSION = 2
     MINOR_VERSION = 1
     CONNECTION_CLASS = CONN_CLASS_CLOUD_POLL
-
-    ALLOWED_CONVERT = ["2.*"]
-
-    INTERNAL_API_SCHEMA = vol.Schema(
-        {
-            vol.Required("sp_dc", default=""): cv.string,
-            vol.Required("sp_key", default=""): cv.string,
-        }
-    )
 
     DESKTOP_API_SCHEMA = vol.Schema(
         {
@@ -121,14 +109,6 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
     def version(self) -> str:
         """The active configuration version."""
         return f"{self.VERSION}.{self.MINOR_VERSION}"
-
-    @classmethod
-    def can_convert(cls, version: str) -> bool:
-        """Returns True if provided version can be converted to current."""
-        major_blob = f"{version.split('.', maxsplit=1)[0]}.*"
-        return (
-            major_blob in cls.ALLOWED_CONVERT or version in cls.ALLOWED_CONVERT
-        )
 
     @property
     def extra_authorize_data(self) -> dict[str]:
