@@ -44,7 +44,8 @@ Please follow the instructions for your specific operating system:
 <details>
 <summary>PowerShell Server Instructions</summary>
 
-> [!TIP]
+> 💡 **Tip**
+>
 > The PowerShell script does not require you to install any dependencies and can be run from a fresh Windows install.
 
 Run the following PowerShell command:
@@ -53,7 +54,8 @@ Run the following PowerShell command:
 iwr https://raw.githubusercontent.com/Mincka/spotcast/main/scripts/relay_server.ps1 -UseBasicParsing | iex
 ```
 
-> [!CAUTION]
+> ⚠️ **Caution**
+>
 > Piping any script from the internet is potentially unsafe. If you don't trust the source, review the code before running it. The script is part of this repository and can be reviewed [here](https://github.com/Mincka/spotcast/blob/main/scripts/relay_server.ps1).
 
 ##### Alternative: Manual Download and Run
@@ -74,14 +76,16 @@ iwr https://raw.githubusercontent.com/Mincka/spotcast/main/scripts/relay_server.
 
 If you prefer to use Python directly, you can run this one-step configuration:
 
-> [!NOTE]
+> ℹ️ **Note**
+>
 > This server setup requires you to have a recent Python interpreter on your computer. You can install Python with the installer provided by [python.org](https://www.python.org/downloads/). When given the option in the installation wizard, select `Add python to PATH`.
 
 ```powershell
 curl.exe -sSL https://raw.githubusercontent.com/Mincka/spotcast/main/scripts/relay_server.py | python
 ```
 
-> [!CAUTION]
+> ⚠️ **Caution**
+>
 > Piping any script from the internet is potentially unsafe. If you don't trust the source, review the code before running it. You can review the relay server script [here](https://github.com/Mincka/spotcast/blob/main/scripts/relay_server.py). Alternative methods that download the script to your machine before running are also provided.
 
 ##### Alternative 1: Clone the repository and Run
@@ -111,7 +115,8 @@ python relay_server.py
 <details>
 <summary>Mac OS/Linux Instructions</summary>
 
-> [!NOTE]
+> ℹ️ **Note**
+>
 > This server setup requires you to have a recent Python interpreter on your computer. You can install Python with the installer provided by [python.org](https://www.python.org/downloads/) or by using the package manager of your distribution ([homebrew](https://brew.sh/) is available for MacOS).
 
 #### One-Step setup instructions
@@ -120,7 +125,8 @@ python relay_server.py
 curl -sSL https://raw.githubusercontent.com/Mincka/spotcast/main/scripts/relay_server.py | python
 ```
 
-> [!CAUTION]
+> ⚠️ **Caution**
+>
 > Piping any script from the internet is potentially unsafe. If you don't trust the source, review the code before running it. You can review the relay server script [here](https://github.com/Mincka/spotcast/blob/main/scripts/relay_server.py). Alternative methods that download the script to your machine before running are also provided.
 
 ##### Alternative 1: Clone the repository and Run
