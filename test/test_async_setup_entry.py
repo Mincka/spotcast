@@ -14,6 +14,12 @@ from custom_components.spotcast import (
 )
 from custom_components.spotcast.spotify import SpotifyAccount
 
+FULL_SCOPE_DATA = {
+    "external_api": {
+        "token": {"scope": " ".join(SpotifyAccount.SCOPE)},
+    },
+}
+
 TEST_MODULE = "custom_components.spotcast"
 
 
@@ -39,6 +45,7 @@ class TestEntryRegistration(IsolatedAsyncioTestCase):
 
         self.mocks["hass"].data = {}
         self.mocks["entry"].entry_id = "foo"
+        self.mocks["entry"].data = FULL_SCOPE_DATA
         self.mocks["entry"].options = {
             "is_default": True,
             "base_refresh_rate": 20,
@@ -94,6 +101,7 @@ class TestDefaultOptionsSet(IsolatedAsyncioTestCase):
 
         self.mocks["hass"].data = {}
         self.mocks["entry"].entry_id = "foo"
+        self.mocks["entry"].data = FULL_SCOPE_DATA
         self.mocks["entry"].options = {
             "is_default": True,
         }
@@ -144,6 +152,7 @@ class TestTokensErrorAtRefresh(IsolatedAsyncioTestCase):
 
         self.mocks["hass"].data = {}
         self.mocks["entry"].entry_id = "foo"
+        self.mocks["entry"].data = FULL_SCOPE_DATA
         self.mocks["entry"].options = {}
         self.mocks["account"].is_default = True
         self.mocks["hass"].config_entries\
@@ -180,6 +189,7 @@ class TestGatewayError(IsolatedAsyncioTestCase):
 
         self.mocks["hass"].data = {}
         self.mocks["entry"].entry_id = "foo"
+        self.mocks["entry"].data = FULL_SCOPE_DATA
         self.mocks["entry"].options = {}
         self.mocks["account"].is_default = True
         self.mocks["hass"].config_entries\
@@ -216,6 +226,7 @@ class TestTokensErrorAtAccountBuild(IsolatedAsyncioTestCase):
 
         self.mocks["hass"].data = {}
         self.mocks["entry"].entry_id = "foo"
+        self.mocks["entry"].data = FULL_SCOPE_DATA
         self.mocks["entry"].options = {}
         self.mocks["account"].is_default = True
         self.mocks["hass"].config_entries\

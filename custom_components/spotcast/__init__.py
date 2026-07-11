@@ -35,6 +35,24 @@ PLATFORMS = [
 ]
 
 
+def get_missing_scopes(entry: ConfigEntry) -> set[str]:
+    """Returns the required OAuth scopes missing from the entry's
+    public token. OAuth scopes are frozen at consent time, so a scope
+    added in a newer release is absent from tokens authorized before
+    it and the account must reauthenticate to grant it.
+    """
+    token = entry.data.get("external_api", {}).get("token", {})
+    granted = token.get("scope")
+
+    if not granted:
+        # No scope information available. Assume valid rather than
+        # locking the account out.
+        return set()
+
+    granted_scopes = set(granted.replace(",", " ").split())
+    return set(SpotifyAccount.SCOPE) - granted_scopes
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Initial setup of spotcast.
 
@@ -46,6 +64,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if updated_options != entry.options:
         hass.config_entries.async_update_entry(entry, options=updated_options)
+
+    missing_scopes = get_missing_scopes(entry)
+
+    if missing_scopes:
+        raise ConfigEntryAuthFailed(
+            "The Spotify authorization is missing the required scopes "
+            f"`{', '.join(sorted(missing_scopes))}`. Reauthenticate the "
+            "account to grant the new permissions."
+        )
 
     try:
         account = await SpotifyAccount.async_from_config_entry(
