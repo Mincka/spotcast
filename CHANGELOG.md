@@ -2,7 +2,7 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases).
 
-## v6.0.0 (upcoming)
+## v6.0.0 (2026-07-11)
 
 Spotcast v6 is a complete rewrite of the integration. It requires **Home Assistant 2026.4 or newer**.
 
