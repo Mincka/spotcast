@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Configuration guide
+    url: https://github.com/Mincka/spotcast/blob/main/docs/config/spotcast_configuration.md
+    about: Step-by-step setup instructions, including the relay server.
   - name: Spotify Integration
     url: https://github.com/home-assistant/core/issues/new/choose
     about: If you are experiencing issues with the Spotify Integration (Media Browsing, playback information, etc.), please open a ticket with Home Assistant Core. Spotcast and its maintainers are not affiliated and do not work on the official Spotify Integration.
