@@ -47,3 +47,14 @@ class TestCandidateBasedOnType(TestCase):
 
     def test_proper_result_selected(self):
         self.assertEqual(self.result, "artists")
+
+
+class TestNoResults(TestCase):
+
+    def test_empty_search_result_returns_none(self):
+        self.assertIsNone(get_best_candidate("foo", {}))
+
+    def test_all_empty_categories_returns_none(self):
+        self.assertIsNone(
+            get_best_candidate("foo", {"artists": [], "albums": []})
+        )

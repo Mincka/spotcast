@@ -779,7 +779,11 @@ class SpotifyAccount:
 
         for item_type in query.item_types:
             key = f"{item_type}s"
-            result[key] = search_result[key]["items"]
+            result[key] = [
+                item
+                for item in search_result[key]["items"]
+                if item is not None
+            ]
 
         return result
 
