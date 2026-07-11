@@ -149,7 +149,6 @@ The v6 rewrite changed both the configuration flow and the action names:
 
 ## Related projects
 
-- [Spotify Card V2](https://github.com/mikevanes/spotify-card-v2) — a Lovelace card to display playlists and devices, which uses Spotcast to start playback.
 - [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) and [SpotifyPlus Card](https://github.com/thlucas1/spotifyplus_card) — a comprehensive Spotify integration and card, recommended when you need full Spotify control beyond starting playback.
 
 ## Contributing
