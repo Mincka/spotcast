@@ -11,6 +11,7 @@ from custom_components.spotcast import (
     ConfigEntryAuthFailed,
     InternalServerError,
     ConfigEntryNotReady,
+    SpotcastCoordinator,
 )
 from custom_components.spotcast.spotify import SpotifyAccount
 
@@ -26,18 +27,22 @@ TEST_MODULE = "custom_components.spotcast"
 class TestEntryRegistration(IsolatedAsyncioTestCase):
 
     @patch(f"{TEST_MODULE}.async_setup_websocket")
+    @patch(f"{TEST_MODULE}.SpotcastCoordinator", new_callable=MagicMock)
     @patch.object(SpotifyAccount, "async_from_config_entry")
     async def asyncSetUp(
         self,
         mock_account: AsyncMock,
+        mock_coordinator: MagicMock,
         mock_websocket: AsyncMock,
     ):
 
         mock_account.return_value = MagicMock(spec=SpotifyAccount)
+        mock_coordinator.return_value = MagicMock(spec=SpotcastCoordinator)
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
             "account": mock_account.return_value,
+            "coordinator": mock_coordinator.return_value,
             "entry": MagicMock(spec=ConfigEntry),
             "forward_entry": AsyncMock(),
             "register_service": MagicMock(),
@@ -78,18 +83,40 @@ class TestEntryRegistration(IsolatedAsyncioTestCase):
         except AssertionError:
             self.fail()
 
+    def test_coordinator_first_refresh_called(self):
+        try:
+            self.mocks["coordinator"].async_config_entry_first_refresh\
+                .assert_awaited_once()
+        except AssertionError:
+            self.fail()
+
+    def test_coordinator_stored_in_hass_data(self):
+        self.assertIs(
+            self.mocks["hass"].data["spotcast"]["foo"]["coordinator"],
+            self.mocks["coordinator"],
+        )
+
+    def test_update_listener_registered(self):
+        try:
+            self.mocks["entry"].add_update_listener.assert_called_once()
+        except AssertionError:
+            self.fail()
+
 
 class TestDefaultOptionsSet(IsolatedAsyncioTestCase):
 
     @patch(f"{TEST_MODULE}.async_setup_websocket")
+    @patch(f"{TEST_MODULE}.SpotcastCoordinator", new_callable=MagicMock)
     @patch.object(SpotifyAccount, "async_from_config_entry")
     async def asyncSetUp(
         self,
         mock_account: MagicMock,
+        mock_coordinator: MagicMock,
         mock_websocket: AsyncMock,
     ):
 
         mock_account.return_value = MagicMock(spec=SpotifyAccount)
+        mock_coordinator.return_value = MagicMock(spec=SpotcastCoordinator)
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
