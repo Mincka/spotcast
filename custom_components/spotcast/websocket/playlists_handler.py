@@ -14,7 +14,6 @@ ENDPOINT = "spotcast/playlists"
 SCHEMA = vol.Schema({
     vol.Required("id"): cv.positive_int,
     vol.Required("type"): ENDPOINT,
-    vol.Optional("category"): cv.string,
     vol.Optional("account"): cv.string,
     vol.Optional("limit"): cv.positive_int,
 })

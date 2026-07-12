@@ -9,7 +9,7 @@ from copy import deepcopy
 import datetime as dt
 from logging import getLogger
 
-from homeassistant.config_entries import ConfigEntry, SOURCE_REAUTH
+from homeassistant.config_entries import SOURCE_REAUTH
 
 from custom_components.spotcast.sessions import ConnectionSession
 from custom_components.spotcast.spotify.exceptions import TokenError
@@ -34,8 +34,8 @@ class TokenMixin:
         """Retrives a token from the requested session.
 
         Args:
-            api(str): The api to retrieve from. Cann be `internal`
-                or `external`.
+            api(str): The session to retrieve from. Can be `public`
+                or `private`.
 
         Returns:
             str: token for the requested session
@@ -48,8 +48,8 @@ class TokenMixin:
         """Retrives a token from the requested session.
 
         Args:
-            api(str): The api to retrieve from. Can be `internal` or
-                `external`.
+            api(str): The session to retrieve from. Can be `public` or
+                `private`.
 
         Returns:
             - str: token for the requested session
@@ -135,10 +135,3 @@ class TokenMixin:
                 )
 
             raise exc
-
-    def _request_reauth(self, entry: ConfigEntry):
-        """Requests reauth for an entry."""
-        entry.async_start_reauth(
-            self.hass,
-            context={"source": SOURCE_REAUTH},
-        )

@@ -78,8 +78,8 @@ async def async_play_from_search(hass: HomeAssistant, call: ServiceCall):
     account_id = call.data.get("account")
     extras = call.data.get("data", {})
 
-    # sets the limit according to item type or extras limit. Defaults
-    # to 20
+    # Number of items to retrieve per item type. Defaults to 1 so the
+    # first match is played.
     limit = extras.get("limit", 1)
 
     # get account
