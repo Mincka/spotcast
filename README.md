@@ -22,6 +22,15 @@ Spotcast is a Home Assistant custom integration that starts Spotify playback on 
 > [!NOTE]
 > This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project, created by Niklas Fondberg ([@fondberg](https://github.com/fondberg)) and maintained through v5 and the v6 rewrite by Felix Cusson ([@fcusson](https://github.com/fcusson)). Development now happens here, starting with the v6 release.
 
+## Coming from the original fondberg/spotcast?
+
+Welcome, and thanks for sticking with Spotcast. Whether you ran it for years on v4 or tried the v6 alphas, this is where the project lives now and it is actively maintained again. Here is how to come over depending on where you are:
+
+- **If your old Spotcast (v4) stopped working** with login loops, reauthentication failures, or errors like `400 Bad Request` on `accounts.spotify.com/api/token` or `ServerTime`, that is not your setup: Spotify changed its authentication on their side and the old cookie-based method can no longer work. **The v6 rewrite is the fix.** It was only ever published as a pre-release on the original repository, so HACS never offered it to you as an update, which is exactly why moving here matters. v6 is a ground-up rewrite with a new setup flow (the old `sp_dc`/`sp_key` YAML is gone), so you will configure it once by following the [configuration guide](./docs/config/spotcast_configuration.md).
+- **If you were already on a v6 alpha or beta**, switching here is a clean swap on the same major version: your accounts, tokens, entities and automations carry over untouched.
+
+To move over in HACS: remove the existing Spotcast download from **HACS only** (do **not** delete the integration from *Settings -> Devices & Services*, that would erase your configuration), then add this repository as a [custom repository](#hacs-custom-repository) and download it. Home Assistant keys your configuration to the `spotcast` integration itself, not to the repository it came from, so a same-version reinstall picks your existing setup right back up. Restart Home Assistant when done.
+
 ## Project scope
 
 Spotcast focuses on one thing and aims to do it well: **starting and transferring Spotify playback from Home Assistant automations**, including on devices that are not signed into your Spotify account (like Chromecast speakers). It intentionally keeps side features minimal.
@@ -33,7 +42,7 @@ If you are looking for comprehensive Spotify control from Home Assistant (full m
 ### HACS (custom repository)
 
 > [!NOTE]
-> Spotcast is **not yet available in the HACS default store**; submission is planned once v6.0.0 is released. Until then, it can still be installed through HACS by adding it as a custom repository:
+> Spotcast is **not yet available in the HACS default store**; submission is in progress. Until it lands, install it through HACS by adding this repository as a custom repository:
 
 1. In Home Assistant, open **HACS**.
 2. Open the menu (⋮ top right) and select **Custom repositories**.
