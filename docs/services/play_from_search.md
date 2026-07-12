@@ -16,7 +16,7 @@ data:
         artist: The Drones
         album: Feelin Kinda Free
         year: 2010-2019
-    spotify_account: 01JDG07KSBTYWZGJSBJ1EW6XEF
+    account: 01JDG07KSBTYWZGJSBJ1EW6XEF
     data:
         repeat: context
 ```
@@ -54,7 +54,7 @@ A list of filters to apply to the search result. Are key value pairs of filters 
 - `isrc`: The Iternational Standard Recording Code of the song searched for. Can only be used on songs.
 - `genre`: The genre of the item searched for. can only be used on artist or tracks
 
-### `spotify_account` (str)
+### `account` (str)
 
 *Optional*
 
@@ -73,4 +73,4 @@ Set of additional settings to apply when starting the playback. The available op
 | `volume`   | `int`, `range 0-100`      | `null`  | The percentage (as an integer of the percentage value) to start plaback at. Volume is kept unchanged if `null`                              |
 | `repeat`   | `track \| context \| off` | `null`  | The repeat mode is kept the same if `null`                                                                                                  |
 | `shuffle`  | `bool`                    | `null`  | Sets the playback to shuffle if `True`. Is kept unchanged if `null`.                                                                        |
-| `limit`    | `positive_int`            | `20`    | Sets the maximum number of items to retrieve when looking for a track. Forced to 1 for other item types                                     |
+| `limit`    | `positive_int`            | `1`     | Maximum number of items to retrieve per item type from the search. The first result is the one played                                       |

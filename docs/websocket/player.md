@@ -12,13 +12,13 @@ Provides the active playback state for a Spotify Account
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id of the transaction. Must be an increment of the last transaction id.
 
 ### `type` (str)
 
-The endpoint of the websocket to reach. Must be `spotcast/categories`
+The endpoint of the websocket to reach. Must be `spotcast/player`
 
 ### `account` (str)
 
@@ -146,7 +146,7 @@ The entry id of the account used to get the active playback state. Defaults to t
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id provided in the request
 

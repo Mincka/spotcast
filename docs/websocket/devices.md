@@ -12,13 +12,13 @@ Provides the list of currently available player for a Spotify Account
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id of the transaction. Must be an increment of the last transaction id.
 
 ### `type` (str)
 
-The endpoint of the websocket to reach. Must be `spotcast/categories`
+The endpoint of the websocket to reach. Must be `spotcast/devices`
 
 ### `account` (str)
 
@@ -52,7 +52,7 @@ The entry id of the account used to look for available devices. Defaulst to the 
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id provided in the request
 
@@ -70,7 +70,7 @@ The result of the transaction
 
 > #### `total` (int)
 > 
-> Number of browse categories retrieved
+> Number of devices available for the account
 > 
 > #### `devices` (list[dict])
 > 

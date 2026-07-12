@@ -7,17 +7,17 @@ Provides a list of Spotify Accounts currently managed by Spotcast.
 ```json
 {
     "id": 3,
-    "type": "spotcast/castdevices"
+    "type": "spotcast/accounts"
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id of the transaction. Must be an increment of the last transaction id.
 
 ### `type` (str)
 
-The endpoint of the websocket to reach. Must be `spotcast/castdevices`
+The endpoint of the websocket to reach. Must be `spotcast/accounts`
 
 ## Response
 
@@ -48,7 +48,7 @@ The endpoint of the websocket to reach. Must be `spotcast/castdevices`
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id provided in the request
 

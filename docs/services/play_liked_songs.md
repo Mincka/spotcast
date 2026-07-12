@@ -9,7 +9,7 @@ action: spotcast.play_liked_songs
 data:
     media_player:
         entity_id: media_player.foo
-    spotify_account: 01JDG07KSBTYWZGJSBJ1EW6XEF
+    account: 01JDG07KSBTYWZGJSBJ1EW6XEF
     data:
         repeat: context
 ```
@@ -18,7 +18,7 @@ data:
 
 Let the user select a compatible device on which to start the playback. **_Must be a single device_**.
 
-### `spotify_account` (str)
+### `account` (str)
 
 *Optional*
 
