@@ -348,7 +348,7 @@ The action layer is a thin dispatcher. `ServiceHandler`
 `services/const.py::SERVICE_SCHEMAS` and routes each call to its handler.
 The current actions are: `play_media`, `play_dj`, `play_liked_songs`,
 `transfer_playback`, `play_custom_context`, `play_from_search`,
-`add_to_queue`, `play_saved_episodes`, and `like_media`.
+`add_to_queue`, `play_saved_episodes`, `like_media`, and `unlike_media`.
 
 Each action optionally takes an `account` id and falls back to the default
 account otherwise, resolves the target media player, and calls the
