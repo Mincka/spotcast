@@ -2,6 +2,26 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases).
 
+## v6.2.0 (2026-07-12)
+
+### Fixes
+
+- Reauthentication no longer crashes on accounts created by older versions: legacy or malformed config entries missing `external_api` fields now fall back gracefully and show the reauth form instead of raising ([fondberg/spotcast#571](https://github.com/fondberg/spotcast/issues/571)).
+- `transfer_playback` resumes at the currently playing track by passing its URI directly, instead of paginating through the whole context to find its position. Transferring playback of a large playlist is now a single request rather than dozens ([fondberg/spotcast#582](https://github.com/fondberg/spotcast/issues/582)).
+- Starting playback on a device that Spotify Connect reports as momentarily unavailable now waits for it and retries once, instead of surfacing an immediate 404 popup. If the device stays unavailable, the error message is clear about the cause ([fondberg/spotcast#572](https://github.com/fondberg/spotcast/issues/572)).
+- Spotify Connect devices keep a stable Home Assistant identity across reconnects. Entities and devices are now keyed on the device name and account rather than the ephemeral Spotify Connect device id, so a device that reconnects with a new id reuses its existing entity instead of spawning `_2`..`_6` duplicates ([fondberg/spotcast#580](https://github.com/fondberg/spotcast/issues/580), [fondberg/spotcast#586](https://github.com/fondberg/spotcast/issues/586)).
+- `random` start on a Spotify editorial or algorithmic playlist now spans the whole playlist. The real track count is resolved through Spotify's internal metadata endpoint (which, unlike the public Web API, does not 404 on those playlists), falling back to the previous pseudo-random window only when that endpoint is unavailable ([fondberg/spotcast#569](https://github.com/fondberg/spotcast/issues/569)).
+
+### Changes
+
+- Desktop token authorization no longer requires the relay server. During setup you can now choose to authorize in the browser, copy the resulting address-bar URL, and paste it back into Home Assistant, which completes the token exchange itself. The relay server remains available as an optional automatic path.
+- Reauthentication dialog strings are inlined (fixing a missing label in the reauth popup), and a mismatched French step key was corrected.
+
+### Branding
+
+- The integration now ships its own green Spotcast icon and logo through the local `brand/` folder, so it is no longer visually confused with the official Spotify integration.
+- Package metadata capitalizes "Chromecast" and "Spotify Connect" correctly.
+
 ## v6.1.0 (2026-07-12)
 
 ### Changes
