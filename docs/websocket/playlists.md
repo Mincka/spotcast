@@ -13,7 +13,7 @@ Provides the list of the user's playlists
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id of the transaction. Must be an increment of the last transaction id.
 
@@ -51,7 +51,7 @@ Sets a limit to the number of playlists to retrieve
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id provided in the request
 

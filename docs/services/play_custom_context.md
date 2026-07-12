@@ -9,11 +9,11 @@ action: spotcast.play_custom_context
 data:
     media_player:
         entity_id: media_player.foo
-    items:
+    tracks:
         - spotify:track:2GfQhXyoUXYTkMHDXJhCU5
         - spotify:track:6z7lKrdW3hwtv9hXH5YK3l
         - spotify:track:55mJleti2WfWEFNFcBduhc
-    spotify_account: 01JDG07KSBTYWZGJSBJ1EW6XEF
+    account: 01JDG07KSBTYWZGJSBJ1EW6XEF
     data:
         repeat: context
 ```
@@ -22,11 +22,11 @@ data:
 
 Let the user select a compatible device on which to start the playback. **_Must be a single device_**.
 
-### `items` (list[str])
+### `tracks` (list[str])
 
 A list of Spotify URI or URL used to build a custom context for playback. The list of songs will be used as if it was an album or playlist. Songs added to queue still take precedent on next item in context.
 
-### `spotify_account` (str)
+### `account` (str)
 
 *Optional*
 

@@ -1,6 +1,6 @@
 # Add To Queue
 
-Adds a list of spotify URI to the 
+Adds a list of Spotify URIs to the account's playback queue.
 
 ## Action
 
@@ -10,14 +10,14 @@ data:
     spotify_uris:
         - spotify:track:03Vh87Tg6boENhCNstwKX2
         - spotify:track:2GfQhXyoUXYTkMHDXJhCU5
-    spotify_account: 01JDG07KSBTYWZGJSBJ1EW6XEF
+    account: 01JDG07KSBTYWZGJSBJ1EW6XEF
 ```
 
 ###  `spotify_uris` (list[str])
 
 A list of spotify URI or URL to add to the queue of the current playback
 
-### `spotify_account` (str)
+### `account` (str)
 
 *Optional*
 

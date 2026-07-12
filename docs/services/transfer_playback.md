@@ -9,16 +9,18 @@ action: spotcast.transfer_playback
 data:
     media_player:
         entity_id: media_player.foo
-    spotify_account: 01JDG07KSBTYWZGJSBJ1EW6XEF
+    account: 01JDG07KSBTYWZGJSBJ1EW6XEF
     data:
         repeat: context
 ```
 
 ### `media_player` (dict)
 
+*Required*
+
 Let the user select a compatible device on which to start the playback. **_Must be a single device_**.
 
-### `spotify_account` (str)
+### `account` (str)
 
 *Optional*
 
@@ -39,4 +41,4 @@ Set of additional settings to apply when starting the playback. The available op
 | `shuffle`  | `bool`                    | `null`  | Sets the playback to shuffle if `True`. Is kept unchanged if `null`.                                                                        |
 
 > [!NOTE]
-> **Spotify editorial/algorithmic playlists** (the `spotify:playlist:37i9…` IDs): Spotify no longer serves these playlists' contents through the Web API, so the exact current track can't be located when rebuilding playback - it restarts from the **first track** of the context.
+> **Spotify editorial/algorithmic playlists** (the `spotify:playlist:37i9…` IDs): when rebuilding playback, the currently playing track's URI is passed directly as the offset, so playback resumes at that track without paginating through the whole context.
