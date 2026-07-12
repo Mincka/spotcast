@@ -10,7 +10,9 @@ from time import time
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import async_get as async_get_dr
+from homeassistant.helpers.entity_registry import async_get as async_get_er
 
+from custom_components.spotcast.const import DOMAIN
 from custom_components.spotcast.media_player import (
     SpotifyDevice,
 )
@@ -45,7 +47,6 @@ class DeviceManager:
 
     DELETE_ON_UNAVAILABLE = (
         "Web Player",
-        "Echo Speaker",
     )
 
     STALE_DEVICE_TIMEOUT = 7 * 24 * 3600
@@ -77,35 +78,18 @@ class DeviceManager:
             self.supervisor._is_healthy = False
             self.supervisor.log_message(exc)
 
-    async def async_manage_devices(self, current_devices: dict):
-        current_devices = {x["id"]: x for x in current_devices}
-        remove = []
+    def _key_current_devices(self, current_devices: list) -> dict:
+        """Keys the devices reported by Spotify by their stable identity
+        key (name + account) rather than the ephemeral Spotify device id,
+        after cleaning the type and dropping ignored devices.
 
-        # remove no longer available devices first
-        for id, device in self.tracked_devices.items():
-            if id not in current_devices:
-                LOGGER.info(
-                    "Marking device `%s` unavailable for account `%s`",
-                    device.name,
-                    self._account.name
-                )
-                remove.append(id)
-                entity = self.tracked_devices[id]
-                entity.is_unavailable = True
+        Two devices sharing a name would collide on the identity key, so
+        the second one keeps the Spotify device id as a disambiguator and
+        falls back to the legacy per-id behaviour.
+        """
+        current: dict[str, dict] = {}
 
-        for id in remove:
-
-            device = self.tracked_devices.pop(id)
-
-            if device.device_data["type"] in self.DELETE_ON_UNAVAILABLE:
-                await device.async_remove(force_remove=True)
-                self.remove_device(device.device_info["identifiers"])
-            else:
-                self.unavailable_devices[id] = device
-                self.unavailable_since[id] = time()
-
-        for id, device in current_devices.items():
-
+        for device in current_devices:
             device["type"] = self.clean_device_type(device)
 
             if device["type"] in self.IGNORE_DEVICE_TYPES:
@@ -116,31 +100,83 @@ class DeviceManager:
                 )
                 continue
 
-            if (
-                id not in self.tracked_devices
-                and id in self.unavailable_devices
-            ):
+            key = SpotifyDevice.compute_identity_key(
+                device["name"],
+                self._account.id,
+            )
+
+            if key in current and current[key]["id"] != device["id"]:
+                LOGGER.warning(
+                    "Two Spotify Connect devices named `%s` for account "
+                    "`%s`; keeping them as separate entities",
+                    device["name"],
+                    self._account.name,
+                )
+                key = f"{key}_{device['id']}"
+
+            current[key] = device
+
+        return current
+
+    async def async_manage_devices(self, current_devices: dict):
+        current = self._key_current_devices(current_devices)
+        remove = []
+
+        # mark no longer available devices first
+        for key, device in self.tracked_devices.items():
+            if key not in current:
+                LOGGER.info(
+                    "Marking device `%s` unavailable for account `%s`",
+                    device.name,
+                    self._account.name
+                )
+                remove.append(key)
+                device.is_unavailable = True
+
+        for key in remove:
+
+            device = self.tracked_devices.pop(key)
+
+            if device.device_data["type"] in self.DELETE_ON_UNAVAILABLE:
+                await device.async_remove(force_remove=True)
+                self.remove_device(device.device_info["identifiers"])
+            else:
+                self.unavailable_devices[key] = device
+                self.unavailable_since[key] = time()
+
+        for key, device in current.items():
+
+            if key in self.tracked_devices:
+                continue
+
+            if key in self.unavailable_devices:
                 LOGGER.info(
                     "Device `%s` has became available again for account `%s`",
                     device["name"],
                     self._account.name,
                 )
-                self.tracked_devices[id] = self.unavailable_devices.pop(id)
-                self.unavailable_since.pop(id, None)
-                self.tracked_devices[id].is_unavailable = False
+                # rebind the device data so the (possibly new) Spotify
+                # device id is picked up without creating a new entity.
+                entity = self.unavailable_devices.pop(key)
+                self.unavailable_since.pop(key, None)
+                entity.device_data = device
+                entity.is_unavailable = False
+                self.tracked_devices[key] = entity
+                continue
 
-            elif (
-                id not in self.tracked_devices
-                and id not in self.unavailable_devices
-            ):
-                LOGGER.info(
-                    "Adding New Device `%s` for account `%s`",
-                    device["name"],
-                    self._account.name,
-                )
-                new_device = SpotifyDevice(self._account, device)
-                self.tracked_devices[id] = new_device
-                self.async_add_entities([new_device])
+            LOGGER.info(
+                "Adding New Device `%s` for account `%s`",
+                device["name"],
+                self._account.name,
+            )
+            self._migrate_legacy_entity(key, device)
+            new_device = SpotifyDevice(
+                self._account,
+                device,
+                identity_key=key,
+            )
+            self.tracked_devices[key] = new_device
+            self.async_add_entities([new_device])
 
         playback_state = await self._account.async_playback_state()
         playing_id = None
@@ -148,9 +184,9 @@ class DeviceManager:
         if "device" in playback_state:
             playing_id = playback_state["device"]["id"]
 
-        for id, device in self.tracked_devices.items():
+        for key, device in self.tracked_devices.items():
             LOGGER.debug("Updating device info for `%s`", device.name)
-            device.device_data = current_devices[id]
+            device.device_data = current[key]
 
             if device.id == playing_id:
                 LOGGER.debug("Feeding playback state to `%s`", device.name)
@@ -159,6 +195,69 @@ class DeviceManager:
                 device.playback_state = {}
 
         await self.async_purge_stale_devices()
+
+    def _migrate_legacy_entity(self, key: str, device: dict):
+        """Migrates an entity created by an older version, keyed on the
+        ephemeral Spotify device id, onto the stable identity key. This
+        keeps a user's existing entity and device (and any automation
+        referencing them) instead of creating a duplicate on upgrade.
+
+        Only devices that are currently online with the same Spotify id
+        as before the upgrade can be reconciled here. Devices whose id
+        changed while Home Assistant was down create a fresh entity and
+        the old one is cleaned up by the stale-device purge.
+        """
+        entity_registry = async_get_er(self._account.hass)
+        new_unique_id = f"{key}_spotcast_device"
+
+        if entity_registry.async_get_entity_id(
+            "media_player", DOMAIN, new_unique_id
+        ):
+            return
+
+        old_unique_id = f"{device['id']}_{self._account.id}_spotcast_device"
+        entity_id = entity_registry.async_get_entity_id(
+            "media_player", DOMAIN, old_unique_id
+        )
+
+        if entity_id is None:
+            return
+
+        try:
+            entity_registry.async_update_entity(
+                entity_id,
+                new_unique_id=new_unique_id,
+            )
+        except ValueError:
+            LOGGER.debug(
+                "Could not migrate unique id for device `%s`",
+                device["name"],
+            )
+            return
+
+        LOGGER.info(
+            "Migrated device `%s` to stable identity `%s`",
+            device["name"],
+            key,
+        )
+
+        # move the device registry entry onto the stable identifier while
+        # keeping the same Home Assistant device id, so automations that
+        # target the device keep working (see #586).
+        device_registry = async_get_dr(self._account.hass)
+        old_identifiers = {(DOMAIN, device["id"])}
+        new_identifiers = {(DOMAIN, key)}
+
+        if device_registry.async_get_device(new_identifiers) is not None:
+            return
+
+        device_entry = device_registry.async_get_device(old_identifiers)
+
+        if device_entry is not None:
+            device_registry.async_update_device(
+                device_entry.id,
+                new_identifiers=new_identifiers,
+            )
 
     async def async_purge_stale_devices(self):
         """Removes devices that have been unavailable for longer than
