@@ -1,19 +1,20 @@
 # Spotcast Configuration
 
-This guide walks you through the setup of Spotcast in Home Assistant. The setup has three parts:
+This guide walks you through the setup of Spotcast in Home Assistant. The setup has two parts:
 
 1. Create a Spotify Application (or reuse the one from the official Spotify integration).
-2. Start a small relay server on your computer (only needed during setup).
-3. Run the Spotcast config flow in Home Assistant.
+2. Run the Spotcast config flow in Home Assistant.
+
+During the config flow Spotcast performs two authorizations: a normal one for your Spotify account, and a second one under the identity of the official Spotify desktop application. For the second one you can simply **paste a URL** from your browser (no extra software), or optionally run a small **relay server** on your computer to automate the redirect.
 
 > [!WARNING]
-> Why is a relay server needed at all? Some Spotcast features require permissions that Spotify only grants to its own applications. During setup, Spotcast therefore authenticates one session under the identity of the official Spotify desktop application, and the relay server is needed to hand that authorization over to Home Assistant. Because this method is not officially supported by Spotify, it may stop working without notice if Spotify changes its authentication systems.
+> Why the second authorization at all? Some Spotcast features require permissions that Spotify only grants to its own applications. Spotcast therefore authenticates one session under the identity of the official Spotify desktop application. Because this method is not officially supported by Spotify, it may stop working without notice if Spotify changes its authentication systems.
 
 ## Prerequisites
 
 - A **Spotify Premium** account.
 - Home Assistant `2026.4` or newer, with Spotcast [installed](../../README.md#installation).
-- A computer with a web browser. The relay server (step 2) and the browser used to complete the setup (step 3) **must be on the same computer**.
+- A web browser to complete the authorization.
 
 ## 1. Create a Spotify Application
 
@@ -26,14 +27,71 @@ In order to work with certain parts of the API, Spotcast requires access to the 
 
 1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and create an app.
 2. In the app settings, add `https://my.home-assistant.io/redirect/oauth` as a **Redirect URI**.
-3. Keep note of your **Client ID** and **Client Secret** for step 3.
+3. Keep note of your **Client ID** and **Client Secret** for step 2.
 
-## 2. Start the relay server
+## 2. Setup the Spotcast Integration in Home Assistant
 
-In order to add the desktop application credentials from Spotify, we must redirect the connection information from your local computer to Home Assistant. This can be achieved by using a relay server on your local computer. This step is necessary because Spotify does not allow (for understandable security reasons) desktop credentials to be redirected to another location than the device making the connection.
+Open Home Assistant and go to: `Settings -> Devices & Services -> + ADD INTEGRATION -> Spotcast` or use this direct link:
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
+
+Follow these instructions to finalize the setup in Home Assistant:
+
+### 2.1 Application Credentials
+
+> [!TIP]
+> If you already made a Spotcast configuration in the past on this server, this step will not be required and you can skip to [2.2](#22-public-oauth-authorization).
+>
+> If your application credentials for your Spotify Application changed and you need to edit them, Home Assistant doesn't offer you that option when setting an integration with existing application credentials. You need to remove the current credentials manually, which can be done by following [these instructions](https://www.home-assistant.io/integrations/application_credentials/#deleting-application-credentials) from Home Assistant.
+
+Once you see this window below in Home Assistant, provide a name (to your discretion) and provide the Client ID and Client Secret from your Spotify Application created in [Step 1](#1-create-a-spotify-application).
+
+![Application Credential Step Screenshot](../../assets/images/docs/spotcast_configuration/3_1_application_credentials.png)
+
+### 2.2 Public OAuth authorization
+
+This step will authorize your account in your Spotify Application. A new window will appear asking you to link the account to Home Assistant. Ensure the `Your instance URL:` points to your current Home Assistant server and press the `Link account` button.
 
 > [!IMPORTANT]
-> Run the relay server on the **same computer** where you will complete the setup in your web browser, and keep it running until the setup is done. It is only needed during setup (and later for reauthentication).
+> Make sure the correct account is signed in. If Spotify doesn't ask you to log in, it is because a Spotify account is already signed in. If you are trying to set up an account for someone else in your household, make sure their account is the one signed into the browser.
+
+### 2.3 Desktop authorization
+
+Spotcast now asks how you want to provide the second (desktop) authorization. Choose one of the two options.
+
+#### Option A: Paste the redirect URL (recommended)
+
+This option needs no extra software.
+
+1. Select **Paste the redirect URL** in the menu.
+2. Open the authorization link shown on the form and log in / authorize if asked.
+3. Your browser will then try to open an address starting with `http://127.0.0.1:8080/login...` and show a **connection error**. This is expected, because nothing is listening on that address.
+4. Copy the **full address** from your browser's address bar (it contains `?code=...&state=...`) and paste it into the form field, then submit.
+
+Spotcast exchanges the authorization code and completes the setup.
+
+> [!TIP]
+> If you get an error that the code could not be exchanged, open the authorization link again to get a fresh code. Authorization codes are single-use.
+
+#### Option B: Use the relay server (automatic)
+
+If you prefer the browser to be redirected back to Home Assistant automatically, run the [relay server](#optional-relay-server) on the same computer as your browser first, then select **Use the relay server** in the menu and complete the authorization. See [the appendix](#optional-relay-server) for how to start it.
+
+### Done
+
+At this point you should see your Spotify devices and account start to populate in the Home Assistant window.
+
+> [!NOTE]
+> You have completed the Spotcast setup. The same desktop authorization step is required again if you ever need to reauthenticate.
+
+---
+
+## Optional: Relay Server
+
+Instead of pasting the redirect URL manually (Option A above), you can run a small relay server on your computer that redirects the desktop authorization back to Home Assistant automatically (Option B). This is entirely optional.
+
+> [!IMPORTANT]
+> Run the relay server on the **same computer** where you complete the setup in your web browser, and keep it running until the setup is done. It is only needed during setup (and later for reauthentication).
 
 Please follow the instructions for your specific operating system:
 
@@ -172,61 +230,12 @@ Open the Spotcast integration setup in Home Assistant.
 (Press Ctrl+C to cancel.)
 ```
 
-If you see a similar message, you're ready for the next step.
+If you see a similar message, you're ready to select **Use the relay server** in the config flow.
 
 > [!TIP]
 > If the server fails to start because port `8080` is already in use, stop the application using that port and start the relay server again.
 
-
-## 3. Setup the Spotcast Integration in Home Assistant
-
-Open Home Assistant and go to: `Settings -> Devices & Services -> + ADD INTEGRATION -> Spotcast` or use this direct link:
-
-[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
-
-Follow these instructions to finalize the setup in Home Assistant:
-
-### 3.1 Application Credentials
-
-> [!TIP]
-> If you already made a Spotcast configuration in the past on this server, this step will not be required and you can skip to [3.2](#32-public-oauth-authorization).
->
-> If your application credentials for your Spotify Application changed and you need to edit them, Home Assistant doesn't offer you that option when setting an integration with existing application credentials. You need to remove the current credentials manually, which can be done by following [these instructions](https://www.home-assistant.io/integrations/application_credentials/#deleting-application-credentials) from Home Assistant.
-
-Once you see this window below in Home Assistant, provide a name (to your discretion) and provide the Client ID and Client Secret from your Spotify Application created in [Step 1](#1-create-a-spotify-application).
-
-![Application Credential Step Screenshot](../../assets/images/docs/spotcast_configuration/3_1_application_credentials.png)
-
-### 3.2 Public OAuth authorization
-
-This step will authorize your account in your Spotify Application. A new window will appear asking you to link the account to Home Assistant. Ensure the `Your instance URL:` points to your current Home Assistant server and press the `Link account` button.
-
-> [!IMPORTANT]
-> Make sure the correct account is signed in. If Spotify doesn't ask you to log in, it is because a Spotify account is already signed in. If you are trying to set up an account for someone else in your household, make sure their account is the one signed into the browser.
-
-### 3.3 Desktop Token authorization
-
-A new window will open looking like this:
-
-![Desktop Credential Approval](../../assets/images/docs/spotcast_configuration/3_3_desktop_token.png)
-
-If the account under `Spotify for Desktop` is the account you are trying to set up, press the `Continue to the app` button, otherwise press `Not you?` and connect the proper account.
-
-> [!CAUTION]
-> If the relay server is not running at this point the setup will fail.
-
-The same window as in step [3.2](#32-public-oauth-authorization) will appear. This is normal. This is to redirect your desktop credentials to Home Assistant. You can press the `Link Account` button.
-
-### Done
-
-At this point you should see your Spotify devices and account start to populate in the Home Assistant window.
-
-> [!NOTE]
-> You have completed the Spotcast setup at this point. You can close the relay server by pressing `CTRL+C` in your terminal. The relay server will only be required again for reauthenticating.
-
----
-
-## Optional: Relay Server Configuration
+### Relay Server Configuration
 
 Both relay servers (`relay_server.py` and `relay_server.ps1`) can be configured using CLI arguments to fit specific needs.
 
@@ -234,19 +243,19 @@ Both relay servers (`relay_server.py` and `relay_server.ps1`) can be configured 
 | --------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------- |
 | `-r` `--redirect-url` | Redirects OAuth to your Home Assistant server (if not using `my.home-assistant.io`)  | `https://my.home-assistant.io/redirect/oauth` |
 
-### Example: One-Step Install with Custom Redirect (Python)
+#### Example: One-Step Install with Custom Redirect (Python)
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/Mincka/spotcast/main/scripts/relay_server.py | python - -r http://<your-home-assistant-server>
 ```
 
-### Example: Manual Script with Custom Redirect (Python)
+#### Example: Manual Script with Custom Redirect (Python)
 
 ```bash
 python relay_server.py -r http://<your-home-assistant-server>
 ```
 
-### Example: Custom Redirect (PowerShell)
+#### Example: Custom Redirect (PowerShell)
 
 When piping the script with `iex`, set the `$redirectUrl` variable first; when running the downloaded file, use the `-r` argument:
 

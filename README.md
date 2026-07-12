@@ -17,7 +17,7 @@ Spotcast is a Home Assistant custom integration that starts Spotify playback on 
 > Spotcast requires a **Spotify Premium** account to work.
 
 > [!WARNING]
-> Some Spotcast features need permissions that Spotify does not grant to regular third-party applications. To obtain them, Spotcast authenticates one session under the identity of the official Spotify desktop application (this is why the setup involves a desktop token and a relay server). This method is not officially supported by Spotify and may stop working without notice if Spotify changes its authentication systems. We do our best to adapt quickly when that happens, but temporary breakage is always possible.
+> Some Spotcast features need permissions that Spotify does not grant to regular third-party applications. To obtain them, Spotcast authenticates one session under the identity of the official Spotify desktop application (this is the desktop authorization step during setup). This method is not officially supported by Spotify and may stop working without notice if Spotify changes its authentication systems. We do our best to adapt quickly when that happens, but temporary breakage is always possible.
 
 > [!NOTE]
 > This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project, created by Niklas Fondberg ([@fondberg](https://github.com/fondberg)) and maintained through v5 and the v6 rewrite by Felix Cusson ([@fcusson](https://github.com/fcusson)). Development now happens here, starting with the v6 release.
@@ -147,7 +147,7 @@ Spotcast provides multiple WebSocket API endpoints, used for example by companio
 
 The v6 rewrite changed both the configuration flow and the action names:
 
-- Configuration no longer uses `sp_dc`/`sp_key` cookies in YAML. Accounts are set up through the UI with OAuth and a one-time desktop token relay. Follow the [configuration guide](./docs/config/spotcast_configuration.md).
+- Configuration no longer uses `sp_dc`/`sp_key` cookies in YAML. Accounts are set up through the UI with OAuth and a one-time desktop authorization. Follow the [configuration guide](./docs/config/spotcast_configuration.md).
 - The `spotcast.start` service was replaced by a set of dedicated actions. The closest equivalent to `spotcast.start` is [`spotcast.play_media`](./docs/services/play_media.md), with most of its former options now under the `data` section.
 - `spotcast.play_category` was removed, following the deprecation of the corresponding Spotify Web API endpoints.
 
