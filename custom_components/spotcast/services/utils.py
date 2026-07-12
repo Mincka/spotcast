@@ -20,6 +20,33 @@ from custom_components.spotcast.services.exceptions import (
     DeviceNotFoundError,
 )
 
+
+def track_context(value: str) -> str:
+    """Validates the `track_context` play option.
+
+    Accepts `track` (play only the song), `album` (play the song's
+    album), or an album or playlist Spotify URI to play the track inside
+    that specific context.
+
+    Raises:
+        - vol.Invalid: when the value is neither keyword nor a supported
+            album/playlist URI.
+    """
+    if value in ("track", "album"):
+        return value
+
+    if isinstance(value, str) and (
+        value.startswith("spotify:album:")
+        or value.startswith("spotify:playlist:")
+    ):
+        return value
+
+    raise vol.Invalid(
+        "track_context must be 'track', 'album', or a Spotify album or "
+        "playlist URI"
+    )
+
+
 EXTRAS_SCHEMA = vol.Schema({
     vol.Optional("position"): cv.positive_float,
     vol.Optional("offset"): cv.positive_int,
@@ -31,7 +58,7 @@ EXTRAS_SCHEMA = vol.Schema({
     vol.Optional("shuffle"): cv.boolean,
     vol.Optional("limit"): cv.positive_int,
     vol.Optional("random"): cv.boolean,
-    vol.Optional("track_context"): vol.In(["track", "album"]),
+    vol.Optional("track_context"): track_context,
 })
 
 
