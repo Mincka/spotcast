@@ -186,7 +186,7 @@ class LibraryMixin:
     async def async_get_episode(self, uri: str) -> str:
         """Retrieves the information of a podcast episode"""
         await self.async_ensure_tokens_valid()
-        LOGGER.debug("Fetching information from episode `%s`")
+        LOGGER.debug("Fetching information from episode `%s`", uri)
 
         result = await self.hass.async_add_executor_job(
             self.apis["public"].episode,
