@@ -38,6 +38,8 @@ class TestSuccessfulUpdate(IsolatedAsyncioTestCase):
             .return_value = {"device": {"id": "device"}}
         self.mocks["account"].async_playlists_count.return_value = 10
         self.mocks["account"].async_liked_songs_count.return_value = 5
+        self.mocks["account"].async_get_current_context_name\
+            .return_value = "My Playlist"
 
         self.mocks["device_manager"].async_update = AsyncMock()
 
@@ -67,6 +69,7 @@ class TestSuccessfulUpdate(IsolatedAsyncioTestCase):
                 "playback_state": {"device": {"id": "device"}},
                 "playlists_count": 10,
                 "liked_songs_count": 5,
+                "context_name": "My Playlist",
             },
         )
 

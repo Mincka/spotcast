@@ -114,12 +114,15 @@ class SpotcastCoordinator(DataUpdateCoordinator[dict]):
 
         await self._async_update_device_manager()
 
+        context_name = await self.account.async_get_current_context_name()
+
         return {
             "profile": profile,
             "devices": devices,
             "playback_state": playback_state,
             "playlists_count": playlists_count,
             "liked_songs_count": liked_songs_count,
+            "context_name": context_name,
         }
 
     async def _async_update_device_manager(self):
