@@ -214,7 +214,9 @@ and those features are intentionally deferred.
 Spotcast can start playback on a Chromecast that is not signed into
 Spotify. It does this by authenticating the cast device against the user's
 account with the desktop token, then transferring playback to it over the
-normal Web API.
+normal Web API. This works for both single cast devices and **speaker
+groups** (for example a Google Cast group of several Nest speakers): a
+group authenticates and plays exactly like a single device.
 
 ### 5.1 Discovery: reuse of the built-in cast integration
 
@@ -234,7 +236,12 @@ is provided by that `cast` dependency, not by Spotcast's own requirements.
 device with `register_handler`. The flow:
 
 1. Launch the Spotify app on the device and send a `getInfo` message
-   carrying the device's `remoteName`/`deviceID`.
+   carrying the device's `remoteName`/`deviceID`, and a
+   `deviceAPI_isGroup` flag taken from the cast device's `cast_type` so a
+   speaker group announces itself correctly. For a group the controller
+   also waits a few seconds after launch before sending `getInfo`, letting
+   the group's per-member cast traffic settle so the request is answered
+   reliably.
 2. The device replies `getInfoResponse`. The handler takes the
    **desktop** token (`account.get_token("private")`) and
    `POST`s to `https://spclient.wg.spotify.com/device-auth/v1/refresh`
@@ -255,6 +262,13 @@ which is the same `deviceID` used in the handshake, and then transfers
 playback to it through the public Web API
 (`account.async_play_media(device_id, uri, ...)`). The controller only
 performs authentication; it never carries the track transfer.
+
+Single devices and Google Cast groups register under exactly that
+requested id. A non-Google speaker group can instead report the group
+coordinator's id in its `getInfoResponse`; the controller captures that
+reported id (`activated_device_id`) and, when it differs from the
+requested one, `async_build_from_type` uses it as the playback target so
+the transfer lands on the group rather than missing.
 
 ---
 

@@ -25,7 +25,7 @@ data:
 
 *Optional*
 
-Let the user select a compatible device on which to start the playback. **_Must be a single device_**.
+Let the user select a compatible device on which to start the playback. **_Must be a single device_**. A Chromecast speaker group (for example a Google Cast group) is a valid target and counts as a single device.
 
 ### `search_term` (str)
 

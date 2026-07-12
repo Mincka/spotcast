@@ -215,6 +215,18 @@ async def async_build_from_type(
                 media_player,
             )
 
+            activated_id = spotify_controller.activated_device_id
+
+            if activated_id is not None and activated_id != media_player.id:
+                LOGGER.debug(
+                    "Cast device `%s` registered under id `%s`, which "
+                    "differs from the requested id; using it as the "
+                    "playback target",
+                    media_player.name,
+                    activated_id,
+                )
+                media_player.id = activated_id
+
         return media_player
 
     if isinstance(entity, SpotifyDevice):

@@ -34,6 +34,41 @@ class TestAppLaunch(TestCase):
         self.controller.is_launched = True
 
 
+class TestGroupPayload(TestCase):
+
+    @patch.object(SpotifyController, "launch")
+    def test_group_flag_reflects_device(self, mock_launch: MagicMock):
+        self.controller = SpotifyController(MagicMock(spec=SpotifyAccount))
+        mock_launch.side_effect = self.set_is_launched
+
+        mock_device = MagicMock(spec=Chromecast)
+        mock_device.is_group = True
+
+        self.controller.launch_app(mock_device, max_attempts=2)
+
+        payload = self.controller._current_message["payload"]
+        self.assertTrue(payload["deviceAPI_isGroup"])
+
+    @patch.object(SpotifyController, "launch")
+    def test_single_device_flag_reflects_device(
+            self,
+            mock_launch: MagicMock,
+    ):
+        self.controller = SpotifyController(MagicMock(spec=SpotifyAccount))
+        mock_launch.side_effect = self.set_is_launched
+
+        mock_device = MagicMock(spec=Chromecast)
+        mock_device.is_group = False
+
+        self.controller.launch_app(mock_device, max_attempts=2)
+
+        payload = self.controller._current_message["payload"]
+        self.assertFalse(payload["deviceAPI_isGroup"])
+
+    def set_is_launched(self, *_, **__):
+        self.controller.is_launched = True
+
+
 class TestAppFailLaunch(TestCase):
 
     @patch(TEST_MODULE+"threading.Event", spec=Event)

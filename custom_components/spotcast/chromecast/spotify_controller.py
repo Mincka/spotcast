@@ -6,6 +6,7 @@ Classes:
 
 from logging import getLogger
 import threading
+import time
 import json
 
 from pychromecast.controllers import BaseController
@@ -23,6 +24,11 @@ from custom_components.spotcast.chromecast.exceptions import (
 )
 
 LOGGER = getLogger(__name__)
+
+# A speaker group fans the app launch out to each of its members, so its
+# cast/zeroconf traffic needs a moment to settle before the group can answer
+# a `getInfo` request reliably. Single devices do not need this.
+GROUP_LAUNCH_DELAY = 3.0
 
 
 class SpotifyController(BaseController):
@@ -88,10 +94,20 @@ class SpotifyController(BaseController):
         self.is_launched = False
         self._current_message: dict = None
         self.current_device: Chromecast = None
+        self.activated_device_id: str = None
         self.credential_error = False
 
     def _send_message_callback(self, *_):
         """Call back method to send a message after the launch method"""
+        if self.current_device is not None and self.current_device.is_group:
+            LOGGER.debug(
+                "`%s` is a speaker group; waiting %.1fs for cast responses "
+                "to settle before requesting device info",
+                self.current_device.name,
+                GROUP_LAUNCH_DELAY,
+            )
+            time.sleep(GROUP_LAUNCH_DELAY)
+
         self.send_message(self._current_message)
         self._current_message = None
 
@@ -99,13 +115,14 @@ class SpotifyController(BaseController):
         """Launches the spotify app"""
         self.is_launched = False
         self.current_device = device
+        self.activated_device_id = None
 
         self._current_message = {
             "type": self.TYPE_GET_INFO,
             "payload": {
                 "remoteName": device.name,
                 "deviceID": device.id,
-                "deviceAPI_isGroup": False,
+                "deviceAPI_isGroup": device.is_group,
             }
         }
 
@@ -181,6 +198,12 @@ class SpotifyController(BaseController):
             data: dict
     ) -> bool:
         """Handler for the get info response message"""
+        # The device reports the id it actually registered under. For single
+        # devices and Google Cast groups this matches the id we requested
+        # (md5 of the name), but non-Google groups can report the group
+        # coordinator's id instead, which is what playback must target.
+        self.activated_device_id = data["payload"]["deviceID"]
+
         token = self.account.get_token("private")
 
         headers = {
