@@ -11,11 +11,9 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.util.read_only_dict import ReadOnlyDict
 from homeassistant.exceptions import ServiceValidationError
 import voluptuous as vol
-from spotipy import SpotifyException
 
 
 from custom_components.spotcast.spotify.account import SpotifyAccount
-from custom_components.spotcast.spotify.utils import suppress_playlist_404_logs
 from custom_components.spotcast.services.play_media import (
     async_play_media,
     async_track_index,
@@ -124,65 +122,29 @@ async def async_rebuild_playback(
         return call_data
 
     current_item = last_playback_state["item"]
-    track_index = 0
 
     # set the offset according to the context type
     if context_type == "album":
+        track_index = 0
         try:
             track_index = await async_track_index(account, current_item["uri"])
             track_index = track_index[1] - 1
         except ValueError:
             pass
+        call_data["data"]["offset"] = track_index
     # change the context to the episode if context is show
     elif context_type == "show":
         call_data["spotify_uri"] = current_item["uri"]
-
-    # all remaining case that rely on fetching a list of items and
-    # finding the current uri in the list
+        call_data["data"]["offset"] = 0
+    # start the context directly at the current track's uri. This avoids
+    # paginating the whole context just to compute a numeric index, which
+    # is what made transfer_playback take up to a minute on large playlists
+    # (see #582).
     elif context_type in ("playlist", "collection"):
-
-        tracks = await _async_context_track_uris(
-            account, context_type, context_uri
-        )
-
-        try:
-            track_index = tracks.index(current_item["uri"])
-        except ValueError:
-            pass
-
-    if context_type == "artist":
+        call_data["data"]["offset"] = current_item["uri"]
+    elif context_type == "artist":
         call_data["data"]["offset"] = None
     else:
-        call_data["data"]["offset"] = track_index
+        call_data["data"]["offset"] = 0
 
     return call_data
-
-
-async def _async_context_track_uris(
-    account: SpotifyAccount,
-    context_type: str,
-    context_uri: str,
-) -> list[str]:
-    """Returns the track uris of a playlist or collection context.
-
-    Spotify 404s on its own editorial/algorithmic playlists, so treat
-    that as an empty track list and let the caller rebuild playback from
-    the first track. See issues #570 and #599.
-    """
-    if context_type != "playlist":
-        return await account.async_liked_songs()
-
-    try:
-        with suppress_playlist_404_logs():
-            tracks = await account.async_get_playlist_tracks(context_uri)
-        return [x["track"]["uri"] for x in tracks]
-    except SpotifyException as exc:
-        if exc.http_status != 404:
-            raise
-        LOGGER.warning(
-            "Spotify returned 404 for playlist `%s` (likely a Spotify "
-            "editorial/algorithmic playlist no longer exposed through the "
-            "Web API). Rebuilding playback from the first track.",
-            context_uri,
-        )
-        return []
