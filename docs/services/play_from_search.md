@@ -37,13 +37,21 @@ A generic search term that could be for any type of items
 
 *Required*
 
-A list of item types to look for in the search query.
+The item types to look for. The best match across the provided types is played (for `track`, several top results can be queued). One or more of:
+
+- `album`
+- `artist`
+- `playlist`
+- `track`
+- `show`
+- `episode`
+- `audiobook`
 
 ### `tags` (list[str])
 
 *Optional*
 
-A list of tags used to limit the search. Can only be used to search for albums:
+Tags used to narrow the search. They apply to album searches only. The only allowed tags are:
 
 - `hipster`: Limits results to albums with a popularity of less than 10%
 - `new`: Limits results to albums released in the past 2 weeks
@@ -82,3 +90,48 @@ Set of additional settings to apply when starting the playback. The available op
 | `repeat`   | `track \| context \| off` | `null`  | The repeat mode is kept the same if `null`                                                                                                  |
 | `shuffle`  | `bool`                    | `null`  | Sets the playback to shuffle if `True`. Is kept unchanged if `null`.                                                                        |
 | `limit`    | `positive_int`            | `1`     | Maximum number of items to retrieve per item type from the search. The first result is the one played                                       |
+
+## Examples
+
+### Play the top track for a search term
+
+```yaml
+action: spotcast.play_from_search
+data:
+    media_player:
+        entity_id: media_player.living_room
+    search_term: The Nights
+    item_types:
+        - track
+```
+
+### Narrow the search with filters
+
+`filters` are turned into Spotify `field:value` query modifiers (here `artist:The Drones year:2010-2019`).
+
+```yaml
+action: spotcast.play_from_search
+data:
+    media_player:
+        entity_id: media_player.living_room
+    search_term: Feelin Kinda Free
+    item_types:
+        - album
+    filters:
+        artist: The Drones
+        year: 2010-2019
+```
+
+### Play a brand-new album using a tag
+
+```yaml
+action: spotcast.play_from_search
+data:
+    media_player:
+        entity_id: media_player.living_room
+    search_term: synthwave
+    item_types:
+        - album
+    tags:
+        - new
+```

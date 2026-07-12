@@ -51,3 +51,55 @@ Set of additional settings to apply when starting the playback. The available op
 
 > [!NOTE]
 > **Spotify editorial/algorithmic playlists** (the `spotify:playlist:37i9…` IDs - Daily Mix, Discover Weekly, Release Radar, song radios, etc.): Spotify no longer serves these playlists' contents through the public Web API, so `random` cannot read the track count from there. For them it resolves the real track count through Spotify's internal metadata endpoint and picks a random start across the **whole playlist**. Only if that endpoint is unavailable does it fall back to a random start within the first 25 tracks (emitted as a log warning). Regular playlists are unaffected.
+
+## Examples
+
+### Play an album
+
+```yaml
+action: spotcast.play_media
+data:
+    media_player:
+        entity_id: media_player.living_room
+    spotify_uri: spotify:album:1chw1DFmefTueG1VbNVoGN
+```
+
+### Play only a single track
+
+A track URI plays inside its album by default. Set `track_context: track` to play just the song.
+
+```yaml
+action: spotcast.play_media
+data:
+    media_player:
+        entity_id: media_player.living_room
+    spotify_uri: spotify:track:5J7j5w4UUMnGJ21rYVQfob
+    data:
+        track_context: track
+```
+
+### Play a track inside a specific playlist
+
+Start on a track but keep the playlist going afterwards by passing the playlist URI as `track_context`. The track must be part of that playlist.
+
+```yaml
+action: spotcast.play_media
+data:
+    media_player:
+        entity_id: media_player.living_room
+    spotify_uri: spotify:track:5J7j5w4UUMnGJ21rYVQfob
+    data:
+        track_context: spotify:playlist:37i9dQZF1DXcBWIGoYBM5M
+```
+
+### Start a playlist at a random track
+
+```yaml
+action: spotcast.play_media
+data:
+    media_player:
+        entity_id: media_player.living_room
+    spotify_uri: spotify:playlist:37i9dQZF1DXcBWIGoYBM5M
+    data:
+        random: true
+```
