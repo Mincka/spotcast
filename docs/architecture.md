@@ -120,9 +120,9 @@ The account keeps them under a stable naming scheme
 - Both must resolve to the **same Spotify account**. The config flow
   verifies this: after both authorizations it compares the profile id of
   each and aborts on a mismatch (`public_private_accounts_mismatch`).
-- At setup, only the **public** token's profile is fetched (to avoid the
-  desktop token's tiny Web API quota; see section 4.3). The desktop token
-  is validated but not exercised against the Web API.
+- At setup, only the **public** token's profile is fetched (the desktop
+  token is blocked on `api.spotify.com`; see section 4.3). The desktop
+  token is validated but not exercised against the Web API.
 - The public token does the day-to-day Web API work. The desktop token is
   used only where the public one is not allowed (section 4).
 
@@ -197,8 +197,10 @@ not subject to the aggressive rate limiting described next.
 
 ### 4.3 Where the desktop token must never go
 
-The desktop application's Web API quota on `api.spotify.com` is tiny: the
-first call typically returns `429 rate limit exceeded`. Every
+The desktop token is blocked on `api.spotify.com`: the first call returns
+`429 rate limit exceeded`, a permanent block disguised as a rate limit
+(the `Retry-After` window resets but requests keep failing). Spotify
+started returning these in December 2025 (see section 13). Every
 desktop-token feature therefore uses `spclient`/device endpoints, **never
 `api.spotify.com`**, and degrades gracefully. Reading arbitrary player
 state (smart shuffle, live context) would require a persistent connection
@@ -452,6 +454,34 @@ authentication on OAuth and split it in two (sections 3.1 and 3.2):
   first-party capabilities the web-player cookie used to provide:
   `streaming`, `app-remote-control`, and the device authentication that
   lets a Chromecast sign in (section 5).
+
+### The desktop token blocked on the Web API (December 2025)
+
+Initially v6 still used the desktop token for some `api.spotify.com`
+calls. Around **22-23 December 2025** Spotify began returning **fake `429`
+responses** for the desktop client id on every `api.spotify.com` endpoint,
+permanent blocks disguised as rate limits (the `Retry-After` window resets
+but the calls keep failing). The desktop token kept working on
+`spclient.wg.spotify.com`, and the public OAuth token was unaffected on
+`api.spotify.com` (fondberg/spotcast #593, fixed in
+[fondberg/spotcast#598](https://github.com/fondberg/spotcast/pull/598)).
+
+This is what fixed the two tokens into their current division of labour:
+
+- **all `api.spotify.com` calls go through the public token** (the private
+  Spotify client is no longer used for the Web API);
+- **the desktop token is used only on `spclient`** (Chromecast device
+  authentication, section 5, and the internal editorial-playlist endpoint,
+  section 4.2).
+
+The same change stopped validating the desktop token against the Web API
+during setup, added the `user-library-modify` scope to the public token
+(for `like_media`), and made the deprecated `audio-features` lookup and
+the non-critical extras (shuffle/repeat/volume) degrade gracefully instead
+of failing a playback transfer. So while the two-token *design* dates to
+the v6 rewrite, the strict rule in section 4.3 ("never send the desktop
+token to `api.spotify.com`") dates specifically to this December 2025
+block.
 
 The through-line is unchanged: Spotcast has always needed
 **first-party-level capabilities** to do its job. Originally it inherited
