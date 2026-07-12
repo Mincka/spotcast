@@ -1,12 +1,12 @@
 # Playlists
 
-Provides the list of the user's playlists
+Provides the list of the user's playlists.
 
 ## Request
 
 ```json
 {
-    "id": 7,
+    "id": 1,
     "type": "spotcast/playlists",
     "account": "01JDG07KSBTYWZGJSBJ1EW6XEF",
     "limit": 20
@@ -15,37 +15,42 @@ Provides the list of the user's playlists
 
 ### `id` (int)
 
+*Required*
+
 The id of the transaction. Must be an increment of the last transaction id.
 
 ### `type` (str)
 
-The endpoint of the websocket to reach. Must be `spotcast/playlists`
+*Required*
+
+The endpoint of the WebSocket to reach. Must be `spotcast/playlists`.
 
 ### `account` (str)
 
 *Optional*
 
-The entry id of the account used to get the active playback state. Defaults to the default spotcast account if not provided.
+The `entry_id` of the account to use. Defaults to the default Spotcast account if not provided.
 
 ### `limit` (int)
 
 *Optional*
 
-Sets a limit to the number of playlists to retrieve
+Limits the number of playlists retrieved. Retrieves all playlists if not provided.
 
 ## Response
 
 ```json
 {
-    "id": 7,
+    "id": 1,
     "type": "result",
+    "success": true,
     "result": {
         "total": 20,
         "account": "01JDG07KSBTYWZGJSBJ1EW6XEF",
         "category": "user",
         "playlists": [
-            {...},
-            {...}
+            {},
+            {}
         ]
     }
 }
@@ -53,7 +58,7 @@ Sets a limit to the number of playlists to retrieve
 
 ### `id` (int)
 
-The id provided in the request
+The id provided in the request.
 
 ### `type` (str)
 
@@ -61,24 +66,25 @@ Always `result` on a successful request.
 
 ### `success` (bool)
 
-True if the transaction was successful.
+`true` if the transaction was successful.
 
 ### `result` (dict)
 
-The result of the transaction
+The result of the transaction.
 
 > #### `total` (int)
-> 
-> The total number of playlists retrieved
+>
+> The number of playlists retrieved.
 >
 > #### `account` (str)
 >
-> The account used in the query
+> The id of the account used in the query.
 >
 > #### `category` (str)
 >
-> Always `user`. Kept for backward compatibility with earlier versions that supported Browse Category drilldown (removed after Spotify deprecated the category playlists endpoint).
-> 
+> Always `user`. Kept for backward compatibility with earlier versions that supported Browse category drilldown (removed after Spotify deprecated the category playlists endpoint).
+>
 > #### `playlists` (list[dict])
-> 
-> List of the user's playlists. See [Get Playlist](https://developer.spotify.com/documentation/web-api/reference/get-playlist) for details about the fields
+>
+> The user's playlists. These are the raw Spotify playlist objects; see [Get Playlist](https://developer.spotify.com/documentation/web-api/reference/get-playlist) for the fields.
+>

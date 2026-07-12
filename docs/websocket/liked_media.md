@@ -1,21 +1,26 @@
 # Liked Media
 
-Provides a list of liked media (tracks) for a user.
+Provides the list of liked media (tracks) for a user.
 
 ## Request
 
 ```json
 {
-    "id": 7,
+    "id": 1,
     "type": "spotcast/liked_media",
     "account": "01JDG07KSBTYWZGJSBJ1EW6XEF"
 }
 ```
+
 ### `id` (int)
+
+*Required*
 
 The id of the transaction. Must be an increment of the last transaction id.
 
 ### `type` (str)
+
+*Required*
 
 The endpoint of the WebSocket to reach. Must be `spotcast/liked_media`.
 
@@ -23,13 +28,15 @@ The endpoint of the WebSocket to reach. Must be `spotcast/liked_media`.
 
 *Optional*
 
-The `entry_id` of the account to use for Spotcast. If empty, the default Spotcast account is used.
+The `entry_id` of the account to use. Defaults to the default Spotcast account if not provided.
 
 ## Response
+
 ```json
 {
-    "id": 7,
+    "id": 1,
     "type": "result",
+    "success": true,
     "result": {
         "total": 5,
         "account": "01JDG07KSBTYWZGJSBJ1EW6XEF",
@@ -38,7 +45,7 @@ The `entry_id` of the account to use for Spotcast. If empty, the default Spotcas
             "spotify:track:6rqhFxbN4uN6t6z2p3xPQK",
             "spotify:track:7gBEnASdyC9XBZf51a0tpn",
             "spotify:track:3nYCh0PbdJ23V2Jp0CzJ8N",
-            "spotify:track:3n3Ppam7vgaVa1iaRUc9Lp"
+            "spotify:track:0VjIjW4GlUZAMYd2vXMi3b"
         ]
     }
 }
@@ -52,18 +59,23 @@ The id provided in the request.
 
 Always `result` on a successful request.
 
+### `success` (bool)
+
+`true` if the transaction was successful.
+
 ### `result` (dict)
 
 The result of the transaction.
 
 > #### `total` (int)
-> 
-> The total number of liked media (tracks) retrieved.
+>
+> The number of liked tracks retrieved.
 >
 > #### `account` (str)
-> 
-> The account used in the query.
-> 
+>
+> The id of the account used in the query.
+>
 > #### `tracks` (list[str])
-> 
-> List of Spotify URIs of the liked media (tracks) retrieved. Each entry in the list is a string representing a Spotify track URI. Refer to [URI Format](https://developer.spotify.com/documentation/> web-api/concepts/spotify-uris-ids) for details.
+>
+> The Spotify URIs of the liked tracks. Each entry is a track URI string. See [URI format](https://developer.spotify.com/documentation/web-api/concepts/spotify-uris-ids).
+>
