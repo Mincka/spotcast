@@ -9,11 +9,11 @@ Provides the list of Browse Categories available for an account.
     "id": 4,
     "type": "spotcast/categories",
     "account": "01JDG07KSBTYWZGJSBJ1EW6XEF",
-    "limit": 10,
+    "limit": 10
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id of the transaction. Must be an increment of the last transaction id.
 
@@ -66,7 +66,7 @@ Limits the number of categories retrieved to the number provided. If absent, ret
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id provided in the request
 

@@ -11,7 +11,7 @@ Provides a list of Chromecast Devices available in Home Assistant.
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id of the transaction. Must be an increment of the last transaction id.
 
@@ -49,7 +49,7 @@ The endpoint of the websocket to reach. Must be `spotcast/castdevices`
 }
 ```
 
-### `id` (str)
+### `id` (int)
 
 The id provided in the request
 
