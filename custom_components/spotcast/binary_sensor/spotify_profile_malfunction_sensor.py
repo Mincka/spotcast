@@ -12,7 +12,6 @@ from homeassistant.const import STATE_OK, STATE_PROBLEM
 from custom_components.spotcast.binary_sensor.abstract_binary_sensor import (
     SpotcastBinarySensor
 )
-from custom_components.spotcast.sensor.abstract_entity import POTENTIAL_ERRORS
 
 LOGGER = getLogger(__name__)
 
@@ -22,7 +21,8 @@ class SpotifyProfileMalfunctionBinarySensor(SpotcastBinarySensor):
     of a Spotify Account
 
     Methods:
-        - async_update
+        - _update_from_coordinator
+        - _handle_update_failure
     """
 
     GENERIC_NAME = "Spotify Profile Malfunction"
@@ -31,30 +31,27 @@ class SpotifyProfileMalfunctionBinarySensor(SpotcastBinarySensor):
     INACTIVE_STATE = STATE_OK
     ENTITY_CATEGORY = EntityCategory.DIAGNOSTIC
 
-    async def _async_update_process(self):
-        """The update process"""
-        raise NotImplementedError(
-            "Not implemented, use the `async_update` method directly"
-        )
+    @property
+    def available(self) -> bool:
+        """Always available. The sensor reports a coordinator failure
+        as a problem state instead of becoming unavailable."""
+        return True
 
-    async def async_update(self):
-        """Updates the profile and mark a problem if failing
-        asynchornously"""
-
-        try:
-            profile = await self.account.async_profile()
-        except POTENTIAL_ERRORS as exc:
-            LOGGER.error(exc)
-            self._attr_state = STATE_PROBLEM
-            return
-
+    def _update_from_coordinator(self):
+        """Marks the profile healthy after a successful refresh"""
         LOGGER.debug(
-            "Getting Spotify Profile for account `%s`",
-            self.account.name
-        )
-
-        LOGGER.debug(
-            "Profile retrieve for account id `%s`", profile["id"],
+            "Profile refreshed successfully for account `%s`",
+            self.account.entry_id,
         )
 
         self._attr_state = STATE_OK
+
+    def _handle_update_failure(self):
+        """Marks the profile as malfunctioning on coordinator failure"""
+        LOGGER.error(
+            "Could not refresh profile for account `%s`: %s",
+            self.account.entry_id,
+            self.coordinator.last_exception,
+        )
+
+        self._attr_state = STATE_PROBLEM

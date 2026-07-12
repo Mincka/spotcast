@@ -9,7 +9,7 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
 )
 
-from custom_components.spotcast.spotify import SpotifyAccount
+from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.sensor.abstract_entity import SpotcastEntity
 
 LOGGER = getLogger(__name__)
@@ -38,9 +38,9 @@ class SpotcastSensor(SpotcastEntity, SensorEntity):
     UNITS_OF_MEASURE: str = None
     STATE_CLASS: str = SensorStateClass.MEASUREMENT
 
-    def __init__(self, account: SpotifyAccount):
+    def __init__(self, coordinator: SpotcastCoordinator):
         self._attr_state_class = self.STATE_CLASS
-        super().__init__(account)
+        super().__init__(coordinator)
 
     @property
     def unit_of_measurement(self) -> str:

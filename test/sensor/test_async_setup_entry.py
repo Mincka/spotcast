@@ -1,60 +1,40 @@
 """Module to test the async_setup_entry function"""
 
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
+from custom_components.spotcast.coordinator import SpotcastCoordinator
+from custom_components.spotcast.spotify import SpotifyAccount
 from custom_components.spotcast.sensor import (
     async_setup_entry,
     HomeAssistant,
     ConfigEntry,
     AddEntitiesCallback,
-    SpotifyAccount
+    SENSORS,
 )
-
-TEST_MODULE = "custom_components.spotcast.sensor"
 
 
 class TestSensorCreation(IsolatedAsyncioTestCase):
 
-    @patch(f"{TEST_MODULE}.SpotifyAccountTypeSensor", new_callable=MagicMock)
-    @patch(f"{TEST_MODULE}.SpotifyFollowersSensor", new_callable=MagicMock)
-    @patch(f"{TEST_MODULE}.SpotifyProductSensor", new_callable=MagicMock)
-    @patch(f"{TEST_MODULE}.SpotifyLikedSongsSensor", new_callable=MagicMock)
-    @patch(f"{TEST_MODULE}.SpotifyProfileSensor", new_callable=MagicMock)
-    @patch(f"{TEST_MODULE}.SpotifyPlaylistsSensor", new_callable=MagicMock)
-    @patch(f"{TEST_MODULE}.SpotifyDevicesSensor", new_callable=MagicMock)
-    async def asyncSetUp(
-        self,
-        mock_devices: MagicMock,
-        mock_playlists: MagicMock,
-        mock_profile: MagicMock,
-        mock_liked_songs: MagicMock,
-        mock_product: MagicMock,
-        mock_followers: MagicMock,
-        mock_account_type: MagicMock,
-    ):
+    async def asyncSetUp(self):
 
         self.mocks = {
-            "devices": mock_devices,
-            "playlists": mock_playlists,
-            "profile": mock_profile,
-            "liked_songs": mock_liked_songs,
-            "product": mock_product,
-            "followers": mock_followers,
-            "account_type": mock_account_type,
             "hass": MagicMock(spec=HomeAssistant),
             "entry": MagicMock(spec=ConfigEntry),
             "add_entities": MagicMock(spec=AddEntitiesCallback),
-            "account": MagicMock(spec=SpotifyAccount)
+            "coordinator": MagicMock(spec=SpotcastCoordinator),
+            "account": MagicMock(spec=SpotifyAccount),
         }
 
         self.mocks["account"].id = "dummy_account"
         self.mocks["account"].product = "free"
+        self.mocks["coordinator"].account = self.mocks["account"]
 
         self.mocks["hass"].data = {
             "spotcast": {
                 "12345": {
-                    "account": self.mocks["account"]
+                    "account": self.mocks["account"],
+                    "coordinator": self.mocks["coordinator"],
                 }
             }
         }
@@ -67,11 +47,18 @@ class TestSensorCreation(IsolatedAsyncioTestCase):
             self.mocks["add_entities"]
         )
 
-    def assert_sensor_was_created(self, mock_object: MagicMock):
+    def test_add_entity_was_called(self):
         try:
-            mock_object.assert_called()
+            self.mocks["add_entities"].assert_called()
         except AssertionError:
             self.fail()
 
-    def test_add_entity_was_called(self):
-        self.assert_sensor_was_created(self.mocks["add_entities"])
+    def test_all_sensors_created(self):
+        entities = self.mocks["add_entities"].call_args.args[0]
+        self.assertEqual(len(entities), len(SENSORS))
+
+    def test_sensors_built_with_coordinator(self):
+        entities = self.mocks["add_entities"].call_args.args[0]
+
+        for entity in entities:
+            self.assertIs(entity.coordinator, self.mocks["coordinator"])

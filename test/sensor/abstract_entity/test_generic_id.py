@@ -3,6 +3,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
+from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.sensor.abstract_entity import (
     SpotcastEntity,
     SpotifyAccount,
@@ -18,7 +19,7 @@ class EntityWithoutId(SpotcastEntity):
     def icon(self):
         ...
 
-    async def _async_update_process(self):
+    def _update_from_coordinator(self):
         ...
 
 
@@ -30,12 +31,14 @@ class TestGenericIdDefinition(TestCase):
 
     def setUp(self):
         self.mocks = {
-            "account": MagicMock(spec=SpotifyAccount)
+            "coordinator": MagicMock(spec=SpotcastCoordinator)
         }
 
+        self.mocks["coordinator"].account = MagicMock(spec=SpotifyAccount)
+
         self.entities = {
-            "with_id": EntityWithId(self.mocks["account"]),
-            "without_id": EntityWithoutId(self.mocks["account"]),
+            "with_id": EntityWithId(self.mocks["coordinator"]),
+            "without_id": EntityWithoutId(self.mocks["coordinator"]),
         }
 
     def test_entity_without_id(self):

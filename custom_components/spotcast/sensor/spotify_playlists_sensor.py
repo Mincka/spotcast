@@ -20,7 +20,7 @@ class SpotifyPlaylistsSensor(SpotcastSensor):
         - state_class(str): the state class of the entity
 
     Methods:
-        - async_update
+        - _update_from_coordinator
     """
 
     GENERIC_NAME = "Spotify Playlists"
@@ -28,10 +28,10 @@ class SpotifyPlaylistsSensor(SpotcastSensor):
     ICON_OFF = ICON
     UNITS_OF_MEASURE = "playlists"
 
-    async def _async_update_process(self):
-        """Updates the playlist count asynchornously"""
+    def _update_from_coordinator(self):
+        """Updates the playlist count from the coordinator data"""
 
-        count = await self.account.async_playlists_count()
+        count = self.coordinator.data["playlists_count"]
 
         LOGGER.debug(
             "Found %d playlist for spotify account `%s`",

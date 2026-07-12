@@ -10,13 +10,12 @@ Functions:
     - async_setup_entry
 """
 from logging import getLogger
-import datetime as dt
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_time_interval
 
+from custom_components.spotcast.const import DOMAIN
 from custom_components.spotcast.media_player.chromecast_player import (
     Chromecast,
 )
@@ -44,12 +43,12 @@ async def async_setup_entry(
     account = await SpotifyAccount.async_from_config_entry(hass, entry)
     device_manager = DeviceManager(account, async_add_entities)
 
-    await device_manager.async_update()
-
-    device_listener = async_track_time_interval(
-        hass,
-        device_manager.async_update,
-        dt.timedelta(seconds=30)
+    # register the device manager so the account coordinator drives
+    # its updates
+    entry_data = hass.data.setdefault(DOMAIN, {}).setdefault(
+        entry.entry_id,
+        {},
     )
+    entry_data["device_manager"] = device_manager
 
-    entry.async_on_unload(device_listener)
+    await device_manager.async_update()

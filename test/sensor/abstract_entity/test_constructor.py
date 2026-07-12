@@ -3,6 +3,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
+from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.sensor.abstract_entity import (
     SpotcastEntity,
     SpotifyAccount,
@@ -23,11 +24,8 @@ class DummyEntity(SpotcastEntity):
     def icon(self):
         """Unimplemented icon property"""
 
-    async def _async_update_process():
-        """Unimplemented async_update_process"""
-
-    async def async_update(self):
-        """Unimplemented async_update"""
+    def _update_from_coordinator(self):
+        """Unimplemented _update_from_coordinator"""
 
 
 class TestDataRetention(TestCase):
@@ -35,15 +33,20 @@ class TestDataRetention(TestCase):
     def setUp(self):
 
         self.mocks = {
-            "account": MagicMock(spec=SpotifyAccount)
+            "coordinator": MagicMock(spec=SpotcastCoordinator),
+            "account": MagicMock(spec=SpotifyAccount),
         }
 
+        self.mocks["coordinator"].account = self.mocks["account"]
         self.mocks["account"].id = "dummy_id"
 
-        self.entity = DummyEntity(self.mocks["account"])
+        self.entity = DummyEntity(self.mocks["coordinator"])
 
     def test_account_is_retained(self):
         self.assertIs(self.entity.account, self.mocks["account"])
+
+    def test_coordinator_is_retained(self):
+        self.assertIs(self.entity.coordinator, self.mocks["coordinator"])
 
     def test_attributes_set_to_default(self):
         self.assertEqual(self.entity._attributes, {"foo": []})

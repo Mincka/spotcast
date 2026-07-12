@@ -3,6 +3,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
+from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.sensor.abstract_entity import (
     SpotcastEntity,
     SpotifyAccount,
@@ -23,8 +24,8 @@ class DummyDeviceFromAccount(SpotcastEntity):
     def _default_attributes(self):
         return {"foo": []}
 
-    async def _async_update_process(self):
-        """Unimplemented async_update"""
+    def _update_from_coordinator(self):
+        ...
 
 
 class DummyNoDevice(DummyDeviceFromAccount):
@@ -40,12 +41,14 @@ class TestDeviceInfoFromAccount(TestCase):
     def setUp(self):
 
         self.mocks = {
-            "account": MagicMock(spec=SpotifyAccount)
+            "coordinator": MagicMock(spec=SpotcastCoordinator),
+            "account": MagicMock(spec=SpotifyAccount),
         }
 
         self.mocks["account"].id = "dummy_id"
+        self.mocks["coordinator"].account = self.mocks["account"]
 
-        self.entity = DummyDeviceFromAccount(self.mocks["account"])
+        self.entity = DummyDeviceFromAccount(self.mocks["coordinator"])
 
     def test_device_info_from_account(self):
         self.assertIs(
@@ -59,12 +62,14 @@ class TestDeviceInfoNone(TestCase):
     def setUp(self):
 
         self.mocks = {
-            "account": MagicMock(spec=SpotifyAccount)
+            "coordinator": MagicMock(spec=SpotcastCoordinator),
+            "account": MagicMock(spec=SpotifyAccount),
         }
 
         self.mocks["account"].id = "dummy_id"
+        self.mocks["coordinator"].account = self.mocks["account"]
 
-        self.entity = DummyNoDevice(self.mocks["account"])
+        self.entity = DummyNoDevice(self.mocks["coordinator"])
 
     def test_device_info_from_account(self):
         self.assertIsNone(self.entity.device_info)
@@ -75,10 +80,12 @@ class TestDeviceInfoBadSource(TestCase):
     def test_raises_error(self):
 
         self.mocks = {
-            "account": MagicMock(spec=SpotifyAccount)
+            "coordinator": MagicMock(spec=SpotcastCoordinator),
+            "account": MagicMock(spec=SpotifyAccount),
         }
 
         self.mocks["account"].id = "dummy_id"
+        self.mocks["coordinator"].account = self.mocks["account"]
 
         with self.assertRaises(ValueError):
-            self.entity = DummyBadDeviceSource(self.mocks["account"])
+            self.entity = DummyBadDeviceSource(self.mocks["coordinator"])

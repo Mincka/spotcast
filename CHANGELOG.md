@@ -2,6 +2,14 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases).
 
+## v6.1.0 (upcoming)
+
+### Changes
+
+- Entity updates are now driven by a per-account `DataUpdateCoordinator`. Sensors, binary sensors and the Spotify Connect device manager refresh in a single API burst per update interval instead of polling individually, eliminating the "Updating spotcast sensor took longer than the scheduled update interval" log spam ([fondberg/spotcast#608](https://github.com/fondberg/spotcast/issues/608)).
+- The `base_refresh_rate` option now controls the actual update cadence and applies immediately when changed, without the previous hidden 30 second polling floor ([fondberg/spotcast#592](https://github.com/fondberg/spotcast/issues/592)). Values as low as 5 seconds are accepted.
+- Calling `homeassistant.update_entity` on a Spotcast entity now triggers a real refresh through the coordinator.
+
 ## v6.0.0 (2026-07-11)
 
 Spotcast v6 is a complete rewrite of the integration. It requires **Home Assistant 2026.4 or newer**.

@@ -25,7 +25,7 @@ class SpotifyProfileSensor(SpotcastSensor):
             sensor
 
     Methods:
-        - async_update
+        - _update_from_coordinator
     """
 
     GENERIC_NAME = "Spotify Profile"
@@ -46,16 +46,9 @@ class SpotifyProfileSensor(SpotcastSensor):
         """Builds a set of default attributes for the sensor"""
         return {}
 
-    async def _async_update_process(self):
-        """Updates the profile asynchornously"""
-        profile = await self.account.async_profile()
-
-        profile = copy_to_dict(profile)
-
-        LOGGER.debug(
-            "Getting Spotify Profile for account `%s`",
-            self.account.name
-        )
+    def _update_from_coordinator(self):
+        """Updates the profile from the coordinator data"""
+        profile = copy_to_dict(self.coordinator.data["profile"])
 
         LOGGER.debug(
             "Profile retrieve for account id `%s`", profile["id"],

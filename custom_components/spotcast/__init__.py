@@ -2,6 +2,7 @@
 
 Functions:
     - async_setup_entry
+    - async_update_options
 
 Constants:
     - PLATFORMS(list): List of platforms implemented in this
@@ -9,6 +10,7 @@ Constants:
     - DOMAIN(str): name of the domain of the integration
 """
 
+from datetime import timedelta
 from logging import getLogger
 
 from homeassistant.core import HomeAssistant
@@ -21,9 +23,11 @@ from .const import DOMAIN
 from .services import ServiceHandler
 from .services.const import SERVICE_SCHEMAS
 from .sessions.exceptions import TokenRefreshError, InternalServerError
+from .utils import ensure_default_data
 from .websocket import async_setup_websocket
 from .config_flow import DEFAULT_OPTIONS
 from .spotify import SpotifyAccount
+from .coordinator import SpotcastCoordinator
 
 __version__ = "6.0.0"
 
@@ -94,6 +98,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except InternalServerError as exc:
         raise ConfigEntryNotReady(f"{exc.code} - {exc.message}") from exc
 
+    coordinator = SpotcastCoordinator(hass, entry, account)
+    await coordinator.async_config_entry_first_refresh()
+
+    ensure_default_data(hass, entry.entry_id)
+    hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator
+
+    entry.async_on_unload(entry.add_update_listener(async_update_options))
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     service_handler = ServiceHandler(hass)
@@ -111,6 +123,51 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_setup_websocket(hass)
 
     return True
+
+
+async def async_update_options(hass: HomeAssistant, entry: ConfigEntry):
+    """Applies a config entry update to the loaded account and
+    coordinator.
+
+    Registered as the entry update listener. Keeps the account
+    options and the coordinator update interval in sync with the
+    entry options without requiring a reload.
+
+    Args:
+        hass(HomeAssistant): The Home Assistant Instance
+        entry(ConfigEntry): The config entry that was updated
+    """
+    entry_data = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+
+    if entry_data is None:
+        return
+
+    account = entry_data.get("account")
+    coordinator = entry_data.get("coordinator")
+
+    options = DEFAULT_OPTIONS | entry.options
+    refresh_rate = options["base_refresh_rate"]
+
+    if account is not None:
+        account.is_default = options["is_default"]
+        account.base_refresh_rate = refresh_rate
+
+    if coordinator is None:
+        return
+
+    new_interval = timedelta(seconds=refresh_rate)
+
+    if coordinator.update_interval != new_interval:
+        LOGGER.info(
+            "Setting spotcast entry `%s` to a base refresh rate of %d",
+            entry.entry_id,
+            refresh_rate,
+        )
+        coordinator.update_interval = new_interval
+        await coordinator.async_request_refresh()
+        return
+
+    coordinator.async_update_listeners()
 
 
 async def async_remove_config_entry_device(

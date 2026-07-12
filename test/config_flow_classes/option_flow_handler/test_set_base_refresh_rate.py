@@ -52,8 +52,8 @@ class TestSettingRefreshRate(TestCase):
         self.handler.hass = self.mocks["hass"]
         self.handler.set_base_refresh_rate(15)
 
-    def test_account_refresh_rate_modified(self):
-        self.assertEqual(self. mocks["account"].base_refresh_rate, 15)
+    def test_account_not_modified_directly(self):
+        self.assertEqual(self. mocks["account"].base_refresh_rate, 30)
 
     def test_entry_refresh_rate_modified(self):
         self.assertEqual(self. mocks["entry"].options["base_refresh_rate"], 15)
@@ -100,7 +100,7 @@ class TestSameRefreshRate(TestCase):
         self.handler.hass = self.mocks["hass"]
         self.handler.set_base_refresh_rate(30)
 
-    def test_account_refresh_rate_modified(self):
+    def test_account_not_modified_directly(self):
         self.assertEqual(self. mocks["account"].base_refresh_rate, 30)
 
     def test_entry_refresh_rate_modified(self):
