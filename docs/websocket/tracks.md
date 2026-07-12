@@ -6,35 +6,44 @@ Provides the list of tracks from a specified playlist.
 
 ```json
 {
-    "id": 15,
+    "id": 1,
     "type": "spotcast/tracks",
     "playlist_id": "spotify:playlist:37i9dQZF1DXcBWIGoYBM5M",
     "account": "01JDG07KSBTYWZGJSBJ1EW6XEF"
 }
 ```
+
 ### `id` (int)
+
+*Required*
 
 The id of the transaction. Must be an increment of the last transaction id.
 
 ### `type` (str)
 
+*Required*
+
 The endpoint of the WebSocket to reach. Must be `spotcast/tracks`.
 
 ### `playlist_id` (str)
 
-The Spotify ID or URI of the playlist whose tracks are to be retrieved. This can be a full URI such as `spotify:playlist:37i9dQZF1DXcBWIGoYBM5M` or just the playlist ID (`37i9dQZF1DXcBWIGoYBM5M`).
+*Required*
+
+The Spotify ID or URI of the playlist whose tracks are retrieved. Accepts a full URI such as `spotify:playlist:37i9dQZF1DXcBWIGoYBM5M` or just the ID (`37i9dQZF1DXcBWIGoYBM5M`).
 
 ### `account` (str)
 
 *Optional*
 
-The `entry_id` of the account to use for Spotcast. If empty, the default Spotcast account is used.
+The `entry_id` of the account to use. Defaults to the default Spotcast account if not provided.
 
 ## Response
+
 ```json
 {
-    "id": 15,
+    "id": 1,
     "type": "result",
+    "success": true,
     "result": {
         "total": 2,
         "account": "01JDG07KSBTYWZGJSBJ1EW6XEF",
@@ -43,18 +52,18 @@ The `entry_id` of the account to use for Spotcast. If empty, the default Spotcas
                 "id": "5J7j5w4UUMnGJ21rYVQfob",
                 "name": "The Nights",
                 "uri": "spotify:track:5J7j5w4UUMnGJ21rYVQfob",
-                "album": {...},
+                "album": {},
                 "artists": [
-                    {...},
-                    {...}
+                    {},
+                    {}
                 ]
             },
-            {...},
-            {...}
+            {}
         ]
     }
 }
 ```
+
 ### `id` (int)
 
 The id provided in the request.
@@ -63,39 +72,43 @@ The id provided in the request.
 
 Always `result` on a successful request.
 
+### `success` (bool)
+
+`true` if the transaction was successful.
+
 ### `result` (dict)
 
 The result of the transaction.
 
 > #### `total` (int)
 >
-> The total number of tracks retrieved.
+> The number of tracks retrieved.
 >
 > #### `account` (str)
 >
-> The account used in the query.
+> The id of the account used in the query.
 >
 > #### `tracks` (list[dict])
 >
-> List of tracks retrieved from the specified playlist. Each track includes:
+> The tracks retrieved from the playlist. Each track includes:
 >
 > > ##### `id` (str)
-> > 
+> >
 > > Spotify's unique ID for the track.
-> > 
+> >
 > > ##### `name` (str)
-> > 
+> >
 > > The name of the track.
-> > 
+> >
 > > ##### `uri` (str)
-> > 
-> > Spotify URI for the track. Refer to [URI Format](https://developer.spotify.com/documentation/web-api/concepts/spotify-uris-ids) for details.
-> > 
+> >
+> > The Spotify URI for the track. See [URI format](https://developer.spotify.com/documentation/web-api/concepts/spotify-uris-ids).
+> >
 > > ##### `album` (dict)
-> > 
-> > Information about the album the track belongs to. Refer to [Get playlist tracks](https://developer.spotify.com/documentation/web-api/reference/get-playlists-tracks) for details.
-> > 
+> >
+> > Information about the album the track belongs to. See [Get playlist items](https://developer.spotify.com/documentation/web-api/reference/get-playlists-tracks).
+> >
 > > ##### `artists` (list[dict])
-> > 
-> > List of artists who contributed to the track. Refer to [Get playlist tracks](https://developer.spotify.com/documentation/web-api/reference/get-playlists-tracks) for details.
-
+> >
+> > The artists who contributed to the track. See [Get playlist items](https://developer.spotify.com/documentation/web-api/reference/get-playlists-tracks).
+> >
