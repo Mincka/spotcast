@@ -82,10 +82,6 @@ class ProfileMixin:
         Args:
             attribute(str): the attribute to fetch from the profile
 
-        Raises:
-            ProfileNotLoadedError: Raised if the profile hasn't been
-                loaded yet.
-
         Returns:
             Any: the value at the key in the profile
         """
