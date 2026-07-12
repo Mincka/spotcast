@@ -61,6 +61,10 @@ to its own first-party desktop application. Both tokens belong to the same
 Spotify user; they differ only in which application requested them and
 therefore which permissions they carry.
 
+Spotcast did not always work this way. For how the two-token design came
+to be, and the Spotify API changes that forced it, see the history in
+section 13.
+
 The account keeps them under a stable naming scheme
 (`SpotifyAccount.SESSION_CONFIG_MAP`):
 
@@ -379,3 +383,84 @@ Loggers surfaced in diagnostics: `spotipy`, `pychromecast`.
 - **Playback to an unavailable device.** Starting playback on a device
   Spotify reports as momentarily unavailable waits and retries once before
   surfacing a clear error.
+
+---
+
+## 13. How the two-token design came to be
+
+Spotcast did not originally need a desktop token. This section explains
+what changed on Spotify's side and why the current design exists.
+
+### The original approach: web-player cookies
+
+Before v6, Spotcast authenticated with two browser cookies, `sp_dc` and
+`sp_key`, copied from a signed-in `open.spotify.com` session. It exchanged
+the `sp_dc` cookie at `open.spotify.com/get_access_token` for a **Web
+Player access token**. That token carried the Web Player's own elevated
+capabilities (starting playback, transferring it to any device,
+controlling the Spotify Connect graph) without the user ever registering a
+Spotify application. No OAuth, no desktop token: the cookie borrowed the
+web player's first-party identity.
+
+This mattered because those capabilities, notably the `streaming` and
+`app-remote-control` scopes and full Connect control, are effectively
+reserved to Spotify's own first-party clients. A regular third-party OAuth
+application is not granted them. The web-player cookie sidestepped that by
+inheriting the web player's identity.
+
+### What Spotify changed
+
+Spotify progressively closed that path:
+
+- **`sp_key` cookie removed (2023-2024).** Spotify stopped issuing the
+  `sp_key` cookie on `open.spotify.com` (fondberg/spotcast #309, #350).
+  Cookie auth limped on with `sp_dc` alone.
+- **Web API deprecation wave (27 November 2024).** Spotify
+  [removed a large set of endpoints for third-party apps](https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api):
+  audio-features, audio-analysis, recommendations, related-artists,
+  featured-playlists, category playlists, and the `/views/` browse hubs.
+  This is what removed Spotcast's audio-feature, category-playlist and
+  `views` features across v6.
+- **TOTP / server-time requirement on `get_access_token` (spring 2025).**
+  Spotify began requiring a time-based one-time password, computed against
+  its `/server-time`, on the web-player token endpoint. Tools built on
+  `sp_dc` broke with `Invalid TOTP` / `ServerTime` errors
+  (fondberg/spotcast #543, 7 May 2025, plus the "current outage" notices
+  in the repository around that time). Keeping up meant reverse-engineering
+  and chasing a rotating TOTP secret.
+- **Web-player token path effectively closed (mid 2025).** The
+  `get_access_token` route became unusable for third-party use (the same
+  break hit librespot and every `sp_dc`-based tool). At that point cookie
+  authentication was no longer viable at all.
+
+Dates outside the 27 November 2024 change (a published Spotify
+announcement) are approximate, anchored to the reports in the project's
+own issue tracker.
+
+### The v6 answer: two OAuth tokens
+
+Rather than keep fighting the cookie/TOTP arms race, v6 rebuilt
+authentication on OAuth and split it in two (sections 3.1 and 3.2):
+
+- A **public token** from the user's own Spotify application (through Home
+  Assistant Application Credentials) for ordinary Web API calls. Fully
+  supported and stable, but, being a third-party app, it lacks the
+  elevated capabilities.
+- A **desktop token**, obtained by authorizing under Spotify's official
+  desktop application client id (`65b708073fc0480ea92a077233ca87bd`)
+  through a PKCE flow. Authorizing as the desktop app recovers the
+  first-party capabilities the web-player cookie used to provide:
+  `streaming`, `app-remote-control`, and the device authentication that
+  lets a Chromecast sign in (section 5).
+
+The through-line is unchanged: Spotcast has always needed
+**first-party-level capabilities** to do its job. Originally it inherited
+them for free from a web-player cookie token; once Spotify locked that
+down, v6 had to obtain equivalent capabilities the only remaining way, by
+authorizing under the desktop application's identity. The desktop token is
+the successor to the old cookie trick, not a new requirement invented for
+its own sake.
+
+This also explains the reauthentication-on-new-scope behaviour
+(section 12): because scopes are frozen at consent time and the two tokens
+carry different scope sets, adding a capability can require re-consent.
