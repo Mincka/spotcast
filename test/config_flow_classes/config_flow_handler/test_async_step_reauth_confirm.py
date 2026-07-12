@@ -102,3 +102,83 @@ class TestSecondtCall(IsolatedAsyncioTestCase):
             )
         except AssertionError:
             self.fail()
+
+
+class TestMalformedEntryFirstCall(IsolatedAsyncioTestCase):
+    """A legacy/malformed entry missing `external_api` must show the form
+    instead of raising a KeyError (which surfaced as a config flow 500)."""
+
+    @patch.object(SpotcastFlowHandler, "async_step_pick_implementation")
+    @patch.object(SpotcastFlowHandler, "async_show_form", new_callable=MagicMock)
+    @patch.object(SpotcastFlowHandler, "_get_reauth_entry", new_callable=MagicMock)
+    async def asyncSetUp(
+            self,
+            mock_entry: MagicMock,
+            mock_form: MagicMock,
+            mock_impl: AsyncMock
+    ):
+
+        mock_entry.return_value = MagicMock(spec=ConfigEntry)
+
+        self.mocks = {
+            "entry": mock_entry.return_value,
+            "form": mock_form,
+            "implementation": mock_impl
+        }
+
+        self.mocks["entry"].data = {}
+
+        self.handler = SpotcastFlowHandler()
+
+        await self.handler.async_step_reauth_confirm()
+
+    def test_show_form_called_with_placeholder(self):
+        try:
+            self.mocks["form"].assert_called_with(
+                step_id="reauth_confirm",
+                description_placeholders={
+                    "account": "unknown account"
+                },
+                errors={},
+            )
+        except AssertionError:
+            self.fail()
+
+
+class TestMalformedEntrySecondCall(IsolatedAsyncioTestCase):
+    """A legacy/malformed entry missing `auth_implementation` must fall back
+    to the implementation picker rather than raising a KeyError."""
+
+    @patch.object(SpotcastFlowHandler, "async_step_pick_implementation")
+    @patch.object(SpotcastFlowHandler, "async_show_form", new_callable=MagicMock)
+    @patch.object(SpotcastFlowHandler, "_get_reauth_entry", new_callable=MagicMock)
+    async def asyncSetUp(
+            self,
+            mock_entry: MagicMock,
+            mock_form: MagicMock,
+            mock_impl: AsyncMock
+    ):
+
+        mock_entry.return_value = MagicMock(spec=ConfigEntry)
+
+        self.mocks = {
+            "entry": mock_entry.return_value,
+            "form": mock_form,
+            "implementation": mock_impl
+        }
+
+        self.mocks["entry"].data = {
+            "external_api": {
+                "id": "dummy_id"
+            }
+        }
+
+        self.handler = SpotcastFlowHandler()
+
+        await self.handler.async_step_reauth_confirm({})
+
+    def test_pick_implementation_called_without_input(self):
+        try:
+            self.mocks["implementation"].assert_called_once_with()
+        except AssertionError:
+            self.fail()
