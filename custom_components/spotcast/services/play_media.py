@@ -80,8 +80,24 @@ async def async_play_media(hass: HomeAssistant, call: ServiceCall):
     if uri is None:
         pass
     elif uri.startswith("spotify:track:"):
-        if extras.get("track_context") == "track":
+        track_context = extras.get("track_context")
+        if track_context == "track":
             LOGGER.debug("Using track context")
+        elif (
+            isinstance(track_context, str)
+            and track_context.startswith("spotify:")
+        ):
+            uri, index = await async_context_index(
+                account,
+                track_context,
+                uri,
+            )
+            LOGGER.debug(
+                "Switching context to `%s`, with offset %d",
+                uri,
+                index,
+            )
+            extras["offset"] = index
         else:
             uri, index = await async_track_index(account, uri)
             LOGGER.debug(
@@ -179,6 +195,55 @@ async def async_track_index(
     album_songs = [x["uri"] for x in album_info["tracks"]["items"]]
 
     return album_uri, album_songs.index(uri)
+
+
+async def async_context_index(
+    account: SpotifyAccount,
+    context_uri: str,
+    track_uri: str,
+) -> tuple[str, int]:
+    """Returns the context uri and the index of a track within it
+
+    Args:
+        - account(SpotifyAccount): the account used to fetch context
+            information
+        - context_uri(str): an album or playlist URI to play the
+            track in
+        - track_uri(str): the track URI to locate in the context
+
+    Returns:
+        - tuple[str, int]: the context uri and the index of the track
+            within the context
+
+    Raises:
+        - ServiceValidationError: when the context type is not
+            supported or the track is not part of the context
+    """
+    context_type = context_uri.split(":")[1]
+
+    if context_type == "album":
+        album = await account.async_get_album(context_uri)
+        track_uris = [x["uri"] for x in album["tracks"]["items"]]
+    elif context_type == "playlist":
+        items = await account.async_get_playlist_tracks(context_uri)
+        track_uris = [
+            x["track"]["uri"]
+            for x in items
+            if x.get("track") is not None
+        ]
+    else:
+        raise ServiceValidationError(
+            f"`{context_uri}` is not a valid track context. Provide an "
+            "album or playlist URI."
+        )
+
+    if track_uri not in track_uris:
+        raise ServiceValidationError(
+            f"Track `{track_uri}` is not part of the context "
+            f"`{context_uri}`"
+        )
+
+    return context_uri, track_uris.index(track_uri)
 
 
 async def async_random_index(account: SpotifyAccount, uri: str) -> int:

@@ -21,7 +21,7 @@ Let the user select a compatible device on which to start the playback. **_Must 
 
 ### `uri` (str)
 
-The Spotify URI or URL used for the context in the playback. In the case of a track URI, the context will become the album of the track, but set to the correct position of the track in the album.
+The Spotify URI or URL used for the context in the playback. In the case of a track URI, the context will become the album of the track, but set to the correct position of the track in the album. This behavior can be changed with the `track_context` option in `data`: `track` plays only the song, `album` (default) plays the rest of the album afterwards, and an album or playlist URI (e.g. `spotify:playlist:xxxx`) plays the track inside that context, continuing with the context afterwards. The track must be part of the provided context.
 
 ### `spotify_account` (str)
 

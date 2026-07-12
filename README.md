@@ -97,7 +97,7 @@ Playback actions accept a common `data` section. Here is a list of the common op
 | `shuffle`       | `bool`                    | `null`  | Sets the playback to shuffle if `True`. Kept unchanged if `null`.                                                    |
 | `limit`         | `positive_int`            | `null`  | The maximum number of items retrieved from a Spotify API endpoint. Retrieves all items if `null`.                    |
 | `random`        | `bool`                    | `False` | Starts the context playback at a random item. Only available for albums, playlists and custom contexts.              |
-| `track_context` | `track \| album`          | `album` | Sets the context of a track. With `album`, the rest of the album plays after the song ends; with `track`, playback stops. |
+| `track_context` | `track \| album \| context URI` | `album` | Sets the context of a track. With `album`, the rest of the album plays after the song ends; with `track`, playback stops; with an album or playlist URI (e.g. `spotify:playlist:xxxx`), the track plays inside that context and the context continues afterwards. The track must be part of the context. |
 
 ## Entities
 

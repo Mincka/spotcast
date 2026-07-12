@@ -50,4 +50,3 @@ body:
       label: "Additional Details"
       description: "Add any extra details or context to support your request."
       placeholder: "E.g., Relevant links, similar features in other systems, or related issues."
-      render: "markdown"
