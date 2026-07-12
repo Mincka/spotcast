@@ -12,8 +12,8 @@
                 "title": "Informations d'identification de l'application",
                 "description": "Sélectionnez les informations d'identification à utiliser pour ce compte."
             },
-            "reauth_config": {
-                "title": "[%key:common::config_flow::title::reauth%]",
+            "reauth_confirm": {
+                "title": "Ré-authentifier Spotcast",
                 "description": "L'intégration Spotcast a besoin de réauthentifier votre compte."
             },
             "doc_confirm": {
@@ -32,7 +32,7 @@
             "already_configured": "Ce compte est déjà configuré dans Home Assistant",
             "reauth_account_mismatch": "Le compte fourni ne concorde pas avec le compte Spotify étant réauthentifié",
             "public_private_accounts_mismatch": "Le profil lié aux informations d'identification OAuth et celui des informations d'identification du client de bureau sont pour des comptes différents. Faites attention à fournir les informations pour le même compte. Si vous êtes déjà connecté à Spotify dans votre navigateur web, Home Assistant ne vous demandera pas de vous connecter à un autre compte et utilisera le compte actuel.",
-            "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
+            "reauth_successful": "La ré-authentification a réussi"
         }
     },
     "options": {
