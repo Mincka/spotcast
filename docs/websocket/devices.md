@@ -1,12 +1,12 @@
 # Devices
 
-Provides the list of currently available player for a Spotify Account
+Provides the list of currently available Spotify Connect devices for an account.
 
 ## Request
 
 ```json
 {
-    "id": 5,
+    "id": 1,
     "type": "spotcast/devices",
     "account": "01JDG07KSBTYWZGJSBJ1EW6XEF"
 }
@@ -14,23 +14,27 @@ Provides the list of currently available player for a Spotify Account
 
 ### `id` (int)
 
+*Required*
+
 The id of the transaction. Must be an increment of the last transaction id.
 
 ### `type` (str)
 
-The endpoint of the websocket to reach. Must be `spotcast/devices`
+*Required*
+
+The endpoint of the WebSocket to reach. Must be `spotcast/devices`.
 
 ### `account` (str)
 
 *Optional*
 
-The entry id of the account used to look for available devices. Defaulst to the default Spotcast account if not provided.
+The `entry_id` of the account to use. Defaults to the default Spotcast account if not provided.
 
 ## Response
 
 ```json
 {
-    "id": 5,
+    "id": 1,
     "type": "result",
     "success": true,
     "result": {
@@ -38,7 +42,7 @@ The entry id of the account used to look for available devices. Defaulst to the 
         "account": "01JDG07KSBTYWZGJSBJ1EW6XEF",
         "devices": [
             {
-                "id":"042ee68e1c57247fe3c214f1669e5a4933a9f6b4",
+                "id": "042ee68e1c57247fe3c214f1669e5a4933a9f6b4",
                 "is_active": false,
                 "is_private_session": false,
                 "is_restricted": false,
@@ -54,7 +58,7 @@ The entry id of the account used to look for available devices. Defaulst to the 
 
 ### `id` (int)
 
-The id provided in the request
+The id provided in the request.
 
 ### `type` (str)
 
@@ -62,52 +66,53 @@ Always `result` on a successful request.
 
 ### `success` (bool)
 
-True if the transaction was successful.
+`true` if the transaction was successful.
 
 ### `result` (dict)
 
-The result of the transaction
+The result of the transaction.
 
 > #### `total` (int)
-> 
-> Number of devices available for the account
-> 
-> #### `devices` (list[dict])
-> 
-> The number of player available for the account at the moment of the transaction
+>
+> Number of devices available for the account.
 >
 > #### `account` (str)
-> 
-> The id of the account used in the query
+>
+> The id of the account used in the query.
+>
+> #### `devices` (list[dict])
+>
+> The devices available for the account at the time of the transaction. These are the raw Spotify device objects.
 >
 > > ##### `id` (str)
-> > 
-> > The Spotify ID of the device
-> > 
+> >
+> > The Spotify ID of the device.
+> >
 > > ##### `is_active` (bool)
-> > 
-> > `true` if the device is actively playing media
-> > 
+> >
+> > `true` if the device is actively playing media.
+> >
 > > ##### `is_private_session` (bool)
-> > 
-> > `true` if the device is currently set to a private session
-> > 
+> >
+> > `true` if the device is currently in a private session.
+> >
 > > ##### `is_restricted` (bool)
-> > 
-> > `true` if the device can,t be controlled through API calls (meaning Spotcast) cannot control the device
-> > 
+> >
+> > `true` if the device cannot be controlled through the API (Spotcast cannot control it).
+> >
 > > ##### `name` (str)
-> > 
-> > Name of the device as presented in Spotify's Apps
-> > 
+> >
+> > The name of the device as shown in Spotify's apps.
+> >
 > > ##### `supports_volume` (bool)
-> > 
-> > `true` if the device's volume can be controlled through the API
-> > 
+> >
+> > `true` if the device's volume can be controlled through the API.
+> >
 > > ##### `type` (str)
-> > 
-> > The type of devices the media player is
-> > 
+> >
+> > The type of device.
+> >
 > > ##### `volume_percent` (int)
-> > 
-> > An integer between `0` and `100` representing the percentage the voume is set at.
+> >
+> > An integer between `0` and `100` for the current volume percentage.
+> >

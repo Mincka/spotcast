@@ -1,12 +1,12 @@
 # Search
 
-Search for playlists or tracks based on a query.
+Search for playlists, tracks, albums, or artists based on a query.
 
 ## Request
 
 ```json
 {
-    "id": 7,
+    "id": 1,
     "type": "spotcast/search",
     "query": "rock",
     "search_type": "playlist",
@@ -14,43 +14,52 @@ Search for playlists or tracks based on a query.
     "account": "01JDG07KSBTYWZGJSBJ1EW6XEF"
 }
 ```
+
 ### `id` (int)
+
+*Required*
 
 The id of the transaction. Must be an increment of the last transaction id.
 
 ### `type` (str)
 
+*Required*
+
 The endpoint of the WebSocket to reach. Must be `spotcast/search`.
 
 ### `query` (str)
 
-The search query string. This can be any term, such as a track name, album, artist, playlist name, or genre.
+*Required*
+
+The search query string. Any term such as a track name, album, artist, playlist name, or genre.
 
 ### `search_type` (str)
 
 *Optional*
 
-The type of search. Can be `playlist`, `track`, `album`, or `artist`. Defaults to `playlist` if not specified.
+The type of item to search for. One of `playlist`, `track`, `album`, or `artist`. Defaults to `playlist`.
 
 ### `limit` (int)
 
 *Optional*
 
-Sets a limit to the number of results to retrieve. Defaults to 10 if not specified.
+The maximum number of results to retrieve. Defaults to `10`.
 
 ### `account` (str)
 
 *Optional*
 
-The `entry_id` of the account to use for Spotcast. If empty, the default Spotcast account is used.
+The `entry_id` of the account to use. Defaults to the default Spotcast account if not provided.
 
 ## Response
+
 ```json
 {
-    "id": 7,
+    "id": 1,
     "type": "result",
+    "success": true,
     "result": {
-        "total": 5,
+        "total": 2,
         "account": "01JDG07KSBTYWZGJSBJ1EW6XEF",
         "playlists": [
             {
@@ -66,13 +75,12 @@ The `entry_id` of the account to use for Spotcast. If empty, the default Spotcas
                 "uri": "spotify:playlist:37i9dQZF1DX4UtD7rx6U8w",
                 "description": "Indie rock tracks",
                 "icon": "https://link_to_image.com"
-            },
-            {...},
-            {...}
+            }
         ]
     }
 }
 ```
+
 ### `id` (int)
 
 The id provided in the request.
@@ -81,39 +89,43 @@ The id provided in the request.
 
 Always `result` on a successful request.
 
+### `success` (bool)
+
+`true` if the transaction was successful.
+
 ### `result` (dict)
 
 The result of the transaction.
 
 > #### `total` (int)
-> 
-> The total number of results retrieved.
-> 
+>
+> The number of results retrieved.
+>
 > #### `account` (str)
-> 
-> The account used in the query.
-> 
+>
+> The id of the account used in the query.
+>
 > #### `playlists` (list[dict])
-> 
-> A list of search results based on the search type. The key name will change depending on the search type and could be `playlists`, `tracks`, `albums`, or `artists`.
-> 
+>
+> The search results. The key name depends on `search_type` and can be `playlists`, `tracks`, `albums`, or `artists`.
+>
 > > ##### `id` (str)
-> > 
-> > The unique ID for the result. For playlists, this will be the Spotify playlist ID. For tracks, it will be the Spotify track ID. For albums or artists, it will be the corresponding Spotify ID.
-> > 
+> >
+> > The Spotify ID of the result.
+> >
 > > ##### `name` (str)
-> > 
+> >
 > > The name of the playlist, track, album, or artist.
-> > 
+> >
 > > ##### `uri` (str)
-> > 
-> > The Spotify URI for the playlist, track, album, or artist. Refer to [URI Format](https://developer.spotify.com/documentation/web-api/concepts/spotify-uris-ids) for details.
-> > 
+> >
+> > The Spotify URI of the result. See [URI format](https://developer.spotify.com/documentation/web-api/concepts/spotify-uris-ids).
+> >
 > > ##### `description` (str)
-> > 
-> > A description of the playlist, track, album, or artist, if available.
-> > 
+> >
+> > A description of the result, if available.
+> >
 > > ##### `icon` (str)
-> > 
-> > A URL to an image associated with the playlist, track, album, or artist, if available.
-
+> >
+> > A URL to an image for the result, if available.
+> >

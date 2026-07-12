@@ -1,12 +1,12 @@
 # Categories
 
-Provides the list of Browse Categories available for an account.
+Provides the list of Browse categories available for an account.
 
 ## Request
 
 ```json
 {
-    "id": 4,
+    "id": 1,
     "type": "spotcast/categories",
     "account": "01JDG07KSBTYWZGJSBJ1EW6XEF",
     "limit": 10
@@ -15,52 +15,49 @@ Provides the list of Browse Categories available for an account.
 
 ### `id` (int)
 
+*Required*
+
 The id of the transaction. Must be an increment of the last transaction id.
 
 ### `type` (str)
 
-The endpoint of the websocket to reach. Must be `spotcast/categories`
+*Required*
+
+The endpoint of the WebSocket to reach. Must be `spotcast/categories`.
 
 ### `account` (str)
 
 *Optional*
 
-The entry id of the account used to look for Browse Categories. Defaults to the Spotcast default account if not provided.
+The `entry_id` of the account to use. Defaults to the default Spotcast account if not provided.
 
 ### `limit` (int)
 
 *Optional*
 
-Limits the number of categories retrieved to the number provided. If absent, retrives all Browse categories available for the account.
+Limits the number of categories retrieved. Retrieves all available categories if not provided.
 
 ## Response
 
 ```json
 {
-    "id": 4,
+    "id": 1,
     "type": "result",
     "success": true,
-    "result":
-    {
+    "result": {
         "total": 10,
         "account": "01JDG07KSBTYWZGJSBJ1EW6XEF",
-        "categories":[
+        "categories": [
             {
-                "id":"0JQ5DAt0tbjZptfcdMSKl3",
-                "icon":"https://t.scdn.co/images/728ed47fc1674feb95f7ac20236eb6d7.jpeg",
-                "name":"Made For You"
+                "id": "0JQ5DAt0tbjZptfcdMSKl3",
+                "icon": "https://t.scdn.co/images/728ed47fc1674feb95f7ac20236eb6d7.jpeg",
+                "name": "Made For You"
             },
             {
-                "id":"0JQ5DAqbMKFNNuveavxU1i",
-                "icon":"https://t.scdn.co/images/728ed47fc1674feb95f7ac20236eb6d7.jpeg",
-                "name":"New Releases"
-            },
-            {
-                "id":"0JQ5DAtOnAEpjOgUKwXyxj",
-                "icon":"https://t.scdn.co/images/728ed47fc1674feb95f7ac20236eb6d7.jpeg",
-                "name":"Discover"
-            },
-            ...
+                "id": "0JQ5DAqbMKFNNuveavxU1i",
+                "icon": "https://t.scdn.co/images/728ed47fc1674feb95f7ac20236eb6d7.jpeg",
+                "name": "New Releases"
+            }
         ]
     }
 }
@@ -68,7 +65,7 @@ Limits the number of categories retrieved to the number provided. If absent, ret
 
 ### `id` (int)
 
-The id provided in the request
+The id provided in the request.
 
 ### `type` (str)
 
@@ -76,32 +73,33 @@ Always `result` on a successful request.
 
 ### `success` (bool)
 
-True if the transaction was successful.
+`true` if the transaction was successful.
 
 ### `result` (dict)
 
-The result of the transaction
+The result of the transaction.
 
 > #### `total` (int)
-> 
-> Number of browse categories retrieved
+>
+> Number of Browse categories retrieved.
 >
 > #### `account` (str)
 >
-> The id of the account used in the query
-> 
+> The id of the account used in the query.
+>
 > #### `categories` (list[dict])
-> 
-> The list of browse categories retrieved
+>
+> The list of Browse categories retrieved.
 >
 > > ##### `id` (str)
-> > 
-> > The identifier of the Browse category
-> > 
+> >
+> > The identifier of the Browse category.
+> >
 > > ##### `icon` (str)
-> > 
-> > URL to the image used for the browse category in Spotify's Apps
-> > 
+> >
+> > URL to the image used for the category in Spotify's apps.
+> >
 > > ##### `name` (str)
-> > 
-> > The name of the Browse Category
+> >
+> > The name of the Browse category.
+> >
