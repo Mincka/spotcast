@@ -2,36 +2,17 @@
 
 Classes:
     - TokenError
-    - ExpiredCookiesError
-    - UnknownTokenError
-    - InvalidCookiesError
-    - NoAuthManagerError
-    - ProfileNotLoadedError
+    - PlaybackError
+    - ExpiredDatasetError
+    - SearchQueryError
+    - InvalidFilterError
+    - InvalidTagsError
+    - InvalidItemTypeError
 """
 
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from custom_components.spotcast.exceptions import TokenError
-
-
-class ExpiredCookiesError(TokenError):
-    """Raised when valid cookies are expired"""
-
-
-class UnknownTokenError(TokenError):
-    """Raised when an error occurs while getting a spotify Token"""
-
-
-class InvalidCookiesError(TokenError):
-    """Raised in the case of invalid cookies provided"""
-
-
-class NoAuthManagerError(TokenError):
-    """The Spotify Account has no Authentication manager in place"""
-
-
-class ProfileNotLoadedError(HomeAssistantError):
-    """Raised when the profile is not yet loaded"""
 
 
 class PlaybackError(HomeAssistantError):
@@ -56,7 +37,3 @@ class InvalidTagsError(SearchQueryError):
 
 class InvalidItemTypeError(SearchQueryError):
     """Raised when a search query is built with an invalid item type"""
-
-
-class InvalidUriError(ServiceValidationError):
-    """raised when an invalid uri is provided"""

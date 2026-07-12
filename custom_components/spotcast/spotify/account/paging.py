@@ -24,7 +24,6 @@ class PagingMixin:  # pylint: disable=too-few-public-methods
         prepends: list = None,
         appends: list = None,
         sub_layer: str = None,
-        max_items: int = None,
     ) -> int:
         """Returns the number of item in a specific pagination
 

@@ -81,7 +81,7 @@ class SpotifyAccount(  # pylint: disable=too-many-instance-attributes
         - sessions(dict[str, ConnectionSession]): A dictionary with
             both the Internal (Private) and External (Public) API
             access
-        - is_defaults(bool): set to True if the account should be
+        - is_default(bool): set to True if the account should be
             treated as default when calling services
 
     Properties:
@@ -94,6 +94,8 @@ class SpotifyAccount(  # pylint: disable=too-many-instance-attributes
         - product(str): the current subscription product the user has
         - type(str): the type of account loaded
         - liked_songs_uri(str): the uri for the liked_songs playlist
+        - device_info(DeviceInfo): the Home Assistant device info
+        - base_refresh_rate(int): the base dataset refresh rate
 
     Constants:
         - SCOPE(tuple): A list of API permissions required for the
@@ -101,8 +103,10 @@ class SpotifyAccount(  # pylint: disable=too-many-instance-attributes
         - DJ_URI(str): the uri for the DJ playlist
         - REFRESH_RATE(int): default rate at which to deem the cache
             deprecated
-       - DATASETS(dict[str, dict]): Default configuration for datasets
+        - DATASETS(dict[str, dict]): Default configuration for datasets
             used by the account
+        - SESSION_CONFIG_MAP(dict[str, str]): maps each session key to
+            its config entry data key
 
     Functions:
         - async_from_config_entry
