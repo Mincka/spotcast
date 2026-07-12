@@ -166,7 +166,7 @@ The v6 rewrite changed both the configuration flow and the action names:
 
 ## Contributing
 
-Contributions are welcome! Please read the [contributing guidelines](./CONTRIBUTING.md) for the branch model, development setup and quality gates (test coverage and pylint score).
+Contributions are welcome! Please read the [contributing guidelines](./CONTRIBUTING.md) for the branch model, development setup and quality gates (test coverage and pylint score). For a technical overview of how the integration works (the two Spotify tokens, the Chromecast handshake, and how it relates to the built-in Spotify integration), see the [architecture document](./docs/architecture.md).
 
 ## Credits
 
