@@ -197,6 +197,86 @@ class TestCastDeviceRunningSpotifyAppForOtherAccount(IsolatedAsyncioTestCase):
             self.fail()
 
 
+class TestReportedDeviceIdOverridesRequested(IsolatedAsyncioTestCase):
+
+    @patch(f"{TEST_MODULE}.SpotifyController")
+    @patch(f"{TEST_MODULE}.Chromecast", new_callable=MagicMock)
+    async def asyncSetUp(
+            self,
+            mock_chromecast: MagicMock,
+            mock_controller: MagicMock,
+    ):
+        self.mock_account = MagicMock(spec=SpotifyAccount)
+        self.mock_hass = MagicMock(spec=HomeAssistant)
+        self.mock_hass.async_add_executor_job = AsyncMock()
+
+        self.mock_cast_info = MagicMock()
+        self.mock_cast_info.cast_type = "group"
+
+        self.mock_entity = MagicMock(spec=CastDevice)
+        self.mock_entity._cast_info = MagicMock()
+        self.mock_entity._cast_info.cast_info = self.mock_cast_info
+        self.mock_entity.app_id = None
+
+        self.mock_chromecast = mock_chromecast.return_value
+        self.mock_chromecast.app_id = None
+        self.mock_chromecast.id = "requested-id"
+        self.mock_chromecast.name = "All Speakers"
+        self.mock_chromecast.wait = MagicMock()
+        self.mock_chromecast.register_handler = MagicMock()
+
+        mock_controller.return_value.activated_device_id = "coordinator-id"
+
+        self.result = await async_build_from_type(
+            self.mock_hass,
+            self.mock_entity,
+            self.mock_account,
+        )
+
+    def test_id_set_to_reported_id(self):
+        self.assertEqual(self.mock_chromecast.id, "coordinator-id")
+
+
+class TestNoReportedDeviceIdKeepsRequested(IsolatedAsyncioTestCase):
+
+    @patch(f"{TEST_MODULE}.SpotifyController")
+    @patch(f"{TEST_MODULE}.Chromecast", new_callable=MagicMock)
+    async def asyncSetUp(
+            self,
+            mock_chromecast: MagicMock,
+            mock_controller: MagicMock,
+    ):
+        self.mock_account = MagicMock(spec=SpotifyAccount)
+        self.mock_hass = MagicMock(spec=HomeAssistant)
+        self.mock_hass.async_add_executor_job = AsyncMock()
+
+        self.mock_cast_info = MagicMock()
+        self.mock_cast_info.cast_type = "cast"
+
+        self.mock_entity = MagicMock(spec=CastDevice)
+        self.mock_entity._cast_info = MagicMock()
+        self.mock_entity._cast_info.cast_info = self.mock_cast_info
+        self.mock_entity.app_id = None
+
+        self.mock_chromecast = mock_chromecast.return_value
+        self.mock_chromecast.app_id = None
+        self.mock_chromecast.id = "requested-id"
+        self.mock_chromecast.name = "Living Room"
+        self.mock_chromecast.wait = MagicMock()
+        self.mock_chromecast.register_handler = MagicMock()
+
+        mock_controller.return_value.activated_device_id = None
+
+        self.result = await async_build_from_type(
+            self.mock_hass,
+            self.mock_entity,
+            self.mock_account,
+        )
+
+    def test_id_unchanged(self):
+        self.assertEqual(self.mock_chromecast.id, "requested-id")
+
+
 class TestSpotifyDeviceCreation(IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):

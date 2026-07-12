@@ -41,10 +41,23 @@ class Chromecast(ParentChromecast, MediaPlayer):
 
     INTEGRATION = "cast"
 
+    # Overridden with the id the device reports during the cast handshake
+    # when it differs from the requested one (see the id property).
+    _spotify_id: str = None
+
     @property
     def id(self) -> str:
-        """Returns the spotify id of the player"""
-        return md5(self.name.encode()).hexdigest()
+        """Returns the spotify id of the player.
+
+        Defaults to `md5(name)`, the id requested during the cast
+        handshake. A non-Google speaker group can register under the group
+        coordinator's id instead; once the handshake reports that id it is
+        set here and becomes the playback target."""
+        return self._spotify_id or md5(self.name.encode()).hexdigest()
+
+    @id.setter
+    def id(self, value: str) -> None:
+        self._spotify_id = value
 
     @property
     def is_group(self) -> bool:

@@ -55,6 +55,9 @@ class TestSuccessfulRequest(TestCase):
     def test_handler_returns_true(self):
         self.assertTrue(self.result)
 
+    def test_activated_device_id_stored(self):
+        self.assertEqual(self.controller.activated_device_id, "baz")
+
 
 class TestUnsuccessfulRequest(TestCase):
 

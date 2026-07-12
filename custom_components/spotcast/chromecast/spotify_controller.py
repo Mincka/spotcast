@@ -94,6 +94,7 @@ class SpotifyController(BaseController):
         self.is_launched = False
         self._current_message: dict = None
         self.current_device: Chromecast = None
+        self.activated_device_id: str = None
         self.credential_error = False
 
     def _send_message_callback(self, *_):
@@ -114,6 +115,7 @@ class SpotifyController(BaseController):
         """Launches the spotify app"""
         self.is_launched = False
         self.current_device = device
+        self.activated_device_id = None
 
         self._current_message = {
             "type": self.TYPE_GET_INFO,
@@ -196,6 +198,12 @@ class SpotifyController(BaseController):
             data: dict
     ) -> bool:
         """Handler for the get info response message"""
+        # The device reports the id it actually registered under. For single
+        # devices and Google Cast groups this matches the id we requested
+        # (md5 of the name), but non-Google groups can report the group
+        # coordinator's id instead, which is what playback must target.
+        self.activated_device_id = data["payload"]["deviceID"]
+
         token = self.account.get_token("private")
 
         headers = {

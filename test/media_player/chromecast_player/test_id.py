@@ -32,3 +32,7 @@ class TestHashCalculation(TestCase):
 
     def test_hash_value(self):
         self.assertEqual(self.device.id, self.expected)
+
+    def test_reported_id_overrides_hash(self):
+        self.device.id = "coordinator-device-id"
+        self.assertEqual(self.device.id, "coordinator-device-id")

@@ -263,6 +263,13 @@ playback to it through the public Web API
 (`account.async_play_media(device_id, uri, ...)`). The controller only
 performs authentication; it never carries the track transfer.
 
+Single devices and Google Cast groups register under exactly that
+requested id. A non-Google speaker group can instead report the group
+coordinator's id in its `getInfoResponse`; the controller captures that
+reported id (`activated_device_id`) and, when it differs from the
+requested one, `async_build_from_type` uses it as the playback target so
+the transfer lands on the group rather than missing.
+
 ---
 
 ## 6. Relationship to the built-in Home Assistant Spotify integration
