@@ -1,0 +1,32 @@
+version: 2
+updates:
+  # Python dependencies declared in the requirements*.txt files. Grouped
+  # into a single weekly PR to keep the noise down. Home Assistant is the
+  # platform floor rather than something we pin, so it is excluded from
+  # routine version bumps; security alerts still cover it.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    groups:
+      python:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "homeassistant"
+
+  # Action versions pinned in the CI workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      actions:
+        patterns:
+          - "*"
