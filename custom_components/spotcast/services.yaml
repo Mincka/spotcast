@@ -290,3 +290,21 @@ like_media:
       selector:
         config_entry:
           integration: spotcast
+
+unlike_media:
+  name: Unlike Media
+  description: Remove a list of Media from your Spotify Library
+  fields:
+    spotify_uris:
+      name: Spotify URIs
+      description: A list of Spotify URIs
+      required: true
+      selector:
+        object:
+    account:
+      name: Spotify Account
+      description: The id of the spotify account to use. Takes the default account otherwise
+      required: false
+      selector:
+        config_entry:
+          integration: spotcast
