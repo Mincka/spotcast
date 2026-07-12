@@ -348,9 +348,9 @@ similar) applied through `async_apply_extras`.
 
 Spotcast registers a set of Home Assistant WebSocket commands
 (`websocket/`) for use by frontend cards: `accounts`, `devices`,
-`cast_devices`, `categories`, `playlists`, `tracks`, `liked_media`,
-`search`, `view`, and `player`. These are read-oriented endpoints backed
-by the same account datasets, letting a custom dashboard query the account
+`castdevices`, `categories`, `playlists`, `tracks`, `liked_media`,
+`search`, and `player`. These are read-oriented endpoints backed by the
+same account datasets, letting a custom dashboard query the account
 without going through entities.
 
 ---
