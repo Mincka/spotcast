@@ -1,10 +1,7 @@
 """Custom OAuth2 with PCKE flow that uses a local relay server."""
 
-from base64 import urlsafe_b64encode
-from hashlib import sha256
 from logging import getLogger
 from time import time
-from os import urandom
 
 from homeassistant.helpers.config_entry_oauth2_flow import (
     LocalOAuth2ImplementationWithPkce,
@@ -70,14 +67,3 @@ class RelayedOAuth2ImplementationWithPcke(LocalOAuth2ImplementationWithPkce):
         result: SpotifyTokenResponse = await self._token_request(request_data)
         result["expires_at"] = result.pop("expires_in") + time()
         return result
-
-    @staticmethod
-    def generate_code_verifier(_: int = 128) -> str:
-        """Generate a code verifier."""
-        return urlsafe_b64encode(urandom(64)).rstrip(b"=").decode()
-
-    @staticmethod
-    def compute_code_challenge(code_verifier: str) -> str:
-        """Computes the code challenge."""
-        digest = sha256(code_verifier.encode()).digest()
-        return urlsafe_b64encode(digest).rstrip(b"=").decode()

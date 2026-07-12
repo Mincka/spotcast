@@ -18,34 +18,21 @@ from custom_components.spotcast.config_flow_classes.config_flow_handler \
 from test.config_flow_classes.config_flow_handler import TEST_MODULE
 
 
-class TestExternalApiEntry(IsolatedAsyncioTestCase):
+class TestDesktopAuthMenu(IsolatedAsyncioTestCase):
 
     @patch.object(
         SpotcastFlowHandler,
-        "_get_pcke_impl",
+        "async_show_menu",
         new_callable=MagicMock,
     )
-    @patch.object(
-        SpotcastFlowHandler,
-        "async_external_step",
-        new_callable=MagicMock,
-    )
-    async def asyncSetUp(self, mock_external: AsyncMock, mock_pcke: MagicMock):
-
-        mock_pcke.return_value = MagicMock(
-            spec=RelayedOAuth2ImplementationWithPcke,
-        )
+    async def asyncSetUp(self, mock_menu: MagicMock):
 
         self.mocks = {
             "hass": MagicMock(spec=HomeAssistant),
-            "external": mock_external,
-            "pcke": mock_pcke.return_value
+            "menu": mock_menu,
         }
 
         self.mocks["hass"].data = {}
-        self.mocks["pcke"].async_generate_authorize_url = AsyncMock()
-        self.mocks["pcke"].async_generate_authorize_url\
-            .return_value = "https://foo.bar"
 
         self.handler = SpotcastFlowHandler()
         self.handler.hass = self.mocks["hass"]
@@ -56,14 +43,11 @@ class TestExternalApiEntry(IsolatedAsyncioTestCase):
     def test_data_added_to_external_api(self):
         self.assertEqual(self.handler.data, {"external_api": {"foo": "bar"}})
 
-    def test_external_step_called(self):
+    def test_menu_shown(self):
         try:
-            self.mocks["external"].assert_called_with(
-                step_id="desktop_api",
-                url="https://foo.bar",
-                description_placeholders={
-                    "release_url": "https://github.com/Mincka/spotcast/blob/main/docs/config/spotcast_configuration.md",
-                },
+            self.mocks["menu"].assert_called_with(
+                step_id="desktop_auth",
+                menu_options=["desktop_api_manual", "desktop_api_auto"],
             )
         except AssertionError as exc:
             self.fail(exc)
