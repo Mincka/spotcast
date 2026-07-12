@@ -23,19 +23,25 @@ data:
 
 ### `media_player` (dict)
 
+*Optional*
+
 Let the user select a compatible device on which to start the playback. **_Must be a single device_**.
 
 ### `search_term` (str)
 
+*Required*
+
 A generic search term that could be for any type of items
 
-### item_types (list[str])
+### `item_types` (list[str])
+
+*Required*
 
 A list of item types to look for in the search query.
 
 ### `tags` (list[str])
 
-*optional*
+*Optional*
 
 A list of tags used to limit the search. Can only be used to search for albums:
 
@@ -43,6 +49,8 @@ A list of tags used to limit the search. Can only be used to search for albums:
 - `new`: Limits results to albums released in the past 2 weeks
 
 ### `filters` (dict[str,str])
+
+*Optional*
 
 A list of filters to apply to the search result. Are key value pairs of filters that can be:
 

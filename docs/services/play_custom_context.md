@@ -20,9 +20,13 @@ data:
 
 ### `media_player` (dict)
 
+*Optional*
+
 Let the user select a compatible device on which to start the playback. **_Must be a single device_**.
 
 ### `tracks` (list[str])
+
+*Required*
 
 A list of Spotify URI or URL used to build a custom context for playback. The list of songs will be used as if it was an album or playlist. Songs added to queue still take precedent on next item in context.
 

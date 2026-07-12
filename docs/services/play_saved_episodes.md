@@ -16,6 +16,8 @@ data:
 
 ### `media_player` (dict)
 
+*Optional*
+
 Let the user select a compatible device on which to start the playback. **_Must be a single device_**.
 
 ### `account` (str)

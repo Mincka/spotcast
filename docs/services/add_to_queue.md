@@ -13,7 +13,9 @@ data:
     account: 01JDG07KSBTYWZGJSBJ1EW6XEF
 ```
 
-###  `spotify_uris` (list[str])
+### `spotify_uris` (list[str])
+
+*Required*
 
 A list of spotify URI or URL to add to the queue of the current playback
 
