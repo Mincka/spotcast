@@ -183,10 +183,22 @@ async def async_remove_config_entry_device(
     if account is None:
         return True
 
-    active_ids = {device["id"] for device in account.devices}
+    # Device registry entries are keyed on the stable identity key
+    # (name + account). Older entries may still be keyed on the raw
+    # Spotify device id, so accept both for the active check.
+    # local import avoids a circular import with the media_player package
+    from .media_player import (  # pylint: disable=import-outside-toplevel
+        SpotifyDevice,
+    )
+
+    active = {device["id"] for device in account.devices}
+    active |= {
+        SpotifyDevice.compute_identity_key(device["name"], account.id)
+        for device in account.devices
+    }
 
     return not any(
-        identifier in active_ids
+        identifier in active
         for domain, identifier in device_entry.identifiers
         if domain == DOMAIN
     )
