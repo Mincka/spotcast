@@ -8,7 +8,7 @@
 
 [![release](https://img.shields.io/github/v/release/Mincka/spotcast?include_prereleases)](https://github.com/Mincka/spotcast/releases)
 [![tests](https://github.com/Mincka/spotcast/actions/workflows/unittest.yml/badge.svg?branch=main)](https://github.com/Mincka/spotcast/actions/workflows/unittest.yml)
-[![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
+[![license](https://img.shields.io/badge/license-Apache--2.0-blue)](https://github.com/Mincka/spotcast/blob/main/LICENSE)
 ![maintenance](https://img.shields.io/maintenance/yes/2026.svg)
 
 Spotcast is a Home Assistant custom integration that starts Spotify playback on an idle Chromecast or Spotify Connect device, so your automations can target both device families the same way.
