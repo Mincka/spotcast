@@ -92,7 +92,6 @@ class SpotifyController(BaseController):
 
     def _send_message_callback(self, *_):
         """Call back method to send a message after the launch method"""
-        print("sending message")
         self.send_message(self._current_message)
         self._current_message = None
 

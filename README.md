@@ -150,7 +150,6 @@ Spotcast provides multiple WebSocket API endpoints, used for example by companio
 | [`spotcast/playlists`](./docs/websocket/playlists.md)       | Provides the list of the user's playlists.                                                                                                      |
 | [`spotcast/search`](./docs/websocket/search.md)             | Searches Spotify for playlists, tracks, albums or artists.                                                                                      |
 | [`spotcast/tracks`](./docs/websocket/tracks.md)             | Provides the list of tracks in a playlist.                                                                                                      |
-| [`spotcast/view`](./docs/websocket/view.md)                 | Provides the list of playlists from a Spotify view (e.g. `recently-played`).                                                                    |
 
 ## Upgrading from v5
 
