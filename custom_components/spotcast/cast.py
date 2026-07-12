@@ -61,7 +61,7 @@ async def async_play_media(
 ) -> bool:
     """Play Media"""
     if media_id is None or not media_id.startswith("spotify:"):
-        LOGGER.debug("`%s` is not a valid spotify media id")
+        LOGGER.debug("`%s` is not a valid spotify media id", media_id)
         return False
 
     LOGGER.debug(
