@@ -92,6 +92,7 @@ Follow the [configuration guide](./docs/config/spotcast_configuration.md) or cli
 | [spotcast.transfer_playback](./docs/services/transfer_playback.md)     | Transfers the active or most recent playback to the provided device.                                 |
 | [spotcast.add_to_queue](./docs/services/add_to_queue.md)               | Adds songs to the playback queue. Fails and returns an error if there is no active playback.         |
 | [spotcast.like_media](./docs/services/like_media.md)                   | Adds a list of media URIs to the user's liked content.                                               |
+| [spotcast.unlike_media](./docs/services/unlike_media.md)               | Removes a list of track URIs from the user's liked content.                                          |
 
 ### Data
 
