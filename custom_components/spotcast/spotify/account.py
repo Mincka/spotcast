@@ -855,7 +855,7 @@ class SpotifyAccount:
         device_id: str,
         context_uri: str = None,
         uris: list[str] = None,
-        offset: int = None,
+        offset: int | str = None,
         position: int = None,
         **_,
     ) -> None:
@@ -867,8 +867,10 @@ class SpotifyAccount:
                 Defaults to None.
             uris(list[str], optional): List of uris to play in a
                 custom context. Defaults to None.
-            offset(int, optional): The offset to used in starting media
-                from a context
+            offset(int | str, optional): Where to start within the
+                context. An int is treated as a track position; a track
+                uri string starts at that track directly (avoids having
+                to resolve its position).
             position(int, optional): The position in the song to start
                 at the media.
 
@@ -895,7 +897,10 @@ class SpotifyAccount:
         )
 
         if offset is not None:
-            offset = {"position": offset}
+            if isinstance(offset, str):
+                offset = {"uri": offset}
+            else:
+                offset = {"position": offset}
 
         if position is not None:
             position = int(position * 1000)
