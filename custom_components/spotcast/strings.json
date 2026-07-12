@@ -16,16 +16,36 @@
                 "title": "Re-authenticate Spotcast",
                 "description": "The Spotcast integration needs to re-authenticate your account."
             },
+            "desktop_auth": {
+                "title": "Desktop authorization",
+                "description": "Spotcast needs a second authorization using the Spotify desktop application identity. Choose how to complete it.",
+                "menu_options": {
+                    "desktop_api_manual": "Paste the redirect URL (recommended, no extra software)",
+                    "desktop_api_auto": "Use the relay server (automatic redirect)"
+                }
+            },
+            "desktop_api_manual": {
+                "title": "Paste the redirect URL",
+                "description": "1. Open [this authorization link]({authorize_url}) and log in and authorize if asked.\n2. Your browser will then try to open `http://127.0.0.1:8080/login...` and show a connection error. This is expected.\n3. Copy the full address from your browser's address bar and paste it below.",
+                "data": {
+                    "pasted_url": "Redirect URL"
+                }
+            },
             "doc_confirm": {
                 "title": "Start Setup",
-                "description": "Please follow the [setup guide]({setup_guide}) before continuing. Confirm when you have started the relay server.",
+                "description": "Please follow the [setup guide]({setup_guide}) before continuing.",
                 "data": {
-                    "confirmed": "I have read the documentation and started the relay server"
+                    "confirmed": "I have read the documentation"
                 }
             }
         },
         "error": {
-            "must_confirm": "You must confirm before proceeding."
+            "must_confirm": "You must confirm before proceeding.",
+            "invalid_url": "That does not look like a valid redirect URL. Copy the full address from your browser's address bar.",
+            "access_denied": "Authorization was denied. Open the link again and allow access.",
+            "missing_code": "The pasted URL does not contain an authorization code. Copy the full address from your browser's address bar.",
+            "invalid_state": "The pasted URL does not match this setup attempt. Restart the setup and try again.",
+            "token_request_failed": "Could not exchange the authorization code with Spotify. Authorization codes are single-use, so open the link again for a fresh one."
         },
         "abort": {
             "connection_error": "Unable to connect to Spotify using the {account_type} credentials. If you are upgrading from v5, note that the configuration process changed completely in v6. Make sure to follow the [installation guide]({release_url}). For more help, [open a ticket]({ticket_url}).",

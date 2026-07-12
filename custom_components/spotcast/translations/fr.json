@@ -16,16 +16,36 @@
                 "title": "Ré-authentifier Spotcast",
                 "description": "L'intégration Spotcast a besoin de réauthentifier votre compte."
             },
+            "desktop_auth": {
+                "title": "Autorisation via le client de bureau",
+                "description": "Spotcast a besoin d'une seconde autorisation utilisant l'identité de l'application de bureau Spotify. Choisissez comment la réaliser.",
+                "menu_options": {
+                    "desktop_api_manual": "Coller l'URL de redirection (recommandé, sans logiciel supplémentaire)",
+                    "desktop_api_auto": "Utiliser le serveur relais (redirection automatique)"
+                }
+            },
+            "desktop_api_manual": {
+                "title": "Coller l'URL de redirection",
+                "description": "1. Ouvrez [ce lien d'autorisation]({authorize_url}) et connectez-vous puis autorisez si demandé.\n2. Votre navigateur va ensuite tenter d'ouvrir `http://127.0.0.1:8080/login...` et afficher une erreur de connexion. C'est normal.\n3. Copiez l'adresse complète depuis la barre d'adresse de votre navigateur et collez-la ci-dessous.",
+                "data": {
+                    "pasted_url": "URL de redirection"
+                }
+            },
             "doc_confirm": {
                 "title": "Démarrer la configuration",
-                "description": "Veuillez suivre le [guide de configuration]({setup_guide}) avant de continuer. Confirmez que vous avez démarré le serveur relais.",
+                "description": "Veuillez suivre le [guide de configuration]({setup_guide}) avant de continuer.",
                 "data": {
-                    "confirmed": "J'ai lu la documentation et j'ai démarré le serveur relais"
+                    "confirmed": "J'ai lu la documentation"
                 }
             }
         },
         "error": {
-            "must_confirm": "Vous devez confirmer avant de continuer."
+            "must_confirm": "Vous devez confirmer avant de continuer.",
+            "invalid_url": "Cela ne ressemble pas à une URL de redirection valide. Copiez l'adresse complète depuis la barre d'adresse de votre navigateur.",
+            "access_denied": "L'autorisation a été refusée. Ouvrez à nouveau le lien et autorisez l'accès.",
+            "missing_code": "L'URL collée ne contient pas de code d'autorisation. Copiez l'adresse complète depuis la barre d'adresse de votre navigateur.",
+            "invalid_state": "L'URL collée ne correspond pas à cette tentative de configuration. Recommencez la configuration et réessayez.",
+            "token_request_failed": "Impossible d'échanger le code d'autorisation avec Spotify. Les codes d'autorisation sont à usage unique, ouvrez à nouveau le lien pour en obtenir un nouveau."
         },
         "abort": {
             "connection_error": "Erreur de connexion à Spotify avec les informations d'identification {account_type}. Si vous effectuez une mise à jour depuis la v5, notez que le processus de configuration a complètement changé en v6. Merci de suivre le [guide d'installation]({release_url}). Pour de l'aide supplémentaire, [ouvrez un ticket]({ticket_url}).",

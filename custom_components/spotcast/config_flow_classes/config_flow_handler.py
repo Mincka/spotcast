@@ -6,10 +6,12 @@ Classes:
 
 from logging import getLogger
 from typing import Any, TYPE_CHECKING
+from urllib.parse import urlsplit, parse_qs
 
 from homeassistant.config_entries import CONN_CLASS_CLOUD_POLL
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.selector import BooleanSelector
+from homeassistant.helpers.config_entry_oauth2_flow import _decode_jwt
 from homeassistant.components.spotify.config_flow import SpotifyFlowHandler
 from homeassistant.config_entries import (
     ConfigFlowResult,
@@ -51,6 +53,24 @@ _SETUP_GUIDE_URL = (
     "https://github.com/Mincka/spotcast/blob/main/docs/config/"
     "spotcast_configuration.md"
 )
+
+# The redirect uri registered for the Spotify desktop client. The manual
+# authentication path asks the user to paste the browser URL that lands
+# on it after authorizing.
+_DESKTOP_REDIRECT_URI = "http://127.0.0.1:8080/login"
+
+
+class ManualAuthError(Exception):
+    """Raised when a pasted desktop-authentication URL cannot be used.
+
+    Attributes:
+        error_key(str): the translation key of the error to show on the
+            form.
+    """
+
+    def __init__(self, error_key: str):
+        super().__init__(error_key)
+        self.error_key = error_key
 
 
 class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
@@ -96,6 +116,12 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         }
     )
 
+    MANUAL_AUTH_SCHEMA = vol.Schema(
+        {
+            vol.Required("pasted_url"): cv.string,
+        }
+    )
+
     def __init__(self):
         """Constructor of the Spotcast Config Flow."""
         super().__init__()
@@ -104,6 +130,7 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
             "version": self.version,
         }
         self._pcke_impl = None
+        self._manual_auth_url = None
 
     @property
     def version(self) -> str:
@@ -165,6 +192,112 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         """Passes the external steps result to oauth create entry."""
         return await self.async_oauth_create_entry(user_input)
 
+    async def async_step_desktop_auth(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Lets the user choose how to provide the desktop token."""
+        return self.async_show_menu(
+            step_id="desktop_auth",
+            menu_options=["desktop_api_manual", "desktop_api_auto"],
+        )
+
+    async def async_step_desktop_api_auto(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Automatic path: a local relay server redirects the browser
+        back to Home Assistant to complete the authorization."""
+        pkce_impl = self._get_pcke_impl()
+        url = await pkce_impl.async_generate_authorize_url(
+            flow_id=self.flow_id
+        )
+
+        LOGGER.debug("External Step - url `%s`", url)
+
+        return self.async_external_step(
+            step_id="desktop_api",
+            url=url,
+            description_placeholders={"release_url": _RELEASE_URL},
+        )
+
+    async def async_step_desktop_api_manual(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Manual path: the user opens the authorization url, then pastes
+        the browser url it redirects to (which fails to load) so Spotcast
+        can exchange the authorization code itself. No relay needed."""
+        if self._manual_auth_url is None:
+            pkce_impl = self._get_pcke_impl()
+            self._manual_auth_url = await pkce_impl.async_generate_authorize_url(
+                flow_id=self.flow_id
+            )
+
+        placeholders = {"authorize_url": self._manual_auth_url}
+
+        if user_input is None:
+            return self.async_show_form(
+                step_id="desktop_api_manual",
+                data_schema=self.MANUAL_AUTH_SCHEMA,
+                description_placeholders=placeholders,
+            )
+
+        try:
+            external_data = self._parse_pasted_redirect(
+                user_input["pasted_url"]
+            )
+        except ManualAuthError as exc:
+            return self.async_show_form(
+                step_id="desktop_api_manual",
+                data_schema=self.MANUAL_AUTH_SCHEMA,
+                description_placeholders=placeholders,
+                errors={"base": exc.error_key},
+            )
+
+        try:
+            self.data["desktop_api"] = {
+                "token": await self.async_get_desktop_token(external_data),
+            }
+        except Exception:  # pylint: disable=W0718
+            LOGGER.exception("Failed to exchange the pasted authorization code")
+            return self.async_show_form(
+                step_id="desktop_api_manual",
+                data_schema=self.MANUAL_AUTH_SCHEMA,
+                description_placeholders=placeholders,
+                errors={"base": "token_request_failed"},
+            )
+
+        return await self.async_oauth_create_entry({})
+
+    def _parse_pasted_redirect(self, pasted_url: str) -> dict:
+        """Parses a pasted redirect url into the OAuth external data.
+
+        Raises:
+            ManualAuthError: when the url is missing, malformed, denied,
+                or carries a state that does not match this flow.
+        """
+        query = parse_qs(urlsplit(pasted_url.strip()).query)
+
+        if not query:
+            raise ManualAuthError("invalid_url")
+
+        if "error" in query:
+            raise ManualAuthError("access_denied")
+
+        code = query.get("code", [None])[0]
+        state = query.get("state", [None])[0]
+
+        if code is None:
+            raise ManualAuthError("missing_code")
+
+        decoded_state = _decode_jwt(self.hass, state) if state else None
+
+        if decoded_state is None or decoded_state.get("flow_id") != self.flow_id:
+            raise ManualAuthError("invalid_state")
+
+        return {"code": code, "state": decoded_state}
+
     def _get_pcke_impl(self) -> RelayedOAuth2ImplementationWithPcke:
         """Provide the custom spotcast Pkce oauth implementation."""
         if self._pcke_impl is None:
@@ -188,19 +321,7 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
             self.data["external_api"] = data
 
         if "desktop_api" not in self.data:
-            pkce_impl = self._get_pcke_impl()
-
-            url = await pkce_impl.async_generate_authorize_url(
-                flow_id=self.flow_id
-            )
-
-            LOGGER.debug("External Step - url `%s`", url)
-
-            return self.async_external_step(
-                step_id="desktop_api",
-                url=url,
-                description_placeholders={"release_url": _RELEASE_URL},
-            )
+            return await self.async_step_desktop_auth()
 
         external_api = self.data["external_api"]
 
