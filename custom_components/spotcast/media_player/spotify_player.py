@@ -40,7 +40,12 @@ class SpotifyDevice(MediaPlayer, MediaPlayerEntity):
 
     INTEGRATION = DOMAIN
 
-    def __init__(self, account: SpotifyAccount, device_data: dict):
+    def __init__(
+        self,
+        account: SpotifyAccount,
+        device_data: dict,
+        identity_key: str | None = None,
+    ):
         """Initialize the spotify device
 
         Args:
@@ -48,25 +53,38 @@ class SpotifyDevice(MediaPlayer, MediaPlayerEntity):
                 to.
             - device_data(dict): the information related to device
                 provided by the Spotify API
+            - identity_key(str, optional): the stable key to base the
+                unique id, entity id and device registry entry on. When
+                omitted it is derived from the device name and account,
+                which is what keeps the entity stable across the Spotify
+                Connect device id changing between sessions (see #580,
+                #586). The DeviceManager passes an explicit key when a
+                name collision requires disambiguation.
         """
         self.device_data: dict = device_data
         self._attr_extra_state_attributes = self.device_data
         self._account: SpotifyAccount = account
+        self._identity_key = identity_key or self.compute_identity_key(
+            device_data["name"], account.id
+        )
+        self._attr_unique_id = f"{self._identity_key}_spotcast_device"
         self.entity_id = self._define_entity_id()
         self.is_unavailable = False
         self.playback_state: dict = {}
 
         self.device_info = DeviceInfo(
-            identifiers={(DOMAIN, self.id)},
+            identifiers={(DOMAIN, self._identity_key)},
             manufacturer="Spotify AB",
             model=f"Spotify Connect {self.device_data['type']}",
             name=self.name,
         )
 
-    @property
-    def unique_id(self) -> str:
-        """The unique identifier for Home Assistant"""
-        return f"{self.id}_{self._account.id}_spotcast_device"
+    @staticmethod
+    def compute_identity_key(name: str, account_id: str) -> str:
+        """The stable identity key for a device. Based on the device
+        name (which is stable) rather than the Spotify Connect device id
+        (which changes between sessions for some devices)."""
+        return f"{slugify(name)}_{account_id}"
 
     @property
     def id(self) -> str:
@@ -112,8 +130,6 @@ class SpotifyDevice(MediaPlayer, MediaPlayerEntity):
         return STATE_ON if is_active else STATE_OFF
 
     def _define_entity_id(self):
-        """Define the entity ID based on the account profile"""
+        """Define the entity ID from the stable identity key"""
 
-        name = slugify(self.device_data["name"])
-
-        return f"media_player.{name}_{self._account.id}_spotcast"
+        return f"media_player.{self._identity_key}_spotcast"

@@ -22,7 +22,8 @@ def build_mocks(active_ids: list[str], identifiers: set) -> dict:
         "device": MagicMock(spec=DeviceEntry),
     }
     mocks["entry"].entry_id = "12345"
-    mocks["account"].devices = [{"id": x} for x in active_ids]
+    mocks["account"].id = "acct"
+    mocks["account"].devices = [{"id": x, "name": x} for x in active_ids]
     mocks["device"].identifiers = identifiers
     mocks["hass"].data = {
         DOMAIN: {"12345": {"account": mocks["account"]}}
@@ -44,6 +45,19 @@ class TestActiveDeviceRemoval(IsolatedAsyncioTestCase):
 
     async def test_active_device_cannot_be_removed(self):
         mocks = build_mocks(["foo"], {(DOMAIN, "foo")})
+        result = await async_remove_config_entry_device(
+            mocks["hass"], mocks["entry"], mocks["device"],
+        )
+        self.assertFalse(result)
+
+
+class TestActiveDeviceByIdentityKey(IsolatedAsyncioTestCase):
+
+    async def test_active_device_by_key_cannot_be_removed(self):
+        # device registry entries are keyed on the stable identity key
+        # (name + account), so an active device must be protected when
+        # matched by that key too
+        mocks = build_mocks(["foo"], {(DOMAIN, "foo_acct")})
         result = await async_remove_config_entry_device(
             mocks["hass"], mocks["entry"], mocks["device"],
         )
