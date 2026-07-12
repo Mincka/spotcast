@@ -1,8 +1,4 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./assets/images/logo/white/128.png">
-  <source media="(prefers-color-scheme: light)" srcset="./assets/images/logo/dark_gray/128.png">
-  <img alt="Spotcast" src="https://raw.githubusercontent.com/Mincka/spotcast/main/assets/images/logo/green/128.png">
-</picture>
+<img alt="Spotcast" src="https://raw.githubusercontent.com/Mincka/spotcast/main/assets/images/logo/green/128.png">
 
 ------------------------------------------------------------------------------
 
