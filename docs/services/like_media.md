@@ -14,6 +14,8 @@ data:
 ```
 ### `spotify_uris` (list[str])
 
+*Required*
+
 A list of Spotify URIs or URLs to be liked. These can represent various types of content, including tracks, albums, or playlists.
 
 ### `account` (str)
