@@ -909,17 +909,42 @@ class SpotifyAccount:
             uris = [context_uri]
             context_uri = None
 
+        start_args = (
+            self.apis["public"].start_playback,
+            device_id,
+            context_uri,
+            uris,
+            offset,
+            position,
+        )
+
         try:
-            await self.hass.async_add_executor_job(
-                self.apis["public"].start_playback,
-                device_id,
-                context_uri,
-                uris,
-                offset,
-                position,
-            )
+            await self.hass.async_add_executor_job(*start_args)
         except SpotifyException as exc:
-            raise PlaybackError(exc.msg) from exc
+            if exc.http_status != 404:
+                raise PlaybackError(exc.msg) from exc
+
+            # A Spotify Connect device that just came online (e.g. a
+            # librespot device) may not be registered yet when we issue
+            # the play command, so Spotify answers 404 "Device not found".
+            # Wait for it to appear and retry once before giving up,
+            # instead of surfacing an error the user cannot act on.
+            LOGGER.info(
+                "Device `%s` not found on first play attempt; waiting for "
+                "it to become available",
+                device_id,
+            )
+
+            try:
+                await self.async_wait_for_device(device_id)
+                await self.hass.async_add_executor_job(*start_args)
+            except TimeoutError as timeout_exc:
+                raise PlaybackError(
+                    f"Device `{device_id}` is not available on Spotify "
+                    "Connect."
+                ) from timeout_exc
+            except SpotifyException as retry_exc:
+                raise PlaybackError(retry_exc.msg) from retry_exc
 
     async def async_shuffle(
         self,
