@@ -4,6 +4,7 @@ from logging import getLogger
 from hashlib import md5
 
 from pychromecast import Chromecast as ParentChromecast
+from pychromecast.const import CAST_TYPE_GROUP
 
 import pychromecast  # pylint: disable=unused-import
 
@@ -44,3 +45,9 @@ class Chromecast(ParentChromecast, MediaPlayer):
     def id(self) -> str:
         """Returns the spotify id of the player"""
         return md5(self.name.encode()).hexdigest()
+
+    @property
+    def is_group(self) -> bool:
+        """Returns True if the player is a speaker group (e.g. a Google
+        Cast group), as opposed to a single cast device."""
+        return self.cast_type == CAST_TYPE_GROUP

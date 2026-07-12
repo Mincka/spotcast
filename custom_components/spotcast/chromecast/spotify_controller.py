@@ -6,6 +6,7 @@ Classes:
 
 from logging import getLogger
 import threading
+import time
 import json
 
 from pychromecast.controllers import BaseController
@@ -23,6 +24,11 @@ from custom_components.spotcast.chromecast.exceptions import (
 )
 
 LOGGER = getLogger(__name__)
+
+# A speaker group fans the app launch out to each of its members, so its
+# cast/zeroconf traffic needs a moment to settle before the group can answer
+# a `getInfo` request reliably. Single devices do not need this.
+GROUP_LAUNCH_DELAY = 3.0
 
 
 class SpotifyController(BaseController):
@@ -92,6 +98,15 @@ class SpotifyController(BaseController):
 
     def _send_message_callback(self, *_):
         """Call back method to send a message after the launch method"""
+        if self.current_device is not None and self.current_device.is_group:
+            LOGGER.debug(
+                "`%s` is a speaker group; waiting %.1fs for cast responses "
+                "to settle before requesting device info",
+                self.current_device.name,
+                GROUP_LAUNCH_DELAY,
+            )
+            time.sleep(GROUP_LAUNCH_DELAY)
+
         self.send_message(self._current_message)
         self._current_message = None
 
@@ -105,7 +120,7 @@ class SpotifyController(BaseController):
             "payload": {
                 "remoteName": device.name,
                 "deviceID": device.id,
-                "deviceAPI_isGroup": False,
+                "deviceAPI_isGroup": device.is_group,
             }
         }
 
