@@ -18,7 +18,7 @@ from test.spotify.account import TEST_MODULE
 class TestDelegation(IsolatedAsyncioTestCase):
 
     @patch(
-        f"{TEST_MODULE}.async_get_playlist_length",
+        f"{TEST_MODULE}.internal.async_get_playlist_length",
         new_callable=AsyncMock,
     )
     @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)

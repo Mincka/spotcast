@@ -17,7 +17,7 @@ from test.spotify.account import TEST_MODULE
 class TestDataRetention(TestCase):
 
     @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
-    @patch(f"{TEST_MODULE}.run_coroutine_threadsafe")
+    @patch(f"{TEST_MODULE}.token.run_coroutine_threadsafe")
     @patch(f"{TEST_MODULE}.Spotify")
     def setUp(
             self,
