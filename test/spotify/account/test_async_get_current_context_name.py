@@ -20,7 +20,7 @@ class _AccountCase(IsolatedAsyncioTestCase):
     PLAYBACK = {}
 
     @patch(
-        f"{TEST_MODULE}.async_get_playlist_name",
+        f"{TEST_MODULE}.internal.async_get_playlist_name",
         new_callable=AsyncMock,
     )
     @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
@@ -113,7 +113,7 @@ class TestCachedByUri(IsolatedAsyncioTestCase):
     without hitting the internal endpoint again."""
 
     @patch(
-        f"{TEST_MODULE}.async_get_playlist_name",
+        f"{TEST_MODULE}.internal.async_get_playlist_name",
         new_callable=AsyncMock,
     )
     @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
