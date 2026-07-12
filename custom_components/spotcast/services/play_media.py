@@ -246,6 +246,38 @@ async def async_context_index(
     return context_uri, track_uris.index(track_uri)
 
 
+async def _async_editorial_random_index(
+    account: SpotifyAccount, uri: str
+) -> int:
+    """Returns a random start index for a playlist the public Web API
+    would not resolve (typically an editorial/algorithmic playlist).
+
+    It first tries Spotify's unofficial internal endpoint to get the real
+    track count and pick a genuinely random index across the whole
+    playlist. If that endpoint is unavailable, it keeps the previous
+    behaviour of a pseudo-random offset within the first few tracks.
+    """
+    length = await account.async_get_internal_playlist_length(uri)
+    if length is not None and length > 0:
+        LOGGER.debug(
+            "Resolved %d tracks for playlist `%s` through the internal "
+            "endpoint; using a random start offset across the playlist.",
+            length,
+            uri,
+        )
+        return randint(0, length - 1)
+
+    LOGGER.warning(
+        "Could not determine the track count for playlist `%s` (likely a "
+        "Spotify editorial/algorithmic playlist no longer exposed through "
+        "the Web API, with the internal endpoint unavailable). Using a "
+        "pseudo-random start offset within the first %d tracks.",
+        uri,
+        _RANDOM_FALLBACK_ITEMS,
+    )
+    return randint(0, _RANDOM_FALLBACK_ITEMS - 1)
+
+
 async def async_random_index(account: SpotifyAccount, uri: str) -> int:
     """Returns a random index for starting the context at. Must be an
     artist, album or playlist
@@ -270,26 +302,11 @@ async def async_random_index(account: SpotifyAccount, uri: str) -> int:
             tracks = playlist.get("tracks") or playlist.get("items") or {}
             count = tracks.get("total")
             if count is None:
-                LOGGER.warning(
-                    "Could not determine the track count for playlist "
-                    "`%s`. Using a pseudo-random start offset within the "
-                    "first %d tracks.",
-                    uri,
-                    _RANDOM_FALLBACK_ITEMS,
-                )
-                return randint(0, _RANDOM_FALLBACK_ITEMS - 1)
+                return await _async_editorial_random_index(account, uri)
         except SpotifyException as exc:
             if exc.http_status != 404:
                 raise
-            LOGGER.warning(
-                "Spotify returned 404 for playlist `%s` (likely a Spotify "
-                "editorial/algorithmic playlist no longer exposed through "
-                "the Web API). Using a pseudo-random start offset within "
-                "the first %d tracks.",
-                uri,
-                _RANDOM_FALLBACK_ITEMS,
-            )
-            return randint(0, _RANDOM_FALLBACK_ITEMS - 1)
+            return await _async_editorial_random_index(account, uri)
     elif uri == account.liked_songs_uri:
         count = await account.async_liked_songs_count()
     else:
