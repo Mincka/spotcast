@@ -257,22 +257,28 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Confirm reauth dialog."""
         reauth_entry = self._get_reauth_entry()
+        external_api = reauth_entry.data.get("external_api", {})
 
         if user_input is None:
             return self.async_show_form(
                 step_id="reauth_confirm",
                 description_placeholders={
-                    "account": reauth_entry.data["external_api"]["id"]
+                    "account": external_api.get("id", "unknown account")
                 },
                 errors={},
             )
 
+        # `auth_implementation` may be absent on entries created by older
+        # versions with a different data layout. Falling back to the
+        # implementation picker without a preselected implementation lets the
+        # user recover instead of hitting a config flow 500 error.
+        auth_implementation = external_api.get("auth_implementation")
+
+        if auth_implementation is None:
+            return await self.async_step_pick_implementation()
+
         return await self.async_step_pick_implementation(
-            user_input={
-                "implementation": reauth_entry.data["external_api"][
-                    "auth_implementation"
-                ]
-            }
+            user_input={"implementation": auth_implementation}
         )
 
     @staticmethod
