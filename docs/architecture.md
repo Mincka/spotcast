@@ -33,7 +33,7 @@ Config entry (per Spotify account)
   data.desktop_api    -> desktop OAuth token   (elevated capabilities)
         |
         v
-  SpotifyAccount  (spotify/account.py)
+  SpotifyAccount  (spotify/account/ package: facade __init__.py + mixins)
     sessions["public"]  = PublicSession   -> api.spotify.com  (spotipy)
     sessions["private"] = DesktopSession  -> accounts.spotify.com + spclient
         |

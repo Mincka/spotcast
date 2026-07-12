@@ -121,6 +121,7 @@ Spotcast creates multiple entities for each Spotify account.
 | `sensor.[...]_spotify_followers`    | Tracks the number of followers the account has.                                        | `int`           |
 | `sensor.[...]_spotify_liked_songs`  | Tracks the number of songs liked by the account.                                       | `int`           |
 | `sensor.[...]_spotify_playlists`    | Tracks the number of playlists created by the account.                                 | `int`           |
+| `sensor.[...]_spotify_current_playlist` | Reports the name of the playlist currently playing, resolved through Spotify's internal endpoint so it also works for editorial playlists. | `str\|unknown`  |
 | `sensor.[...]_spotify_account_type` | Diagnostic sensor that reports the type of account connected through Spotcast.         | `user`          |
 | `sensor.[...]_spotify_product`      | Diagnostic sensor that reports the subscription level of the account.                  | `premium\|free` |
 

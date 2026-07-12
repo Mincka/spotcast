@@ -10,7 +10,7 @@ data:
     media_player:
         entity_id: media_player.foo
     spotify_uri: spotify:album:1chw1DFmefTueG1VbNVoGN
-    spotify_account: 01JDG07KSBTYWZGJSBJ1EW6XEF
+    account: 01JDG07KSBTYWZGJSBJ1EW6XEF
     data:
         repeat: context
 ```
@@ -19,11 +19,13 @@ data:
 
 Let the user select a compatible device on which to start the playback. **_Must be a single device_**.
 
-### `uri` (str)
+### `spotify_uri` (str)
+
+*Required*
 
 The Spotify URI or URL used for the context in the playback. In the case of a track URI, the context will become the album of the track, but set to the correct position of the track in the album. This behavior can be changed with the `track_context` option in `data`: `track` plays only the song, `album` (default) plays the rest of the album afterwards, and an album or playlist URI (e.g. `spotify:playlist:xxxx`) plays the track inside that context, continuing with the context afterwards. The track must be part of the provided context.
 
-### `spotify_account` (str)
+### `account` (str)
 
 *Optional*
 
@@ -45,4 +47,4 @@ Set of additional settings to apply when starting the playback. The available op
 | `random`   | `bool`                    | `False` | Sets the context playback to a random song of the context. Only available for albums, playlists and custom contexts |
 
 > [!NOTE]
-> **Spotify editorial/algorithmic playlists** (the `spotify:playlist:37i9…` IDs - Daily Mix, Discover Weekly, Release Radar, song radios, etc.): Spotify no longer serves these playlists' contents through the Web API, so `random` cannot read the real track count. For them it falls back to a random start within the **first 25 tracks** (emitted as a log warning). Regular playlists are unaffected.
+> **Spotify editorial/algorithmic playlists** (the `spotify:playlist:37i9…` IDs - Daily Mix, Discover Weekly, Release Radar, song radios, etc.): Spotify no longer serves these playlists' contents through the public Web API, so `random` cannot read the track count from there. For them it resolves the real track count through Spotify's internal metadata endpoint and picks a random start across the **whole playlist**. Only if that endpoint is unavailable does it fall back to a random start within the first 25 tracks (emitted as a log warning). Regular playlists are unaffected.
