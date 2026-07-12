@@ -342,3 +342,19 @@ class LibraryMixin:
                 self.apis["public"].current_user_saved_tracks_add,
                 uris,
             )
+
+    async def async_unlike_media(self, uris: list[str]):
+        """Removes a list of uris from the user's liked songs."""
+        await self.async_ensure_tokens_valid()
+
+        dataset = self._datasets["liked_songs"]
+
+        # Force expire the liked_songs dataset
+        async with dataset.lock:
+            dataset.expires_at = 0
+            LOGGER.debug("Expired liked_songs dataset after removing likes")
+
+            await self.hass.async_add_executor_job(
+                self.apis["public"].current_user_saved_tracks_delete,
+                uris,
+            )

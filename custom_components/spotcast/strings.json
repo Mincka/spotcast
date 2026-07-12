@@ -116,6 +116,20 @@
                 }
             }
         },
+        "unlike_media": {
+            "name": "Unlike Media",
+            "description": "Remove a list of media from your Spotify Library",
+            "fields": {
+                "spotify_uris": {
+                    "name": "Spotify URIs",
+                    "description": "A list of media to remove from the Spotify Library"
+                },
+                "account": {
+                    "name": "Spotify Account",
+                    "description": "The ID of the Spotify account to use. Takes the default account otherwise."
+                }
+            }
+        },
         "play_custom_context": {
             "name": "Play Custom Context",
             "description": "Starts playback from a custom list of tracks URIs",

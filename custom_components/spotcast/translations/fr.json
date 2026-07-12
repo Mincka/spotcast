@@ -116,6 +116,20 @@
                 }
             }
         },
+        "unlike_media": {
+            "name": "Retirer un Média",
+            "description": "Retire une liste de média de la librairie Spotify.",
+            "fields": {
+                "spotify_uris": {
+                    "name": "URIs Spotify",
+                    "description": "Une liste de média à retirer de la librairie Spotify."
+                },
+                "account": {
+                    "name": "Compte Spotify",
+                    "description": "L'ID du compte Spotify à utiliser. Utilise le compte par défaut sinon."
+                }
+            }
+        },
         "play_custom_context": {
             "name": "Lire un context personalisé",
             "description": "Démarre une lecture avec une liste personalisé de chansons.",
