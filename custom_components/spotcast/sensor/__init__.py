@@ -33,6 +33,9 @@ from custom_components.spotcast.sensor.spotify_followers_sensor import (
 from custom_components.spotcast.sensor.spotify_account_type_sensor import (
     SpotifyAccountTypeSensor
 )
+from custom_components.spotcast.sensor.spotify_current_context_sensor import (
+    SpotifyCurrentContextSensor
+)
 
 LOGGER = getLogger(__name__)
 SENSORS = (
@@ -43,6 +46,7 @@ SENSORS = (
     SpotifyProductSensor,
     SpotifyFollowersSensor,
     SpotifyAccountTypeSensor,
+    SpotifyCurrentContextSensor,
 )
 
 
