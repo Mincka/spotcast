@@ -141,6 +141,9 @@ class TestPlaylistNotFound(IsolatedAsyncioTestCase):
         self.mocks["account"].async_get_playlist = AsyncMock(
             side_effect=SpotifyException(404, -1, "Resource not found")
         )
+        self.mocks["account"].async_get_internal_playlist_length = AsyncMock(
+            return_value=None
+        )
 
         self.resut = await async_random_index(
             self.mocks["account"],
@@ -155,6 +158,43 @@ class TestPlaylistNotFound(IsolatedAsyncioTestCase):
             self.mocks["random"].assert_called_once_with(
                 0, _RANDOM_FALLBACK_ITEMS - 1
             )
+        except AssertionError as exc:
+            self.fail(exc)
+
+
+class TestPlaylistNotFoundInternalLength(IsolatedAsyncioTestCase):
+    """When the public Web API 404s on an editorial playlist but the
+    unofficial internal endpoint resolves its real length, the random
+    start must span the whole playlist rather than the fallback window."""
+
+    @patch(f"{TEST_MODULE}.randint", new_callable=MagicMock)
+    async def asyncSetUp(self, mock_random: MagicMock):
+
+        mock_random.return_value = 61
+
+        self.mocks = {
+            "account": MagicMock(spec=SpotifyAccount),
+            "random": mock_random,
+        }
+
+        self.mocks["account"].async_get_playlist = AsyncMock(
+            side_effect=SpotifyException(404, -1, "Resource not found")
+        )
+        self.mocks["account"].async_get_internal_playlist_length = AsyncMock(
+            return_value=80
+        )
+
+        self.resut = await async_random_index(
+            self.mocks["account"],
+            "spotify:playlist:37i9dQZF1DX4sWSpwq3LiO",
+        )
+
+    def test_returns_internal_random_offset(self):
+        self.assertEqual(self.resut, 61)
+
+    def test_offset_spans_full_playlist(self):
+        try:
+            self.mocks["random"].assert_called_once_with(0, 79)
         except AssertionError as exc:
             self.fail(exc)
 
@@ -227,6 +267,9 @@ class TestPlaylistWithoutTrackCountRandInt(IsolatedAsyncioTestCase):
         self.mocks["account"].async_get_playlist.return_value = {
             "id": "foo"
         }
+        self.mocks["account"].async_get_internal_playlist_length = AsyncMock(
+            return_value=None
+        )
         self.resut = await async_random_index(
             self.mocks["account"],
             "spotify:playlist:foo",
@@ -241,5 +284,41 @@ class TestPlaylistWithoutTrackCountRandInt(IsolatedAsyncioTestCase):
                 0,
                 _RANDOM_FALLBACK_ITEMS - 1,
             )
+        except AssertionError as exc:
+            self.fail(exc)
+
+
+class TestPlaylistNoCountInternalLength(IsolatedAsyncioTestCase):
+    """When the Web API returns a playlist without a track count but the
+    internal endpoint resolves the real length, span the whole playlist."""
+
+    @patch(f"{TEST_MODULE}.randint", new_callable=MagicMock)
+    async def asyncSetUp(self, mock_random: MagicMock):
+
+        mock_random.return_value = 12
+        self.mock_random = mock_random
+
+        self.mocks = {
+            "account": MagicMock(spec=SpotifyAccount)
+        }
+
+        self.mocks["account"].async_get_playlist = AsyncMock()
+        self.mocks["account"].async_get_playlist.return_value = {
+            "id": "foo"
+        }
+        self.mocks["account"].async_get_internal_playlist_length = AsyncMock(
+            return_value=30
+        )
+        self.resut = await async_random_index(
+            self.mocks["account"],
+            "spotify:playlist:foo",
+        )
+
+    def test_received_expected_index(self):
+        self.assertEqual(self.resut, 12)
+
+    def test_offset_spans_full_playlist(self):
+        try:
+            self.mock_random.assert_called_with(0, 29)
         except AssertionError as exc:
             self.fail(exc)

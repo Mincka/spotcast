@@ -31,6 +31,9 @@ from custom_components.spotcast.sessions import (
 )
 from custom_components.spotcast.utils import ensure_default_data, copy_to_dict
 from custom_components.spotcast.spotify.dataset import Dataset
+from custom_components.spotcast.spotify.internal_api import (
+    async_get_playlist_length,
+)
 from custom_components.spotcast.spotify.search_query import SearchQuery
 from custom_components.spotcast.spotify.utils import select_image_url
 from custom_components.spotcast.spotify.exceptions import (
@@ -372,6 +375,22 @@ class SpotifyAccount:
         """
         await self.sessions[api].async_ensure_token_valid()
         return self.sessions[api].access_token
+
+    async def async_get_internal_playlist_length(
+        self, uri: str
+    ) -> int | None:
+        """Returns the track count of a playlist through Spotify's
+        unofficial internal endpoint, which also resolves editorial and
+        algorithmic playlists that 404 on the public Web API.
+
+        Args:
+            - uri(str): the playlist uri
+
+        Returns:
+            - int | None: the track count, or None when the internal
+                endpoint is unavailable (callers should fall back)
+        """
+        return await async_get_playlist_length(self, uri)
 
     async def async_ensure_tokens_valid(
         self,
