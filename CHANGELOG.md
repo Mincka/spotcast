@@ -2,13 +2,22 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases).
 
-## v6.1.0 (upcoming)
+## v6.1.0 (2026-07-12)
 
 ### Changes
 
 - Entity updates are now driven by a per-account `DataUpdateCoordinator`. Sensors, binary sensors and the Spotify Connect device manager refresh in a single API burst per update interval instead of polling individually, eliminating the "Updating spotcast sensor took longer than the scheduled update interval" log spam ([fondberg/spotcast#608](https://github.com/fondberg/spotcast/issues/608)).
 - The `base_refresh_rate` option now controls the actual update cadence and applies immediately when changed, without the previous hidden 30 second polling floor ([fondberg/spotcast#592](https://github.com/fondberg/spotcast/issues/592)). Values as low as 5 seconds are accepted.
 - Calling `homeassistant.update_entity` on a Spotcast entity now triggers a real refresh through the coordinator.
+- Spotcast devices can now be deleted from the Home Assistant UI, and devices unavailable for more than 7 days are removed automatically. Spotify session devices (Jams) no longer accumulate forever ([fondberg/spotcast#608](https://github.com/fondberg/spotcast/issues/608)).
+- Granted OAuth scopes are validated at setup: if a newer version requires additional permissions, Home Assistant now prompts for reauthentication instead of failing with unexplained 403 errors ([fondberg/spotcast#601](https://github.com/fondberg/spotcast/issues/601)).
+- `play_media` accepts an album or playlist URI in `track_context`, playing the track inside that context (feature designed in [fondberg/spotcast#551](https://github.com/fondberg/spotcast/issues/551), thanks @sermayoral).
+- `play_from_search` and search endpoints tolerate a null item list from Spotify (thanks @iammoen, [fondberg/spotcast#604](https://github.com/fondberg/spotcast/pull/604)); `random` start handles playlist payloads with an `items` key (thanks @superbullock, [fondberg/spotcast#609](https://github.com/fondberg/spotcast/pull/609)).
+
+### Documentation
+
+- The README and the configuration guide now state that part of the authentication uses the official Spotify desktop application's identity and may break without notice if Spotify changes its systems.
+- One consolidated bug-report template (stable and pre-release), with links to the configuration and debug-log guides.
 
 ## v6.0.0 (2026-07-11)
 
