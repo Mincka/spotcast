@@ -8,6 +8,11 @@ from logging import getLogger
 from types import MappingProxyType
 
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 from homeassistant.config_entries import (
     OptionsFlow,
     ConfigFlowResult,
@@ -40,8 +45,12 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
                     vol.Range(min=5),
                 ),
                 vol.Required("stale_device_timeout"): cv.positive_int,
-                vol.Required("device_filter_mode"): vol.In(
-                    ["deny", "allow"],
+                vol.Required("device_filter_mode"): SelectSelector(
+                    SelectSelectorConfig(
+                        options=["deny", "allow"],
+                        mode=SelectSelectorMode.DROPDOWN,
+                        translation_key="device_filter_mode",
+                    ),
                 ),
                 vol.Optional("device_filter_patterns", default=""): str,
             }

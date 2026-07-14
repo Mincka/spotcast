@@ -79,6 +79,12 @@
         }
     },
     "selector": {
+        "device_filter_mode": {
+            "options": {
+                "deny": "Refuser",
+                "allow": "Autoriser"
+            }
+        },
         "item_type": {
             "options": {
                 "album": "Album",
