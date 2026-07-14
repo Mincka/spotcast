@@ -69,7 +69,7 @@
                     "base_refresh_rate": "Fréquence (en secondes) de rafraichissement des données du compte depuis Spotify.",
                     "stale_device_timeout": "Nombre de jours avant la suppression d'un appareil indisponible et de son entité. 0 supprime immédiatement.",
                     "device_filter_mode": "Le mode deny ignore les appareils correspondant aux motifs. Le mode allow ne crée des entités que pour les appareils correspondants.",
-                    "device_filter_patterns": "Noms d'appareils séparés par des virgules, insensibles à la casse, jokers autorisés. Exemple : \"*Jam*, Pixel 7 Pro\". Laisser vide pour conserver tous les appareils."
+                    "device_filter_patterns": "Noms d'appareils séparés par des virgules, insensibles à la casse, jokers autorisés. Exemple : `*Jam*, Pixel 7 Pro`. Laisser vide pour conserver tous les appareils."
                 },
                 "title": "Spotcast - Options"
             }
