@@ -111,7 +111,10 @@ Controls which Spotify Connect devices get a `media_player` entity. Patterns are
 - **deny** (default): devices whose name matches any pattern are ignored. With no patterns, every device is kept. Example: `*Jam*, Pixel 7 Pro` hides Jam sessions and a specific phone.
 - **allow**: only devices whose name matches a pattern get an entity. Example: `Kitchen*, Living Room TV`. With no patterns, the filter is ignored (so a misconfiguration cannot hide every device).
 
-Filtered devices can still be used as cast targets by name in action calls; the filter only controls entity creation. A device filtered after its entity already existed becomes unavailable and is removed by the stale-device timeout above.
+> [!IMPORTANT]
+> Do not filter devices you want to target in action calls. Spotcast actions address a device through its `media_player` entity, so a filtered device cannot be targeted (except implicitly, as the currently active device). The exception is Chromecast devices: they are targeted through the `cast` integration's own entity, which Spotcast does not manage, so filtering their Spotcast twin only removes the informational entity.
+
+A device filtered after its entity already existed becomes unavailable and is removed by the stale-device timeout above.
 
 #### Example: a household that uses Jam sessions a lot
 

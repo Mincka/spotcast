@@ -360,8 +360,13 @@ lifecycle, driven by two per-account options (see the
   case-insensitive `fnmatch` name patterns applied in
   `_key_current_devices`, either as a deny list or an opt-in allow list.
   Allow mode with no patterns is deliberately ignored (it would filter
-  every device). Filtering only controls entity creation; filtered
-  devices remain valid cast targets by name in actions.
+  every device). Note that actions target devices through their
+  `media_player` entity (`media_player/utils.py` resolves either a
+  `cast` integration entity or a Spotcast `SpotifyDevice`), so a
+  filtered non-Chromecast device cannot be targeted except as the
+  currently active device. Chromecasts are unaffected: their action
+  target is the `cast` integration's entity, and the Spotcast twin is
+  informational only.
 - **Stale purge** (`stale_device_timeout`, in days): a device missing
   from the Connect list is marked unavailable and purged (entity +
   device registry entry) once past the timeout. The unavailability
