@@ -10,6 +10,8 @@ This repository is the continuation of the original [fondberg/spotcast](https://
 - When Spotify's API returns repeated server errors, the coordinator now reports "Spotify API temporarily unavailable (server errors)" instead of echoing the misleading `http status: 429` that the spotipy library hard-codes on retry exhaustion ([#54](https://github.com/Mincka/spotcast/issues/54), [spotipy-dev/spotipy#805](https://github.com/spotipy-dev/spotipy/issues/805)). Genuine rate limits keep the previous message.
 - A failed refresh logs one error instead of two: the profile malfunction binary sensor no longer duplicates the coordinator's error line ([#54](https://github.com/Mincka/spotcast/issues/54)).
 - The stale-device purge survives Home Assistant restarts (unavailability timestamps are persisted) and now also removes devices left over from previous Spotcast versions once they exceed the timeout ([#56](https://github.com/Mincka/spotcast/issues/56)).
+- System health no longer leaks Spotify account ids or usernames into bug reports: accounts are reported as `Account 1`, `Account 2`, and so on.
+- The `Device Registration Endpoint` system health check reported `unreachable` for everyone: it passed a bare hostname instead of a URL, so the request never started. It now checks the full address.
 
 ### Changes
 
