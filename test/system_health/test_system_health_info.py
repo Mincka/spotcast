@@ -49,8 +49,17 @@ class TestHealthyAccount(IsolatedAsyncioTestCase):
         self.assertEqual(self.result["Version"], __version__)
 
     def test_results_set_user_as_default(self):
-        self.assertIn("Dummy Is Default", self.result)
-        self.assertTrue(self.result["Dummy Is Default"])
+        self.assertIn("Account 1 Is Default", self.result)
+        self.assertTrue(self.result["Account 1 Is Default"])
+
+    def test_no_account_identifier_leaked(self):
+        """System health ends up in public bug reports: the Spotify
+        account id must not appear in it."""
+        self.assertNotIn("dummy", str(self.result).lower())
+
+    def test_device_registration_check_uses_full_url(self):
+        url = self.mocks["url_check"].call_args_list[1][0][1]
+        self.assertTrue(url.startswith("https://"))
 
 
 class TestUnHealthyAccount(IsolatedAsyncioTestCase):
@@ -84,6 +93,6 @@ class TestUnHealthyAccount(IsolatedAsyncioTestCase):
 
     def test_proper_failed_check_object(self):
         self.assertEqual(
-            self.result["Dummy Public Token"],
+            self.result["Account 1 Public Token"],
             {"type": "failed", "error": "unhealthy"},
         )
