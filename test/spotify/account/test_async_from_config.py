@@ -58,6 +58,9 @@ class TestAccountCreationWithoutDomainData(IsolatedAsyncioTestCase):
         self.mocks["entry"].options = {
             "is_default": True,
             "base_refresh_rate": 30,
+            "stale_device_timeout": 7,
+            "device_filter_mode": "deny",
+            "device_filter_patterns": "",
         }
 
         self.result = await SpotifyAccount.async_from_config_entry(
@@ -115,6 +118,9 @@ class TestAccountCreationWithDomainData(IsolatedAsyncioTestCase):
         self.mocks["entry"].options = {
             "is_default": True,
             "base_refresh_rate": 30,
+            "stale_device_timeout": 7,
+            "device_filter_mode": "deny",
+            "device_filter_patterns": "",
         }
 
         self.result = await SpotifyAccount.async_from_config_entry(
@@ -179,6 +185,9 @@ class TestPreexistingAccount(IsolatedAsyncioTestCase):
         self.mocks["entry"].options = {
             "is_default": True,
             "base_refresh_rate": 30,
+            "stale_device_timeout": 7,
+            "device_filter_mode": "deny",
+            "device_filter_patterns": "",
         }
 
         self.result = await SpotifyAccount.async_from_config_entry(

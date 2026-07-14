@@ -277,12 +277,15 @@ class SpotifyAccount(  # pylint: disable=too-many-instance-attributes
         private_session = DesktopSession(hass, entry)
         await private_session.async_ensure_token_valid()
 
+        # only pass the account level options: the entry options also
+        # carry settings for other components (e.g. device filtering)
         account = SpotifyAccount(
             entry_id=entry.entry_id,
             hass=hass,
             public_session=public_session,
             private_session=private_session,
-            **entry.options,
+            is_default=entry.options.get("is_default", False),
+            base_refresh_rate=entry.options.get("base_refresh_rate", 30),
         )
 
         await account.async_ensure_tokens_valid(force_entry_update=True)
