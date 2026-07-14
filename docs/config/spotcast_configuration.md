@@ -86,6 +86,35 @@ At this point you should see your Spotify devices and account start to populate 
 
 ---
 
+## Integration Options
+
+Each account has its own options, available under **Settings > Devices & services > Spotcast >** (your account) **> Configure**. Changes apply immediately, without a restart.
+
+### Set as default account
+
+Marks the account as the default Spotcast account, used by actions and WebSocket endpoints when no account is specified. Setting it on one account clears it on the others.
+
+### Base Refresh Rate
+
+How often (in seconds) Spotcast refreshes the account data from Spotify: profile, available devices, playback state and library counts. Defaults to `30`, minimum `5`. Raise it if you want fewer calls to the Spotify API; lower it if you want playback state to react faster.
+
+### Days before removing unavailable devices
+
+A Spotify Connect device that disappears from the account (a phone that left the network, an ended [Jam](https://support.spotify.com/us/article/jam/) session) keeps its `media_player` entity for this many days before Spotcast removes the entity and its device registry entry. Defaults to `7`. Set it to `0` to remove devices as soon as they become unavailable.
+
+The countdown survives Home Assistant restarts, and also applies to leftover devices created by previous Spotcast versions: they start aging as soon as the integration loads and are cleaned up once past the timeout.
+
+### Device filter mode and patterns
+
+Controls which Spotify Connect devices get a `media_player` entity. Patterns are case-insensitive, comma-separated, and support `*` wildcards:
+
+- **deny** (default): devices whose name matches any pattern are ignored. With no patterns, every device is kept. Example: `*Jam*, Pixel 7 Pro` hides Jam sessions and a specific phone.
+- **allow**: only devices whose name matches a pattern get an entity. Example: `Kitchen*, Living Room TV`. With no patterns, the filter is ignored (so a misconfiguration cannot hide every device).
+
+Filtered devices can still be used as cast targets by name in action calls; the filter only controls entity creation. A device filtered after its entity already existed becomes unavailable and is removed by the stale-device timeout above.
+
+---
+
 ## Optional: Relay Server
 
 Instead of pasting the redirect URL manually (Option A above), you can run a small relay server on your computer that redirects the desktop authorization back to Home Assistant automatically (Option B). This is entirely optional.

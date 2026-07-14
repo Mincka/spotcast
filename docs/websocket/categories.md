@@ -2,6 +2,9 @@
 
 Provides the list of Browse categories available for an account.
 
+> [!NOTE]
+> Spotify removed the Browse categories endpoint (with no replacement) for applications created after 2026-02-11. For those applications this endpoint returns an empty list and logs a warning; applications created before that date still receive the full list.
+
 ## Request
 
 ```json
