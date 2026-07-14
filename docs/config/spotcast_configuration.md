@@ -131,6 +131,15 @@ Pair either mode with a short **Days before removing unavailable devices** (for 
 > [!TIP]
 > The pattern matches the **Spotify Connect device name** (what you see in the Spotify app's device picker), not the Home Assistant entity id.
 
+#### Finding a device's name (especially in allow mode)
+
+In allow mode a new device gets no entity until you add its name, so you need a way to see the names of devices the filter is hiding. The filter only controls entity creation: the **Spotify Devices** sensor still lists every device Spotify reports, filtered or not. While the device is online (playing or recently active in the Spotify app):
+
+1. Open **Developer Tools > States** and look at `sensor.spotcast_<account>_spotify_devices`.
+2. Its `devices` attribute lists every Spotify Connect device with its exact `name`; copy the name (or a wildcard version of it) into your patterns.
+
+Alternatively, the name is exactly what the Spotify app shows in its device picker ("Listening on ..."), so you can read it from there too.
+
 ---
 
 ## Optional: Relay Server
