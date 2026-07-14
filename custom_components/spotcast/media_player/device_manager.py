@@ -14,6 +14,7 @@ from homeassistant.helpers.device_registry import async_get as async_get_dr
 from homeassistant.helpers.entity_registry import (
     async_get as async_get_er,
     async_entries_for_config_entry,
+    async_entries_for_device,
 )
 from homeassistant.helpers.storage import Store
 
@@ -397,7 +398,10 @@ class DeviceManager:
                 self.orphaned_entities.pop(key, None)
                 continue
 
-            self.orphaned_entities[key] = entry.entity_id
+            self.orphaned_entities[key] = {
+                "entity_id": entry.entity_id,
+                "device_id": entry.device_id,
+            }
             self.unavailable_since.setdefault(key, time())
 
     async def async_purge_stale_devices(self):
@@ -440,13 +444,18 @@ class DeviceManager:
 
     async def _async_purge_orphaned_entities(self, now: float):
         """Removes registry entities restored from previous runs once
-        they have been unavailable for longer than the grace period."""
+        they have been unavailable for longer than the grace period.
+
+        The device registry entry is removed through the entity's
+        device id: entities created by older versions carry legacy
+        identifiers that cannot be reconstructed from the unique id.
+        """
         if not self.orphaned_entities:
             return
 
         entity_registry = async_get_er(self._account.hass)
 
-        for key, entity_id in list(self.orphaned_entities.items()):
+        for key, orphan in list(self.orphaned_entities.items()):
 
             elapsed = now - self.unavailable_since.get(key, now)
 
@@ -455,6 +464,9 @@ class DeviceManager:
 
             self.orphaned_entities.pop(key)
             self.unavailable_since.pop(key, None)
+
+            entity_id = orphan["entity_id"]
+            device_id = orphan["device_id"]
 
             LOGGER.info(
                 "Removing restored device `%s` for account `%s`. "
@@ -467,12 +479,27 @@ class DeviceManager:
             if entity_registry.async_get(entity_id) is not None:
                 entity_registry.async_remove(entity_id)
 
-            try:
-                self.remove_device({(DOMAIN, key)})
-            except KeyError:
+            if device_id is None:
+                continue
+
+            if async_entries_for_device(
+                entity_registry,
+                device_id,
+                include_disabled_entities=True,
+            ):
                 LOGGER.debug(
-                    "Device `%s` was already absent from the registry",
+                    "Device of `%s` still has entities. Keeping it",
                     entity_id,
+                )
+                continue
+
+            device_registry = async_get_dr(self._account.hass)
+
+            if device_registry.async_get(device_id) is not None:
+                device_registry.async_remove_device(device_id)
+                LOGGER.info(
+                    "Removed Device `%s`. No Longer reported",
+                    device_id,
                 )
 
     def remove_device(

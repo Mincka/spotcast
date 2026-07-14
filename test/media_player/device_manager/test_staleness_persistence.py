@@ -29,6 +29,7 @@ def registry_entry(unique_id: str, entity_id: str, domain="media_player"):
     entry.domain = domain
     entry.unique_id = unique_id
     entry.entity_id = entity_id
+    entry.device_id = f"{entity_id}_device"
     return entry
 
 
@@ -111,7 +112,12 @@ class TestOrphanSweep(IsolatedAsyncioTestCase):
     def test_orphan_registered(self):
         self.assertEqual(
             self.manager.orphaned_entities,
-            {"orphan_key": "media_player.orphan"},
+            {
+                "orphan_key": {
+                    "entity_id": "media_player.orphan",
+                    "device_id": "media_player.orphan_device",
+                },
+            },
         )
 
     def test_orphan_aging_started(self):
@@ -120,14 +126,25 @@ class TestOrphanSweep(IsolatedAsyncioTestCase):
 
 class TestOrphanPurge(IsolatedAsyncioTestCase):
 
+    @patch(f"{TEST_MODULE}.async_get_dr")
+    @patch(f"{TEST_MODULE}.async_entries_for_device", return_value=[])
     @patch(f"{TEST_MODULE}.async_get_er")
-    async def asyncSetUp(self, mock_er: MagicMock):
+    async def asyncSetUp(
+        self,
+        mock_er: MagicMock,
+        mock_entries: MagicMock,
+        mock_dr: MagicMock,
+    ):
         self.manager = build_manager()
         self.mock_registry = MagicMock()
         mock_er.return_value = self.mock_registry
+        self.mock_device_registry = MagicMock()
+        mock_dr.return_value = self.mock_device_registry
 
-        self.manager.remove_device = MagicMock()
-        self.manager.orphaned_entities["orphan_key"] = "media_player.orphan"
+        self.manager.orphaned_entities["orphan_key"] = {
+            "entity_id": "media_player.orphan",
+            "device_id": "device123",
+        }
         self.manager.unavailable_since["orphan_key"] = 1_000.0
 
         await self.manager._async_purge_orphaned_entities(
@@ -144,8 +161,8 @@ class TestOrphanPurge(IsolatedAsyncioTestCase):
 
     def test_device_removed(self):
         try:
-            self.manager.remove_device.assert_called_with(
-                {("spotcast", "orphan_key")}
+            self.mock_device_registry.async_remove_device.assert_called_with(
+                "device123"
             )
         except AssertionError:
             self.fail()
@@ -153,6 +170,40 @@ class TestOrphanPurge(IsolatedAsyncioTestCase):
     def test_orphan_no_longer_tracked(self):
         self.assertEqual(self.manager.orphaned_entities, {})
         self.assertNotIn("orphan_key", self.manager.unavailable_since)
+
+
+class TestOrphanDeviceWithOtherEntitiesKept(IsolatedAsyncioTestCase):
+
+    @patch(f"{TEST_MODULE}.async_get_dr")
+    @patch(f"{TEST_MODULE}.async_entries_for_device")
+    @patch(f"{TEST_MODULE}.async_get_er")
+    async def asyncSetUp(
+        self,
+        mock_er: MagicMock,
+        mock_entries: MagicMock,
+        mock_dr: MagicMock,
+    ):
+        self.manager = build_manager()
+        mock_er.return_value = MagicMock()
+        mock_entries.return_value = [MagicMock()]
+        self.mock_device_registry = MagicMock()
+        mock_dr.return_value = self.mock_device_registry
+
+        self.manager.orphaned_entities["orphan_key"] = {
+            "entity_id": "media_player.orphan",
+            "device_id": "device123",
+        }
+        self.manager.unavailable_since["orphan_key"] = 1_000.0
+
+        await self.manager._async_purge_orphaned_entities(
+            1_000.0 + self.manager.stale_device_timeout + 1
+        )
+
+    def test_device_kept(self):
+        try:
+            self.mock_device_registry.async_remove_device.assert_not_called()
+        except AssertionError:
+            self.fail()
 
 
 class TestFreshOrphanKept(IsolatedAsyncioTestCase):
@@ -163,7 +214,10 @@ class TestFreshOrphanKept(IsolatedAsyncioTestCase):
         self.mock_registry = MagicMock()
         mock_er.return_value = self.mock_registry
 
-        self.manager.orphaned_entities["orphan_key"] = "media_player.orphan"
+        self.manager.orphaned_entities["orphan_key"] = {
+            "entity_id": "media_player.orphan",
+            "device_id": "device123",
+        }
         self.manager.unavailable_since["orphan_key"] = 1_000.0
 
         await self.manager._async_purge_orphaned_entities(1_001.0)
