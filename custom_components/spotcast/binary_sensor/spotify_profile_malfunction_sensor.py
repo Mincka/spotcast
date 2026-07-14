@@ -48,7 +48,8 @@ class SpotifyProfileMalfunctionBinarySensor(SpotcastBinarySensor):
 
     def _handle_update_failure(self):
         """Marks the profile as malfunctioning on coordinator failure"""
-        LOGGER.error(
+        # the coordinator already logs the failure; only trace here
+        LOGGER.debug(
             "Could not refresh profile for account `%s`: %s",
             self.account.entry_id,
             self.coordinator.last_exception,

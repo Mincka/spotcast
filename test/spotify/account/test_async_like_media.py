@@ -50,6 +50,7 @@ class TestLikeSongs(IsolatedAsyncioTestCase):
         self.mocks["hass"].async_add_executor_job = AsyncMock()
 
         self.account._datasets["liked_songs"].expires_at = 9999
+        self.account._datasets["liked_songs_count"].expires_at = 9999
 
         self.result = await self.account.async_like_media([
             "foo",
@@ -68,3 +69,9 @@ class TestLikeSongs(IsolatedAsyncioTestCase):
 
     def test_liked_songs_dataset_set_to_expired(self):
         self.assertEqual(self.account._datasets["liked_songs"].expires_at, 0)
+
+    def test_liked_songs_count_dataset_set_to_expired(self):
+        self.assertEqual(
+            self.account._datasets["liked_songs_count"].expires_at,
+            0,
+        )

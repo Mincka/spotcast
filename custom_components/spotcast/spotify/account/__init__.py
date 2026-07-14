@@ -137,7 +137,15 @@ class SpotifyAccount(  # pylint: disable=too-many-instance-attributes
             "refresh_factor": 10,
             "can_expire": False,
         },
+        "liked_songs_count": {
+            "refresh_factor": 10,
+            "can_expire": False,
+        },
         "playlists": {
+            "refresh_factor": 10,
+            "can_expire": False,
+        },
+        "playlists_count": {
             "refresh_factor": 10,
             "can_expire": False,
         },
