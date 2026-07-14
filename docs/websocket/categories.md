@@ -1,9 +1,9 @@
 # Categories
 
-Provides the list of Browse categories available for an account.
+> [!WARNING]
+> **Deprecated since v6.5.3.** Spotify removed the Browse categories endpoint (with no replacement) for applications created after 2026-02-11; only applications created before that date still receive data, and Spotify has not committed to keeping them working. For new applications this endpoint returns an empty list and logs a warning. Do not build new cards or automations on it; it will be removed in a future release once grandfathered applications lose access.
 
-> [!NOTE]
-> Spotify removed the Browse categories endpoint (with no replacement) for applications created after 2026-02-11. For those applications this endpoint returns an empty list and logs a warning; applications created before that date still receive the full list.
+Provides the list of Browse categories available for an account.
 
 ## Request
 

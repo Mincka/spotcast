@@ -403,6 +403,11 @@ Spotcast registers a set of Home Assistant WebSocket commands
 same account datasets, letting a custom dashboard query the account
 without going through entities.
 
+`categories` is **deprecated**: its upstream Spotify endpoint was removed
+with no replacement for applications created after 2026-02-11 (see
+section 12), and the command will be removed once grandfathered
+applications lose access.
+
 ---
 
 ## 11. Dependencies
@@ -446,8 +451,9 @@ Loggers surfaced in diagnostics: `spotipy`, `pychromecast`.
   spotipy call without checking `reason`.
 - **Removed browse categories.** For Spotify applications created after
   2026-02-11, `GET /browse/categories` is gone with no replacement; the
-  `spotcast/categories` WebSocket endpoint returns an empty list with a
-  warning instead of erroring (older applications still get real data).
+  (deprecated) `spotcast/categories` WebSocket endpoint returns an empty
+  list with a warning instead of erroring (older applications still get
+  real data).
 - **Playback to an unavailable device.** Starting playback on a device
   Spotify reports as momentarily unavailable waits and retries once before
   surfacing a clear error.

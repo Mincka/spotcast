@@ -15,8 +15,11 @@ This repository is the continuation of the original [fondberg/spotcast](https://
 
 - New per-account options: the number of days before unavailable devices are removed (default 7, 0 = immediately), and a device filter (deny or allow mode, with case-insensitive name patterns such as `*Jam*`) controlling which Spotify Connect devices get a `media_player` entity ([#56](https://github.com/Mincka/spotcast/issues/56)). See the [configuration guide](./docs/config/spotcast_configuration.md#integration-options).
 - Migrated off the Spotify Web API endpoints removed by the [February 2026 platform changes](https://developer.spotify.com/documentation/web-api/references/changes/february-2026), which are rejected for Spotify applications created after 2026-02-11 ([#57](https://github.com/Mincka/spotcast/issues/57)): `like_media`/`unlike_media` now use `/me/library`, and playlist track listing uses `/playlists/{id}/items`. Both replacements also work for older applications.
-- The `spotcast/categories` WebSocket endpoint returns an empty list with a warning for applications that no longer have access to Browse categories (removed by Spotify with no replacement), instead of raising an error.
 - Removed the unused artist top-tracks helper; its endpoint was removed by Spotify with no replacement.
+
+### Deprecations
+
+- The `spotcast/categories` WebSocket endpoint is **deprecated**: Spotify removed Browse categories with no replacement for applications created after 2026-02-11 (older applications are grandfathered for now). The endpoint returns an empty list with a warning instead of raising for applications without access, and will be removed in a future release once grandfathered applications lose access.
 
 ## v6.2.0 (2026-07-12)
 
