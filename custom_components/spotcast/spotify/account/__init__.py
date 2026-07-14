@@ -7,7 +7,7 @@ Classes:
 from asyncio import Lock, TimeoutError
 from logging import getLogger
 
-from spotipy import Spotify, SpotifyException
+from spotipy import SpotifyException
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
@@ -21,6 +21,7 @@ from custom_components.spotcast.sessions import (
     async_get_config_entry_implementation,
 )
 from custom_components.spotcast.utils import ensure_default_data
+from custom_components.spotcast.spotify.client import Spotify
 from custom_components.spotcast.spotify.dataset import Dataset
 from custom_components.spotcast.spotify.search_query import SearchQuery
 from custom_components.spotcast.spotify.exceptions import PlaybackError

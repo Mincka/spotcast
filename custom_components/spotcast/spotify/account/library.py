@@ -121,26 +121,6 @@ class LibraryMixin:
 
         return result
 
-    async def async_get_artist_top_tracks(self, uri: str) -> list[dict]:
-        """Retrieves the list of top tracks for an artist.
-
-        Args:
-            uri(str): the URI of the artist to search
-
-        Returns:
-            list[dict]: the list of top songes for an artist
-        """
-        await self.async_ensure_tokens_valid()
-        LOGGER.debug("Fetching Top Tracks for artist `%s`", uri)
-
-        result = await self.hass.async_add_executor_job(
-            self.apis["public"].artist_top_tracks,
-            uri,
-            self.country,
-        )
-
-        return result["tracks"]
-
     async def async_get_playlist_tracks(self, uri: str) -> list[dict]:
         """Retrieves the list of tracks inside a playlist."""
         await self.async_ensure_tokens_valid()
@@ -149,7 +129,7 @@ class LibraryMixin:
         playlist_id = self._id_from_uri(uri)
 
         result = await self._async_pager(
-            function=self.apis["public"].playlist_tracks,
+            function=self.apis["public"].playlist_items,
             prepends=[playlist_id, None],
             appends=[self.country],
         )
@@ -366,7 +346,7 @@ class LibraryMixin:
             LOGGER.debug("Expired liked_songs datasets after adding new likes")
 
             await self.hass.async_add_executor_job(
-                self.apis["public"].current_user_saved_tracks_add,
+                self.apis["public"].save_to_library,
                 uris,
             )
 
@@ -384,6 +364,6 @@ class LibraryMixin:
             LOGGER.debug("Expired liked_songs datasets after removing likes")
 
             await self.hass.async_add_executor_job(
-                self.apis["public"].current_user_saved_tracks_delete,
+                self.apis["public"].remove_from_library,
                 uris,
             )
