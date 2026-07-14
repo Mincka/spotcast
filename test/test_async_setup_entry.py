@@ -54,6 +54,9 @@ class TestEntryRegistration(IsolatedAsyncioTestCase):
         self.mocks["entry"].options = {
             "is_default": True,
             "base_refresh_rate": 20,
+            "stale_device_timeout": 7,
+            "device_filter_mode": "deny",
+            "device_filter_patterns": "",
         }
         self.mocks["account"].is_default = True
         self.mocks["hass"].config_entries\
@@ -152,6 +155,9 @@ class TestDefaultOptionsSet(IsolatedAsyncioTestCase):
                     options={
                         "is_default": True,
                         "base_refresh_rate": 30,
+                        "stale_device_timeout": 7,
+                        "device_filter_mode": "deny",
+                        "device_filter_patterns": "",
                     }
             )
         except AssertionError:

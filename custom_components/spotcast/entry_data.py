@@ -50,3 +50,6 @@ class OptionData(TypedDict):
 
     is_default: bool
     base_refresh_rate: int
+    stale_device_timeout: int
+    device_filter_mode: str
+    device_filter_patterns: str

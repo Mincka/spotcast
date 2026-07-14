@@ -60,7 +60,10 @@
             "apply_options": {
                 "data": {
                     "set_default": "Définir ce compte comme compte Spotcast par défaut.",
-                    "base_refresh_rate": "Taux de rafraichissement de base"
+                    "base_refresh_rate": "Taux de rafraichissement de base",
+                    "stale_device_timeout": "Jours avant la suppression des appareils indisponibles (0 = immédiatement)",
+                    "device_filter_mode": "Mode de filtrage des appareils",
+                    "device_filter_patterns": "Motifs de filtrage des appareils (séparés par des virgules, ex. *Jam*)"
                 },
                 "title": "Spotcast - Options"
             }

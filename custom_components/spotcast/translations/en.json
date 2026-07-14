@@ -60,7 +60,10 @@
             "apply_options": {
                 "data": {
                     "set_default": "Set the current account as the default Spotcast account",
-                    "base_refresh_rate": "Base Refresh Rate"
+                    "base_refresh_rate": "Base Refresh Rate",
+                    "stale_device_timeout": "Days before removing unavailable devices (0 = immediately)",
+                    "device_filter_mode": "Device filter mode",
+                    "device_filter_patterns": "Device filter patterns (comma separated, e.g. *Jam*)"
                 },
                 "title": "Spotcast - Options"
             }

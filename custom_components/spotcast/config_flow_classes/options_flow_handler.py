@@ -22,6 +22,9 @@ LOGGER = getLogger(__name__)
 DEFAULT_OPTIONS = MappingProxyType({
     "is_default": False,
     "base_refresh_rate": 30,
+    "stale_device_timeout": 7,
+    "device_filter_mode": "deny",
+    "device_filter_patterns": "",
 })
 
 
@@ -36,6 +39,11 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
                     cv.positive_int,
                     vol.Range(min=5),
                 ),
+                vol.Required("stale_device_timeout"): cv.positive_int,
+                vol.Required("device_filter_mode"): vol.In(
+                    ["deny", "allow"],
+                ),
+                vol.Optional("device_filter_patterns", default=""): str,
             }
         )
     }
@@ -118,6 +126,25 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
 
         self._options["base_refresh_rate"] = new_refresh_rate
 
+    def set_device_options(self, user_input: dict):
+        """Sets the device lifecycle and filtering options.
+
+        The entry update listener applies the change to the device
+        manager when the entry is updated.
+
+        Args:
+            - user_input(dict): the options submitted in the flow
+        """
+        self._options["stale_device_timeout"] = (
+            user_input["stale_device_timeout"]
+        )
+        self._options["device_filter_mode"] = (
+            user_input["device_filter_mode"]
+        )
+        self._options["device_filter_patterns"] = (
+            user_input.get("device_filter_patterns", "")
+        )
+
     async def async_step_apply_options(
         self,
         user_input: dict[str]
@@ -128,6 +155,7 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
             self.set_default_user()
 
         self.set_base_refresh_rate(user_input["base_refresh_rate"])
+        self.set_device_options(user_input)
 
         self.hass.config_entries.async_update_entry(
             self.config_entry,

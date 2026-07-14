@@ -16,4 +16,7 @@ SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 DEFAULT_OPTIONS: OptionData = {
     "is_default": False,
     "base_refresh_rate": 30,
+    "stale_device_timeout": 7,
+    "device_filter_mode": "deny",
+    "device_filter_patterns": "",
 }

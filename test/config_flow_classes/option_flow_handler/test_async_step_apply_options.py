@@ -49,11 +49,17 @@ class TestWithDefaultSet(IsolatedAsyncioTestCase):
         self.handler.hass = self.mocks["hass"]
         self.handler.set_base_refresh_rate = MagicMock()
         self.handler.set_default_user = MagicMock()
+        self.handler.set_device_options = MagicMock()
 
-        await self.handler.async_step_apply_options({
+        self.user_input = {
             "set_default": True,
-            "base_refresh_rate": 30
-        })
+            "base_refresh_rate": 30,
+            "stale_device_timeout": 7,
+            "device_filter_mode": "deny",
+            "device_filter_patterns": "",
+        }
+
+        await self.handler.async_step_apply_options(self.user_input)
 
     def test_set_default_was_called(self):
         try:
@@ -64,6 +70,14 @@ class TestWithDefaultSet(IsolatedAsyncioTestCase):
     def test_set_base_refresh_rate_was_called(self):
         try:
             self.handler.set_base_refresh_rate.assert_called_once_with(30)
+        except AssertionError:
+            self.fail()
+
+    def test_set_device_options_was_called(self):
+        try:
+            self.handler.set_device_options.assert_called_once_with(
+                self.user_input,
+            )
         except AssertionError:
             self.fail()
 
@@ -108,10 +122,14 @@ class TestWithoutDefaultSet(IsolatedAsyncioTestCase):
         self.handler.handler = "foo"
         self.handler.set_base_refresh_rate = MagicMock()
         self.handler.set_default_user = MagicMock()
+        self.handler.set_device_options = MagicMock()
 
         await self.handler.async_step_apply_options({
             "set_default": False,
-            "base_refresh_rate": 30
+            "base_refresh_rate": 30,
+            "stale_device_timeout": 7,
+            "device_filter_mode": "deny",
+            "device_filter_patterns": "",
         })
 
     def test_set_default_was_called(self):
