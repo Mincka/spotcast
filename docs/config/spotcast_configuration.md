@@ -113,6 +113,24 @@ Controls which Spotify Connect devices get a `media_player` entity. Patterns are
 
 Filtered devices can still be used as cast targets by name in action calls; the filter only controls entity creation. A device filtered after its entity already existed becomes unavailable and is removed by the stale-device timeout above.
 
+#### Example: a household that uses Jam sessions a lot
+
+Every Jam session and every guest phone shows up as a Spotify Connect device and would get its own `media_player` entity. To keep only the fixed speakers:
+
+- **Deny mode** (keep everything except known noise):
+  - Device filter mode: `deny`
+  - Device filter patterns: `*Jam*, Pixel 7 Pro, iPhone*`
+  - Result: Jams and the listed phones never get entities; any new speaker still appears automatically.
+- **Allow mode** (only ever these devices):
+  - Device filter mode: `allow`
+  - Device filter patterns: `Kitchen*, Living Room TV, JULIEN-PC`
+  - Result: only devices matching those names get entities; everything else (Jams, guests, new phones) is ignored. New devices you buy must be added to the list before they appear.
+
+Pair either mode with a short **Days before removing unavailable devices** (for example `1`) so entities from devices that stop matching, or that existed before you configured the filter, disappear quickly.
+
+> [!TIP]
+> The pattern matches the **Spotify Connect device name** (what you see in the Spotify app's device picker), not the Home Assistant entity id.
+
 ---
 
 ## Optional: Relay Server

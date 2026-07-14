@@ -91,7 +91,15 @@ The account keeps them under a stable naming scheme
 - Refresh uses Home Assistant's standard OAuth2 refresh
   (`implementation.async_refresh_token`).
 - This session backs every ordinary Web API call, made through the
-  `spotipy` client held at `account.apis["public"]`.
+  client held at `account.apis["public"]`. That client is not raw
+  `spotipy` but a thin subclass (`spotify/client.py`) that adds the Web
+  API endpoints introduced by Spotify's February 2026 changes, which
+  `spotipy` does not wrap: `save_to_library`/`remove_from_library`
+  (`PUT`/`DELETE /me/library`, which only accept the uris as **query
+  parameters**, not a JSON body) and `playlist_items`
+  (`GET /playlists/{id}/items`, same signature and pagination shape as
+  spotipy's removed-endpoint `playlist_tracks`). New unwrapped endpoints
+  should be added there rather than calling `_get`/`_put` inline.
 
 ### 3.2 Desktop session (`desktop_api`)
 
@@ -315,9 +323,12 @@ one data dict consumed by every entity.
 The account caches each topic in a `Dataset` with its own time-to-live,
 derived from `base_refresh_rate` (default 30s) times a per-dataset factor.
 Playback state refreshes twice as often as the base rate; profile and
-categories far less often. `base_refresh_rate` is an option and applies
-immediately when changed, adjusting the coordinator interval without a
-reload.
+categories far less often; the playlist and liked-song **counts** have
+their own datasets (10x factor) so the coordinator does not hit the two
+count endpoints on every cycle. `like_media`/`unlike_media` force-expire
+the liked-songs datasets (list and count) so the next cycle reflects the
+change. `base_refresh_rate` is an option and applies immediately when
+changed, adjusting the coordinator interval without a reload.
 
 The current-playlist name is resolved from the playback context uri (from
 the public playback state) through the internal endpoint (section 4.2),
@@ -338,6 +349,31 @@ Per account, Spotcast creates:
   account can see. Device identity is keyed on a stable slug of the device
   name plus the account id, so a device that reconnects with a new Spotify
   Connect id reuses its existing entity instead of spawning duplicates.
+
+### 8.1 Device lifecycle and filtering
+
+The `DeviceManager` (`media_player/device_manager.py`) owns the entity
+lifecycle, driven by two per-account options (see the
+[configuration guide](./config/spotcast_configuration.md#integration-options)):
+
+- **Filtering** (`device_filter_mode` + `device_filter_patterns`):
+  case-insensitive `fnmatch` name patterns applied in
+  `_key_current_devices`, either as a deny list or an opt-in allow list.
+  Allow mode with no patterns is deliberately ignored (it would filter
+  every device). Filtering only controls entity creation; filtered
+  devices remain valid cast targets by name in actions.
+- **Stale purge** (`stale_device_timeout`, in days): a device missing
+  from the Connect list is marked unavailable and purged (entity +
+  device registry entry) once past the timeout. The unavailability
+  timestamps are persisted in a `Store`
+  (`.storage/spotcast_<entry>_device_staleness`) so restarts do not
+  reset the clock. At setup, `async_initialize` sweeps the entity
+  registry for **orphans**: media players restored from previous runs
+  whose device Spotify no longer reports (typically ended Jam sessions,
+  or entities created by pre-identity-key versions). Orphans age like
+  any unavailable device; their device registry entry is removed through
+  the entity's `device_id`, because legacy unique ids cannot be mapped
+  back to registry identifiers.
 
 ---
 
@@ -396,6 +432,22 @@ Loggers surfaced in diagnostics: `spotipy`, `pychromecast`.
   handled gracefully instead of surfacing errors.
 - **Upstream instability.** The retry supervisor backs off on refresh
   failures and reports `UpstreamServerNotready` instead of retry storms.
+- **spotipy's fake 429.** When its urllib3 retries run out, `spotipy`
+  raises `SpotifyException(429, -1, "... Max Retries")` **regardless of
+  the real HTTP status**, and its retry logger prints a "rate/request
+  limit" warning for any retried status (429/500/502/503/504)
+  ([spotipy-dev/spotipy#805](https://github.com/spotipy-dev/spotipy/issues/805)).
+  The real status hides in `exc.reason` (urllib3 wording, e.g. "too many
+  502 error responses"), and a genuine 429 always carries a `Retry-After`
+  header. The coordinator matches that signature
+  (`SERVER_ERROR_PATTERN` in `coordinator.py`) and reports "Spotify API
+  temporarily unavailable (server errors)" instead of echoing the
+  misleading 429. Do not trust a 429 status from a retry-exhausted
+  spotipy call without checking `reason`.
+- **Removed browse categories.** For Spotify applications created after
+  2026-02-11, `GET /browse/categories` is gone with no replacement; the
+  `spotcast/categories` WebSocket endpoint returns an empty list with a
+  warning instead of erroring (older applications still get real data).
 - **Playback to an unavailable device.** Starting playback on a device
   Spotify reports as momentarily unavailable waits and retries once before
   surfacing a clear error.
@@ -496,6 +548,36 @@ of failing a playback transfer. So while the two-token *design* dates to
 the v6 rewrite, the strict rule in section 4.3 ("never send the desktop
 token to `api.spotify.com`") dates specifically to this December 2025
 block.
+
+### The February 2026 removals and grandfathered client ids
+
+Spotify's [February 2026 "Developer Access and Platform Security"
+changes](https://developer.spotify.com/documentation/web-api/references/changes/february-2026)
+removed another set of Web API endpoints, this time with a twist:
+enforcement depends on the **age of the application's client id**.
+Applications created after 2026-02-11 get `403` on the removed routes;
+older applications are grandfathered and keep the old routes working
+(verified live in July 2026), with no announced end date. The transition
+also caused intermittent instability windows (502/503 bursts) across
+third-party integrations through 2026.
+
+An audit of every spotipy call Spotcast makes found five affected
+endpoints, handled in v6.5.3:
+
+| Old endpoint | Status | Spotcast's answer |
+| --- | --- | --- |
+| `PUT /me/tracks` (save) | removed, replacement `PUT /me/library` | migrated (`save_to_library`, query-param shape) |
+| `DELETE /me/tracks` | removed, replacement `DELETE /me/library` | migrated (`remove_from_library`) |
+| `GET /playlists/{id}/tracks` | removed, replacement `GET /playlists/{id}/items` | migrated (`playlist_items`) |
+| `GET /artists/{id}/top-tracks` | removed, **no replacement** | was dead code; deleted |
+| `GET /browse/categories` | removed, **no replacement** | WebSocket endpoint degrades to empty list |
+
+The replacements work for both old and new client ids, so the migration
+is unconditional. The three wrappers live in the extended client
+(`spotify/client.py`, section 3.1) because `spotipy` has no methods for
+the new routes. Note the `/me/library` endpoints reject a JSON body
+("Missing required field: uris") and require the uris as query
+parameters.
 
 The through-line is unchanged: Spotcast has always needed
 **first-party-level capabilities** to do its job. Originally it inherited

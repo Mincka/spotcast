@@ -75,6 +75,19 @@ Follow the [configuration guide](./docs/config/spotcast_configuration.md) or cli
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
 
+### Options
+
+Each account exposes options under **Settings > Devices & services > Spotcast > Configure**:
+
+| Option | Description |
+| :--- | :--- |
+| Set as default account | Which account actions use when none is specified. |
+| Base Refresh Rate | How often (seconds) Spotcast polls Spotify. Default `30`. |
+| Days before removing unavailable devices | Grace period before a vanished Spotify Connect device (ended Jam session, absent phone) and its entity are removed. Default `7`, `0` = immediately. Survives restarts and also cleans up leftovers from previous versions. |
+| Device filter mode + patterns | Deny or allow list of device-name patterns (case-insensitive, `*` wildcards) controlling which Spotify Connect devices get a `media_player` entity, e.g. `*Jam*`. |
+
+See [Integration Options](./docs/config/spotcast_configuration.md#integration-options) for details and examples.
+
 ## Actions
 
 | Action                                                                 | Description                                                                                          |
