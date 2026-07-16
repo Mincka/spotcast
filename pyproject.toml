@@ -77,6 +77,16 @@ convention = "google"
 [tool.ruff.per-file-ignores]
 "**/__init__.py" = ["D104"]
 
+[tool.uv]
+# Home Assistant exact-pins PyJWT==2.12.1, which has known
+# vulnerabilities (all fixed in 2.13.0, GHSA-xgmm-8j9v-c9wx and
+# friends). Spotcast never imports pyjwt itself; this only affects the
+# dev/test environment. Drop the override once Home Assistant's pin
+# reaches 2.13.0.
+override-dependencies = [
+    "pyjwt>=2.13.0",
+]
+
 [dependency-groups]
 dev = [
     "time-machine>=3.2.0",
