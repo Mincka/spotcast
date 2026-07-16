@@ -5,7 +5,10 @@ from unittest.mock import MagicMock, patch, AsyncMock
 
 from aiohttp import ClientSession
 
-from custom_components.spotcast.sessions.desktop_session import ClientError
+from custom_components.spotcast.sessions.desktop_session import (
+    ClientError,
+    InternalServerError,
+)
 
 from test.sessions.desktop_session import get_mocked_session, TEST_MODULE
 
@@ -92,8 +95,9 @@ class TestStandardFormatErrorMessage(IsolatedAsyncioTestCase):
 
         try:
             self.mocks["logger"].error.assert_called_with(
-                "Token request for %s failed (%s): %s",
+                "Token request for %s failed with status %s (%s): %s",
                 "spotcast",
+                400,
                 "Dummy",
                 "Dummy Error",
             )
@@ -136,10 +140,70 @@ class TestUnkownFormatErrorMessage(IsolatedAsyncioTestCase):
 
         try:
             self.mocks["logger"].error.assert_called_with(
-                "Token request for %s failed (%s): %s",
+                "Token request for %s failed with status %s (%s): %s",
                 "spotcast",
+                400,
                 "unknown",
                 "unknown_error",
             )
+        except AssertionError as exc:
+            self.fail(exc)
+
+
+class TestServerErrorResponse(IsolatedAsyncioTestCase):
+
+    @patch(f"{TEST_MODULE}.LOGGER", new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.time", new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.async_get_clientsession", new_callable=MagicMock)
+    async def test_error_raised(
+        self,
+        mock_http_session: MagicMock,
+        mock_time: MagicMock,
+        mock_logger: MagicMock,
+    ):
+
+        mock_http_session.return_value = MagicMock(spec=ClientSession)
+
+        self.session, self.mocks = get_mocked_session()
+
+        self.mocks["http_session"] = mock_http_session.return_value
+        self.mocks["logger"] = mock_logger
+
+        self.mocks["http_session"].post = AsyncMock()
+        self.mocks["http_session"].post.return_value = MagicMock()
+        self.mocks["response"] = self.mocks["http_session"].post.return_value
+        self.mocks["response"].status = 503
+
+        with self.assertRaises(InternalServerError) as ctx:
+            await self.session.async_refresh_token()
+
+        self.assertEqual(ctx.exception.code, 503)
+
+    @patch(f"{TEST_MODULE}.LOGGER", new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.time", new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.async_get_clientsession", new_callable=MagicMock)
+    async def test_no_error_logged(
+        self,
+        mock_http_session: MagicMock,
+        mock_time: MagicMock,
+        mock_logger: MagicMock,
+    ):
+
+        mock_http_session.return_value = MagicMock(spec=ClientSession)
+
+        self.session, self.mocks = get_mocked_session()
+
+        self.mocks["http_session"] = mock_http_session.return_value
+
+        self.mocks["http_session"].post = AsyncMock()
+        self.mocks["http_session"].post.return_value = MagicMock()
+        self.mocks["response"] = self.mocks["http_session"].post.return_value
+        self.mocks["response"].status = 503
+
+        with self.assertRaises(InternalServerError):
+            await self.session.async_refresh_token()
+
+        try:
+            mock_logger.error.assert_not_called()
         except AssertionError as exc:
             self.fail(exc)

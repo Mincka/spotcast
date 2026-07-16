@@ -17,6 +17,7 @@ from datetime import timedelta
 from logging import getLogger
 from re import compile as re_compile
 
+from aiohttp.client_exceptions import ClientResponseError
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import (
@@ -43,7 +44,7 @@ ENTITY_SPECIFIC_ERRORS = (
 POTENTIAL_ERRORS = (
     RetrySupervisor.SUPERVISED_EXCEPTIONS + ENTITY_SPECIFIC_ERRORS
 )
-UPDATE_ERRORS = POTENTIAL_ERRORS + (SpotifyException,)
+UPDATE_ERRORS = POTENTIAL_ERRORS + (SpotifyException, ClientResponseError)
 
 SERVER_ERROR_PATTERN = re_compile(r"too many 5\d\d error responses")
 
