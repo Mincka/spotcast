@@ -162,9 +162,9 @@ Spotcast provides multiple WebSocket API endpoints, used for example by companio
 | [`spotcast/search`](./docs/websocket/search.md)             | Searches Spotify for playlists, tracks, albums or artists.                                                                                      |
 | [`spotcast/tracks`](./docs/websocket/tracks.md)             | Provides the list of tracks in a playlist.                                                                                                      |
 
-## Upgrading from v5
+## Upgrading from v4
 
-The v6 rewrite changed both the configuration flow and the action names:
+v5 was a beta-only rewrite that never reached a stable release, so most users upgrade straight from v4. The rewrite changed both the configuration flow and the action names:
 
 - Configuration no longer uses `sp_dc`/`sp_key` cookies in YAML. Accounts are set up through the UI with OAuth and a one-time desktop authorization. Follow the [configuration guide](./docs/config/spotcast_configuration.md).
 - The `spotcast.start` service was replaced by a set of dedicated actions. The closest equivalent to `spotcast.start` is [`spotcast.play_media`](./docs/services/play_media.md), with most of its former options now under the `data` section.
