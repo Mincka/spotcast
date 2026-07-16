@@ -1,6 +1,29 @@
 # Changelog
 
-This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases).
+This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases). Releases v6.3.0 through v6.5.2 are documented in the [GitHub release notes](https://github.com/Mincka/spotcast/releases).
+
+## v6.5.3 (2026-07-16)
+
+### Fixes
+
+- The playlists and liked songs count lookups are cached (5 minutes at the default refresh rate) instead of hitting the Spotify API on every update cycle, cutting steady-state API calls per account by roughly 40%. Liking or unliking media refreshes the cached count on the next cycle ([#54](https://github.com/Mincka/spotcast/issues/54)).
+- When Spotify's API returns repeated server errors, the coordinator now reports "Spotify API temporarily unavailable (server errors)" instead of echoing the misleading `http status: 429` that the spotipy library hard-codes on retry exhaustion ([#54](https://github.com/Mincka/spotcast/issues/54), [spotipy-dev/spotipy#805](https://github.com/spotipy-dev/spotipy/issues/805)). Genuine rate limits keep the previous message.
+- A failed refresh logs one error instead of two: the profile malfunction binary sensor no longer duplicates the coordinator's error line ([#54](https://github.com/Mincka/spotcast/issues/54)).
+- A server error (5xx) from Spotify's token endpoint (`accounts.spotify.com`) is now treated as a temporary outage like any other Spotify 5xx: one clear error line and a 30 second refresh backoff, instead of the misleading `Token request for spotcast failed (unknown): unknown_error` followed by a raw `503, message='Service Unavailable'` error on every cycle. Genuine token failures (4xx) now include the HTTP status in the log.
+- The device manager applies the same 30 second backoff after a failed device refresh: it previously set the retry supervisor's internal health flag directly, which bypassed both the backoff scheduling and the error de-duplication reset on recovery.
+- The stale-device purge survives Home Assistant restarts (unavailability timestamps are persisted) and now also removes devices left over from previous Spotcast versions once they exceed the timeout ([#56](https://github.com/Mincka/spotcast/issues/56)).
+- System health no longer leaks Spotify account ids or usernames into bug reports: accounts are reported as `Account 1`, `Account 2`, and so on.
+- The `Device Registration Endpoint` system health check reported `unreachable` for everyone: it passed a bare hostname instead of a URL, so the request never started. It now checks the full address.
+
+### Changes
+
+- New per-account options: the number of days before unavailable devices are removed (default 7, 0 = immediately), and a device filter (deny or allow mode, with case-insensitive name patterns such as `*Jam*`) controlling which Spotify Connect devices get a `media_player` entity ([#56](https://github.com/Mincka/spotcast/issues/56)). See the [configuration guide](./docs/config/spotcast_configuration.md#integration-options).
+- Migrated off the Spotify Web API endpoints removed by the [February 2026 platform changes](https://developer.spotify.com/documentation/web-api/references/changes/february-2026), which are rejected for Spotify applications created after 2026-02-11 ([#57](https://github.com/Mincka/spotcast/issues/57)): `like_media`/`unlike_media` now use `/me/library`, and playlist track listing uses `/playlists/{id}/items`. Both replacements also work for older applications.
+- Removed the unused artist top-tracks helper; its endpoint was removed by Spotify with no replacement.
+
+### Deprecations
+
+- The `spotcast/categories` WebSocket endpoint is **deprecated**: Spotify removed Browse categories with no replacement for applications created after 2026-02-11 (older applications are grandfathered for now). The endpoint returns an empty list with a warning instead of raising for applications without access, and will be removed in a future release once grandfathered applications lose access.
 
 ## v6.2.0 (2026-07-12)
 

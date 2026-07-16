@@ -29,7 +29,7 @@ from .config_flow import DEFAULT_OPTIONS
 from .spotify import SpotifyAccount
 from .coordinator import SpotcastCoordinator
 
-__version__ = "6.5.2"
+__version__ = "6.5.3"
 
 
 LOGGER = getLogger(__name__)
@@ -151,6 +151,11 @@ async def async_update_options(hass: HomeAssistant, entry: ConfigEntry):
     if account is not None:
         account.is_default = options["is_default"]
         account.base_refresh_rate = refresh_rate
+
+    device_manager = entry_data.get("device_manager")
+
+    if device_manager is not None:
+        device_manager.apply_device_options(options)
 
     if coordinator is None:
         return

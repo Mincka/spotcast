@@ -56,7 +56,9 @@ class PagingMixin:  # pylint: disable=too-few-public-methods
 
         return result["total"]
 
-    async def _async_pager(
+    # The pager exposes every paging knob of the Spotify API in one
+    # helper, so the argument count is inherent to it.
+    async def _async_pager(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         function: callable,
         prepends: list = None,

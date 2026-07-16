@@ -11,6 +11,7 @@ from custom_components.spotcast.const import DOMAIN, SPOTIFY_CLIENT_ID
 from custom_components.spotcast.entry_data import ApiItem
 
 from .connection_session import ConnectionSession
+from .exceptions import InternalServerError
 
 LOGGER = getLogger(__name__)
 
@@ -38,6 +39,13 @@ class DesktopSession(ConnectionSession):
             data=data,
         )
 
+        if response.status >= 500:
+            raise InternalServerError(
+                response.status,
+                f"Spotify token endpoint replied with status "
+                f"{response.status}",
+            )
+
         if response.status >= 400:
             try:
                 error_response = await response.json()
@@ -50,8 +58,9 @@ class DesktopSession(ConnectionSession):
                 "unknown_error",
             )
             LOGGER.error(
-                "Token request for %s failed (%s): %s",
+                "Token request for %s failed with status %s (%s): %s",
                 DOMAIN,
+                response.status,
                 error_code,
                 error_description,
             )

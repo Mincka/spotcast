@@ -5,12 +5,18 @@ Classes:
     - DeviceManager
 """
 
+from fnmatch import fnmatchcase
 from logging import getLogger
 from time import time
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import async_get as async_get_dr
-from homeassistant.helpers.entity_registry import async_get as async_get_er
+from homeassistant.helpers.entity_registry import (
+    async_get as async_get_er,
+    async_entries_for_config_entry,
+    async_entries_for_device,
+)
+from homeassistant.helpers.storage import Store
 
 from custom_components.spotcast.const import DOMAIN
 from custom_components.spotcast.media_player import (
@@ -25,7 +31,9 @@ from custom_components.spotcast.spotify import SpotifyAccount
 LOGGER = getLogger(__name__)
 
 
-class DeviceManager:
+# The manager owns the full device lifecycle state (tracked, unavailable,
+# purge timestamps, filter options), which is inherent to its role.
+class DeviceManager:  # pylint: disable=too-many-instance-attributes
     """Entity that manages Spotify Devices as they become available
     and drop from the device list
 
@@ -65,17 +73,80 @@ class DeviceManager:
         self.async_add_entities = async_add_entitites
         self.supervisor = RetrySupervisor()
 
+        self.stale_device_timeout = self.STALE_DEVICE_TIMEOUT
+        self.filter_mode = "deny"
+        self.filter_patterns: list[str] = []
+
+        self.orphaned_entities: dict[str, str] = {}
+        self._staleness_store: Store | None = None
+        self._staleness_loaded = False
+        self._saved_timestamps: dict[str, float] = {}
+
+    @property
+    def staleness_store(self) -> Store:
+        """Returns the store persisting device unavailability
+        timestamps, creating it on first use."""
+        if self._staleness_store is None:
+            self._staleness_store = Store(
+                self._account.hass,
+                1,
+                f"spotcast_{self._account.entry_id}_device_staleness",
+            )
+
+        return self._staleness_store
+
+    def apply_device_options(self, options: dict):
+        """Applies the device lifecycle and filtering options.
+
+        Args:
+            - options(dict): the resolved config entry options
+        """
+        self.stale_device_timeout = (
+            options["stale_device_timeout"] * 24 * 3600
+        )
+        self.filter_mode = options["device_filter_mode"]
+        self.filter_patterns = [
+            pattern.strip()
+            for pattern in options["device_filter_patterns"].split(",")
+            if pattern.strip()
+        ]
+
+        if self.filter_mode == "allow" and not self.filter_patterns:
+            LOGGER.warning(
+                "Device filter for account `%s` is in allow mode with no "
+                "patterns. Ignoring the filter to avoid removing every "
+                "device",
+                self._account.name,
+            )
+
+    def is_filtered(self, name: str) -> bool:
+        """Returns True if a device name is excluded by the device
+        filter options."""
+        if not self.filter_patterns:
+            return False
+
+        matches = any(
+            fnmatchcase(name.lower(), pattern.lower())
+            for pattern in self.filter_patterns
+        )
+
+        if self.filter_mode == "allow":
+            return not matches
+
+        return matches
+
     async def async_update(self, _=None):
+        """Refreshes the tracked devices from the Spotify API."""
 
         if not self.supervisor.is_ready:
             return
 
         try:
             current_devices = await self._account.async_devices()
-            self.supervisor._is_healthy = True
+            self.supervisor.is_healthy = True
             await self.async_manage_devices(current_devices)
         except self.supervisor.SUPERVISED_EXCEPTIONS as exc:
-            self.supervisor._is_healthy = False
+            self.supervisor.is_healthy = False
             self.supervisor.log_message(exc)
 
     def _key_current_devices(self, current_devices: list) -> dict:
@@ -100,6 +171,14 @@ class DeviceManager:
                 )
                 continue
 
+            if self.is_filtered(device["name"]):
+                LOGGER.debug(
+                    "Ignoring player `%s`: excluded by the device "
+                    "filter options",
+                    device["name"],
+                )
+                continue
+
             key = SpotifyDevice.compute_identity_key(
                 device["name"],
                 self._account.id,
@@ -119,6 +198,8 @@ class DeviceManager:
         return current
 
     async def async_manage_devices(self, current_devices: dict):
+        """Adds, marks unavailable and purges devices based on the
+        current device list reported by Spotify."""
         current = self._key_current_devices(current_devices)
         remove = []
 
@@ -176,6 +257,9 @@ class DeviceManager:
                 identity_key=key,
             )
             self.tracked_devices[key] = new_device
+            # the device is live again: stop aging it toward the purge
+            self.unavailable_since.pop(key, None)
+            self.orphaned_entities.pop(key, None)
             self.async_add_entities([new_device])
 
         playback_state = await self._account.async_playback_state()
@@ -259,6 +343,72 @@ class DeviceManager:
                 new_identifiers=new_identifiers,
             )
 
+    async def async_initialize(self):
+        """Loads the persisted staleness data and registers entities
+        restored from previous runs for stale tracking. Must run once
+        before the first update."""
+        await self._async_load_stale_timestamps()
+        self._sweep_orphaned_entities()
+
+    async def _async_load_stale_timestamps(self):
+        """Loads the persisted unavailability timestamps once, so the
+        stale purge survives Home Assistant restarts."""
+        if self._staleness_loaded:
+            return
+
+        self._staleness_loaded = True
+        stored = await self.staleness_store.async_load() or {}
+
+        for key, timestamp in stored.items():
+            self.unavailable_since.setdefault(key, timestamp)
+
+    async def _async_save_stale_timestamps(self):
+        """Persists the unavailability timestamps when they changed.
+
+        No-op until the persisted data was loaded, so a save cannot
+        overwrite the store with partial state.
+        """
+        if not self._staleness_loaded:
+            return
+
+        if self.unavailable_since == self._saved_timestamps:
+            return
+
+        self._saved_timestamps = dict(self.unavailable_since)
+        await self.staleness_store.async_save(self._saved_timestamps)
+
+    def _sweep_orphaned_entities(self):
+        """Registers media player entities restored from a previous
+        run whose device Spotify no longer reports, so they age toward
+        the stale purge like any unavailable device."""
+        entity_registry = async_get_er(self._account.hass)
+        entries = async_entries_for_config_entry(
+            entity_registry,
+            self._account.entry_id,
+        )
+
+        suffix = "_spotcast_device"
+
+        for entry in entries:
+
+            if entry.domain != "media_player":
+                continue
+
+            if not entry.unique_id.endswith(suffix):
+                continue
+
+            key = entry.unique_id[:-len(suffix)]
+
+            if key in self.tracked_devices or key in self.unavailable_devices:
+                self.orphaned_entities.pop(key, None)
+                continue
+
+            self.orphaned_entities[key] = {
+                "entity_id": entry.entity_id,
+                "device_id": entry.device_id,
+            }
+            self.unavailable_since.setdefault(key, time())
+
     async def async_purge_stale_devices(self):
         """Removes devices that have been unavailable for longer than
         the grace period. Spotify session devices (e.g. Jams) get a
@@ -266,22 +416,22 @@ class DeviceManager:
         """
         now = time()
 
-        for id in list(self.unavailable_devices):
+        for key in list(self.unavailable_devices):
 
-            elapsed = now - self.unavailable_since.get(id, now)
+            elapsed = now - self.unavailable_since.get(key, now)
 
-            if elapsed < self.STALE_DEVICE_TIMEOUT:
+            if elapsed < self.stale_device_timeout:
                 continue
 
-            device = self.unavailable_devices.pop(id)
-            self.unavailable_since.pop(id, None)
+            device = self.unavailable_devices.pop(key)
+            self.unavailable_since.pop(key, None)
 
             LOGGER.info(
                 "Removing device `%s` for account `%s`. Unavailable for "
                 "more than %d days",
                 device.name,
                 self._account.name,
-                self.STALE_DEVICE_TIMEOUT // 86400,
+                self.stale_device_timeout // 86400,
             )
 
             await device.async_remove(force_remove=True)
@@ -292,6 +442,69 @@ class DeviceManager:
                 LOGGER.debug(
                     "Device `%s` was already absent from the registry",
                     device.name,
+                )
+
+        await self._async_purge_orphaned_entities(now)
+        await self._async_save_stale_timestamps()
+
+    async def _async_purge_orphaned_entities(self, now: float):
+        """Removes registry entities restored from previous runs once
+        they have been unavailable for longer than the grace period.
+
+        The device registry entry is removed through the entity's
+        device id: entities created by older versions carry legacy
+        identifiers that cannot be reconstructed from the unique id.
+        """
+        if not self.orphaned_entities:
+            return
+
+        entity_registry = async_get_er(self._account.hass)
+
+        for key, orphan in list(self.orphaned_entities.items()):
+
+            elapsed = now - self.unavailable_since.get(key, now)
+
+            if elapsed < self.stale_device_timeout:
+                continue
+
+            self.orphaned_entities.pop(key)
+            self.unavailable_since.pop(key, None)
+
+            entity_id = orphan["entity_id"]
+            device_id = orphan["device_id"]
+
+            LOGGER.info(
+                "Removing restored device `%s` for account `%s`. "
+                "Unavailable for more than %d days",
+                entity_id,
+                self._account.name,
+                self.stale_device_timeout // 86400,
+            )
+
+            if entity_registry.async_get(entity_id) is not None:
+                entity_registry.async_remove(entity_id)
+
+            if device_id is None:
+                continue
+
+            if async_entries_for_device(
+                entity_registry,
+                device_id,
+                include_disabled_entities=True,
+            ):
+                LOGGER.debug(
+                    "Device of `%s` still has entities. Keeping it",
+                    entity_id,
+                )
+                continue
+
+            device_registry = async_get_dr(self._account.hass)
+
+            if device_registry.async_get(device_id) is not None:
+                device_registry.async_remove_device(device_id)
+                LOGGER.info(
+                    "Removed Device `%s`. No Longer reported",
+                    device_id,
                 )
 
     def remove_device(

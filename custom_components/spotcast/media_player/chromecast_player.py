@@ -8,16 +8,8 @@ from pychromecast.const import CAST_TYPE_GROUP
 
 import pychromecast  # pylint: disable=unused-import
 
-from homeassistant.core import HomeAssistant
-from homeassistant.components.cast.media_player import CastDevice
-from homeassistant.components.cast.helpers import ChromeCastZeroconf
-
 from custom_components.spotcast.media_player._abstract_player import (
     MediaPlayer
-)
-
-from custom_components.spotcast.media_player.exceptions import (
-    MediaPlayerNotFoundError
 )
 
 LOGGER = getLogger(__name__)

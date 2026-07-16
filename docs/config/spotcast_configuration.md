@@ -86,6 +86,65 @@ At this point you should see your Spotify devices and account start to populate 
 
 ---
 
+## Integration Options
+
+Each account has its own options, available under **Settings > Devices & services > Spotcast >** (your account) **> Configure**. Changes apply immediately, without a restart.
+
+### Set as default account
+
+Marks the account as the default Spotcast account, used by actions and WebSocket endpoints when no account is specified. Setting it on one account clears it on the others.
+
+### Base Refresh Rate
+
+How often (in seconds) Spotcast refreshes the account data from Spotify: profile, available devices, playback state and library counts. Defaults to `30`, minimum `5`. Raise it if you want fewer calls to the Spotify API; lower it if you want playback state to react faster.
+
+### Days before removing unavailable devices
+
+A Spotify Connect device that disappears from the account (a phone that left the network, an ended [Jam](https://support.spotify.com/us/article/jam/) session) keeps its `media_player` entity for this many days before Spotcast removes the entity and its device registry entry. Defaults to `7`. Set it to `0` to remove devices as soon as they become unavailable.
+
+The countdown survives Home Assistant restarts, and also applies to leftover devices created by previous Spotcast versions: they start aging as soon as the integration loads and are cleaned up once past the timeout.
+
+### Device filter mode and patterns
+
+Controls which Spotify Connect devices get a `media_player` entity. Patterns are case-insensitive, comma-separated, and support `*` wildcards:
+
+- **deny** (default): devices whose name matches any pattern are ignored. With no patterns, every device is kept. Example: `*Jam*, Pixel 7 Pro` hides Jam sessions and a specific phone.
+- **allow**: only devices whose name matches a pattern get an entity. Example: `Kitchen*, Living Room TV`. With no patterns, the filter is ignored (so a misconfiguration cannot hide every device).
+
+> [!IMPORTANT]
+> Do not filter devices you want to target in action calls. Spotcast actions address a device through its `media_player` entity, so a filtered device cannot be targeted (except implicitly, as the currently active device). The exception is Chromecast devices: they are targeted through the `cast` integration's own entity, which Spotcast does not manage, so filtering their Spotcast twin only removes the informational entity.
+
+A device filtered after its entity already existed becomes unavailable and is removed by the stale-device timeout above.
+
+#### Example: a household that uses Jam sessions a lot
+
+Every Jam session and every guest phone shows up as a Spotify Connect device and would get its own `media_player` entity. To keep only the fixed speakers:
+
+- **Deny mode** (keep everything except known noise):
+  - Device filter mode: `deny`
+  - Device filter patterns: `*Jam*, Pixel 7 Pro, iPhone*`
+  - Result: Jams and the listed phones never get entities; any new speaker still appears automatically.
+- **Allow mode** (only ever these devices):
+  - Device filter mode: `allow`
+  - Device filter patterns: `Kitchen*, Living Room TV, JULIEN-PC`
+  - Result: only devices matching those names get entities; everything else (Jams, guests, new phones) is ignored. New devices you buy must be added to the list before they appear.
+
+Pair either mode with a short **Days before removing unavailable devices** (for example `1`) so entities from devices that stop matching, or that existed before you configured the filter, disappear quickly.
+
+> [!TIP]
+> The pattern matches the **Spotify Connect device name** (what you see in the Spotify app's device picker), not the Home Assistant entity id.
+
+#### Finding a device's name (especially in allow mode)
+
+In allow mode a new device gets no entity until you add its name, so you need a way to see the names of devices the filter is hiding. The filter only controls entity creation: the **Spotify Devices** sensor still lists every device Spotify reports, filtered or not. While the device is online (playing or recently active in the Spotify app):
+
+1. Open **Developer Tools > States** and look at `sensor.spotcast_<account>_spotify_devices`.
+2. Its `devices` attribute lists every Spotify Connect device with its exact `name`; copy the name (or a wildcard version of it) into your patterns.
+
+Alternatively, the name is exactly what the Spotify app shows in its device picker ("Listening on ..."), so you can read it from there too.
+
+---
+
 ## Optional: Relay Server
 
 Instead of pasting the redirect URL manually (Option A above), you can run a small relay server on your computer that redirects the desktop authorization back to Home Assistant automatically (Option B). This is entirely optional.

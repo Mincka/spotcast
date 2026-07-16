@@ -9,7 +9,6 @@ from custom_components.spotcast.spotify.account import (
     PublicSession,
     DesktopSession,
     HomeAssistant,
-    TimeoutError,
     Spotify,
     Store,
 )

@@ -60,7 +60,16 @@
             "apply_options": {
                 "data": {
                     "set_default": "Set the current account as the default Spotcast account",
-                    "base_refresh_rate": "Base Refresh Rate"
+                    "base_refresh_rate": "Base Refresh Rate",
+                    "stale_device_timeout": "Stale device timeout",
+                    "device_filter_mode": "Device filter mode",
+                    "device_filter_patterns": "Device filter patterns"
+                },
+                "data_description": {
+                    "base_refresh_rate": "How often (in seconds) Spotcast refreshes the account data from Spotify.",
+                    "stale_device_timeout": "Days before an unavailable device and its entity are removed. 0 removes them immediately.",
+                    "device_filter_mode": "Deny ignores devices matching the patterns. Allow only creates entities for matching devices.",
+                    "device_filter_patterns": "Comma-separated device names, case insensitive, wildcards allowed. Example: `*Jam*, Pixel 7 Pro`. Leave empty to keep every device."
                 },
                 "title": "Spotcast - Options"
             }
@@ -70,6 +79,12 @@
         }
     },
     "selector": {
+        "device_filter_mode": {
+            "options": {
+                "deny": "Deny",
+                "allow": "Allow"
+            }
+        },
         "item_type": {
             "options": {
                 "album": "Album",

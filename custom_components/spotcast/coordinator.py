@@ -15,7 +15,9 @@ Constants:
 from asyncio import exceptions as asyncio_errors
 from datetime import timedelta
 from logging import getLogger
+from re import compile as re_compile
 
+from aiohttp.client_exceptions import ClientResponseError
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import (
@@ -42,7 +44,9 @@ ENTITY_SPECIFIC_ERRORS = (
 POTENTIAL_ERRORS = (
     RetrySupervisor.SUPERVISED_EXCEPTIONS + ENTITY_SPECIFIC_ERRORS
 )
-UPDATE_ERRORS = POTENTIAL_ERRORS + (SpotifyException,)
+UPDATE_ERRORS = POTENTIAL_ERRORS + (SpotifyException, ClientResponseError)
+
+SERVER_ERROR_PATTERN = re_compile(r"too many 5\d\d error responses")
 
 
 class SpotcastCoordinator(DataUpdateCoordinator[dict]):
@@ -107,10 +111,7 @@ class SpotcastCoordinator(DataUpdateCoordinator[dict]):
             playlists_count = await self.account.async_playlists_count()
             liked_songs_count = await self.account.async_liked_songs_count()
         except UPDATE_ERRORS as exc:
-            raise UpdateFailed(
-                "Could not refresh Spotify data for entry "
-                f"`{self.account.entry_id}`: {exc}"
-            ) from exc
+            raise UpdateFailed(self._describe_update_error(exc)) from exc
 
         await self._async_update_device_manager()
 
@@ -124,6 +125,30 @@ class SpotcastCoordinator(DataUpdateCoordinator[dict]):
             "liked_songs_count": liked_songs_count,
             "context_name": context_name,
         }
+
+    def _describe_update_error(self, exc: Exception) -> str:
+        """Returns a clear error message for a failed refresh.
+
+        spotipy hard-codes http status 429 when its retries are
+        exhausted, even when the retried responses were 5xx server
+        errors. Report those as a Spotify outage instead of echoing a
+        misleading rate-limit status (see spotipy-dev/spotipy#805).
+        """
+        if (
+            isinstance(exc, SpotifyException)
+            and exc.http_status == 429
+            and exc.reason is not None
+            and SERVER_ERROR_PATTERN.search(str(exc.reason))
+        ):
+            return (
+                "Spotify API temporarily unavailable (server errors) for "
+                f"entry `{self.account.entry_id}`: {exc.reason}"
+            )
+
+        return (
+            "Could not refresh Spotify data for entry "
+            f"`{self.account.entry_id}`: {exc}"
+        )
 
     async def _async_update_device_manager(self):
         """Runs the device manager update if one was registered."""

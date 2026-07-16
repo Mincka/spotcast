@@ -8,6 +8,7 @@ from custom_components.spotcast.spotify.exceptions import (
 
 
 class SearchQuery:
+    """A validated Spotify search query with filters and tags."""
 
     ALLOWED_FILTERS = (
         "album",

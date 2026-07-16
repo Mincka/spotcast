@@ -9,7 +9,6 @@ from logging import getLogger
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 from homeassistant.util.read_only_dict import ReadOnlyDict
-from homeassistant.exceptions import ServiceValidationError
 import voluptuous as vol
 
 

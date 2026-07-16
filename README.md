@@ -75,6 +75,19 @@ Follow the [configuration guide](./docs/config/spotcast_configuration.md) or cli
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
 
+### Options
+
+Each account exposes options under **Settings > Devices & services > Spotcast > Configure**:
+
+| Option | Description |
+| :--- | :--- |
+| Set as default account | Which account actions use when none is specified. |
+| Base Refresh Rate | How often (seconds) Spotcast polls Spotify. Default `30`. |
+| Days before removing unavailable devices | Grace period before a vanished Spotify Connect device (ended Jam session, absent phone) and its entity are removed. Default `7`, `0` = immediately. Survives restarts and also cleans up leftovers from previous versions. |
+| Device filter mode + patterns | Deny or allow list of device-name patterns (case-insensitive, `*` wildcards) controlling which Spotify Connect devices get a `media_player` entity, e.g. `*Jam*`. |
+
+See [Integration Options](./docs/config/spotcast_configuration.md#integration-options) for details and examples.
+
 ## Actions
 
 | Action                                                                 | Description                                                                                          |
@@ -141,7 +154,7 @@ Spotcast provides multiple WebSocket API endpoints, used for example by companio
 | :---                                                        | :---                                                                                                                                            |
 | [`spotcast/accounts`](./docs/websocket/accounts.md)         | Provides a list of accounts linked to Spotcast.                                                                                                 |
 | [`spotcast/castdevices`](./docs/websocket/cast_devices.md)  | Provides a list of Chromecast devices available in Home Assistant.                                                                              |
-| [`spotcast/categories`](./docs/websocket/categories.md)     | Provides a list of [Browse categories](https://developer.spotify.com/documentation/web-api/reference/get-categories) an account has access to.  |
+| [`spotcast/categories`](./docs/websocket/categories.md)     | **Deprecated.** Provides a list of Browse categories an account has access to. Empty for Spotify applications created after 2026-02-11 (endpoint removed by Spotify with no replacement).  |
 | [`spotcast/devices`](./docs/websocket/devices.md)           | Provides a list of Spotify Connect devices available to the account.                                                                            |
 | [`spotcast/liked_media`](./docs/websocket/liked_media.md)   | Provides the list of liked tracks for an account.                                                                                               |
 | [`spotcast/player`](./docs/websocket/player.md)             | Provides the playback state of an account.                                                                                                      |

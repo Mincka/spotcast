@@ -55,6 +55,7 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Sets up the sensor platform for a Spotcast account."""
 
     coordinator: SpotcastCoordinator = (
         hass.data[DOMAIN][entry.entry_id]["coordinator"]

@@ -1,3 +1,5 @@
+"""Websocket endpoint for the tracks of a playback context."""
+
 import voluptuous as vol
 from homeassistant.helpers import config_validation as cv
 from homeassistant.core import HomeAssistant

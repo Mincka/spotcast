@@ -6,9 +6,10 @@ from unittest.mock import patch, MagicMock
 
 from pychromecast import CastInfo
 
+from homeassistant.components.cast.helpers import ChromeCastZeroconf
+
 from custom_components.spotcast.media_player.chromecast_player import (
     Chromecast,
-    ChromeCastZeroconf,
 )
 
 

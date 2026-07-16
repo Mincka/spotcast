@@ -193,7 +193,9 @@ async def async_build_from_type(
     if isinstance(entity, CastDevice):
         entity: CastDevice
         media_player = Chromecast(
-            entity._cast_info.cast_info,
+            # HA's cast integration keeps CastInfo private with no
+            # public accessor.
+            entity._cast_info.cast_info,  # pylint: disable=protected-access
             zconf=ChromeCastZeroconf.get_zeroconf()
         )
 

@@ -1,4 +1,4 @@
 coverage==7.6.8
-CairoSVG==2.7.1
+CairoSVG==2.9.0
 pylint==3.3.1
 time-machine==2.16.0

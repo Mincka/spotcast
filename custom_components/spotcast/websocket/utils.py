@@ -11,6 +11,8 @@ HANDLED_EXCEPTIONS = (ServiceValidationError, HomeAssistantError)
 
 
 def websocket_wrapper(func: callable):
+    """Wraps a websocket handler to report handled exceptions as
+    websocket errors instead of raising."""
 
     async def wrapper(
         hass: HomeAssistant,
@@ -25,7 +27,10 @@ def websocket_wrapper(func: callable):
     return wrapper
 
 
-async def async_get_account(hass: HomeAssistant, account: str = None) -> SpotifyAccount:
+async def async_get_account(
+    hass: HomeAssistant,
+    account: str = None,
+) -> SpotifyAccount:
     """Retrieves a spotify account for a websocket query
 
     Args:

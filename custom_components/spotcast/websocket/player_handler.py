@@ -1,8 +1,8 @@
 """Websocket Endpoint for getting playback state"""
 
+import voluptuous as vol
 from homeassistant.core import HomeAssistant
 from homeassistant.components.websocket_api import ActiveConnection
-import voluptuous as vol
 from homeassistant.helpers import config_validation as cv
 
 from custom_components.spotcast.websocket.utils import (

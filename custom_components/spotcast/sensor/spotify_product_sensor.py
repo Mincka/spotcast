@@ -6,10 +6,10 @@ Classes:
 
 from logging import getLogger
 
+from homeassistant.const import EntityCategory
 
 from custom_components.spotcast.sensor.abstract_sensor import (
     SpotcastSensor,
-    EntityCategory,
 )
 
 LOGGER = getLogger(__name__)

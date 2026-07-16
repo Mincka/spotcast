@@ -9,7 +9,10 @@ from logging import getLogger, ERROR, DEBUG
 from urllib3.exceptions import ReadTimeoutError
 from aiohttp.client_exceptions import ClientOSError, ClientConnectorError
 
-from requests.exceptions import ReadTimeout, ConnectionError
+from requests.exceptions import (
+    ReadTimeout,
+    ConnectionError as RequestsConnectionError,
+)
 
 from custom_components.spotcast.sessions.exceptions import (
     InternalServerError,
@@ -29,7 +32,7 @@ class RetrySupervisor:
         UpstreamServerNotready,
         ClientConnectorError,
         ClientOSError,
-        ConnectionError,
+        RequestsConnectionError,
     )
 
     def __init__(self) -> None:

@@ -22,6 +22,9 @@ def build_manager() -> tuple[DeviceManager, MagicMock]:
     device.async_remove = AsyncMock()
     manager.unavailable_devices["foo"] = device
     manager.remove_device = MagicMock()
+    manager._async_load_stale_timestamps = AsyncMock()
+    manager._async_save_stale_timestamps = AsyncMock()
+    manager._sweep_orphaned_entities = MagicMock()
     return manager, device
 
 

@@ -121,26 +121,6 @@ class LibraryMixin:
 
         return result
 
-    async def async_get_artist_top_tracks(self, uri: str) -> list[dict]:
-        """Retrieves the list of top tracks for an artist.
-
-        Args:
-            uri(str): the URI of the artist to search
-
-        Returns:
-            list[dict]: the list of top songes for an artist
-        """
-        await self.async_ensure_tokens_valid()
-        LOGGER.debug("Fetching Top Tracks for artist `%s`", uri)
-
-        result = await self.hass.async_add_executor_job(
-            self.apis["public"].artist_top_tracks,
-            uri,
-            self.country,
-        )
-
-        return result["tracks"]
-
     async def async_get_playlist_tracks(self, uri: str) -> list[dict]:
         """Retrieves the list of tracks inside a playlist."""
         await self.async_ensure_tokens_valid()
@@ -149,7 +129,7 @@ class LibraryMixin:
         playlist_id = self._id_from_uri(uri)
 
         result = await self._async_pager(
-            function=self.apis["public"].playlist_tracks,
+            function=self.apis["public"].playlist_items,
             prepends=[playlist_id, None],
             appends=[self.country],
         )
@@ -200,9 +180,21 @@ class LibraryMixin:
         """Returns the number of user playlist for an account."""
         await self.async_ensure_tokens_valid()
 
-        return await self._async_get_count(
-            self.apis["public"].current_user_playlists
-        )
+        dataset = self._datasets["playlists_count"]
+
+        async with dataset.lock:
+            if dataset.is_expired():
+                LOGGER.debug("Refreshing playlists count dataset")
+
+                count = await self._async_get_count(
+                    self.apis["public"].current_user_playlists
+                )
+
+                dataset.update({"total": count})
+            else:
+                LOGGER.debug("Using cached playlists count dataset")
+
+        return self.get_dataset("playlists_count")["total"]
 
     async def async_playlists(
         self,
@@ -302,9 +294,22 @@ class LibraryMixin:
     async def async_liked_songs_count(self) -> int:
         """Returns the number of linked songs for an account."""
         await self.async_ensure_tokens_valid()
-        return await self._async_get_count(
-            self.apis["public"].current_user_saved_tracks,
-        )
+
+        dataset = self._datasets["liked_songs_count"]
+
+        async with dataset.lock:
+            if dataset.is_expired():
+                LOGGER.debug("Refreshing liked songs count dataset")
+
+                count = await self._async_get_count(
+                    self.apis["public"].current_user_saved_tracks,
+                )
+
+                dataset.update({"total": count})
+            else:
+                LOGGER.debug("Using cached liked songs count dataset")
+
+        return self.get_dataset("liked_songs_count")["total"]
 
     async def async_liked_songs(self, force: bool = False) -> list[str]:
         """Retrieves the list of uris of songs in the user liked songs."""
@@ -332,14 +337,16 @@ class LibraryMixin:
         await self.async_ensure_tokens_valid()
 
         dataset = self._datasets["liked_songs"]
+        count_dataset = self._datasets["liked_songs_count"]
 
-        # Force expire the liked_songs dataset
-        async with dataset.lock:
+        # Force expire the liked_songs datasets
+        async with dataset.lock, count_dataset.lock:
             dataset.expires_at = 0
-            LOGGER.debug("Expired liked_songs dataset after adding new likes")
+            count_dataset.expires_at = 0
+            LOGGER.debug("Expired liked_songs datasets after adding new likes")
 
             await self.hass.async_add_executor_job(
-                self.apis["public"].current_user_saved_tracks_add,
+                self.apis["public"].save_to_library,
                 uris,
             )
 
@@ -348,13 +355,15 @@ class LibraryMixin:
         await self.async_ensure_tokens_valid()
 
         dataset = self._datasets["liked_songs"]
+        count_dataset = self._datasets["liked_songs_count"]
 
-        # Force expire the liked_songs dataset
-        async with dataset.lock:
+        # Force expire the liked_songs datasets
+        async with dataset.lock, count_dataset.lock:
             dataset.expires_at = 0
-            LOGGER.debug("Expired liked_songs dataset after removing likes")
+            count_dataset.expires_at = 0
+            LOGGER.debug("Expired liked_songs datasets after removing likes")
 
             await self.hass.async_add_executor_job(
-                self.apis["public"].current_user_saved_tracks_delete,
+                self.apis["public"].remove_from_library,
                 uris,
             )

@@ -82,7 +82,7 @@ class TestFailedToRetrieveDevices(IsolatedAsyncioTestCase):
         await self.device_manager.async_update()
 
     def test_supervisor_set_to_unhealthy(self):
-        self.assertFalse(self.mocks["supervisor"]._is_healthy)
+        self.assertFalse(self.mocks["supervisor"].is_healthy)
 
     def test_error_was_logged(self):
         try:

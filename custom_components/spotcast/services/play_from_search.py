@@ -62,7 +62,12 @@ ITEM_TYPE_PRIORITY = (
 )
 
 
-async def async_play_from_search(hass: HomeAssistant, call: ServiceCall):
+# The service resolves account, query, search results and playback
+# targets in one flow, which needs the extra locals.
+async def async_play_from_search(  # pylint: disable=too-many-locals
+    hass: HomeAssistant,
+    call: ServiceCall,
+):
     """Service to start playing media from a search result
 
     Args:

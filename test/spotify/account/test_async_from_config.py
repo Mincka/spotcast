@@ -12,6 +12,8 @@ from custom_components.spotcast.spotify.account import (
     Store,
 )
 
+from custom_components.spotcast.const import DEFAULT_OPTIONS
+
 TEST_MODULE = "custom_components.spotcast.spotify.account"
 
 
@@ -55,9 +57,8 @@ class TestAccountCreationWithoutDomainData(IsolatedAsyncioTestCase):
                 }
             }
         }
-        self.mocks["entry"].options = {
+        self.mocks["entry"].options = DEFAULT_OPTIONS | {
             "is_default": True,
-            "base_refresh_rate": 30,
         }
 
         self.result = await SpotifyAccount.async_from_config_entry(
@@ -112,9 +113,8 @@ class TestAccountCreationWithDomainData(IsolatedAsyncioTestCase):
                 }
             }
         }
-        self.mocks["entry"].options = {
+        self.mocks["entry"].options = DEFAULT_OPTIONS | {
             "is_default": True,
-            "base_refresh_rate": 30,
         }
 
         self.result = await SpotifyAccount.async_from_config_entry(
@@ -176,9 +176,8 @@ class TestPreexistingAccount(IsolatedAsyncioTestCase):
                 }
             }
         }
-        self.mocks["entry"].options = {
+        self.mocks["entry"].options = DEFAULT_OPTIONS | {
             "is_default": True,
-            "base_refresh_rate": 30,
         }
 
         self.result = await SpotifyAccount.async_from_config_entry(

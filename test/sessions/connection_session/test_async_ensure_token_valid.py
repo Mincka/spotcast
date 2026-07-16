@@ -101,6 +101,29 @@ class TestTokenRefreshError(IsolatedAsyncioTestCase):
             await self.session.async_ensure_token_valid()
 
 
+class TestServerErrorClientResponse(IsolatedAsyncioTestCase):
+
+    @staticmethod
+    async def async_dummy_refresh():
+        raise ClientResponseError(MagicMock(), MagicMock(), status=503)
+
+    async def test_error_raised(self):
+        self.session, self.mocks = get_mocked_session()
+        self.mocks["supervisor"].is_ready = True
+        self.mocks["supervisor"].is_healthy = True
+        self.mocks["supervisor"].SUPERVISED_EXCEPTIONS = (
+            RetrySupervisor.SUPERVISED_EXCEPTIONS
+        )
+
+        self.session.async_refresh_token = self.async_dummy_refresh
+
+        with self.assertRaises(UpstreamServerNotready):
+            await self.session.async_ensure_token_valid()
+
+        self.assertFalse(self.session.is_healthy)
+        self.mocks["supervisor"].log_message.assert_called_once()
+
+
 class TestUnknownClientError(IsolatedAsyncioTestCase):
 
     @staticmethod

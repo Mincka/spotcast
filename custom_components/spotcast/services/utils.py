@@ -72,7 +72,7 @@ def entity_from_target_selector(
 
     count = 0
 
-    for key, value in media_players.items():
+    for value in media_players.values():
         count += len(value)
 
     if count > 1:

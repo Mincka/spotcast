@@ -3,11 +3,13 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
+from custom_components.spotcast.chromecast.exceptions import (
+    UnknownMessageError,
+)
 from custom_components.spotcast.chromecast.spotify_controller import (
     SpotifyController,
     SpotifyAccount,
     CastMessage,
-    UnknownMessageError,
 )
 
 

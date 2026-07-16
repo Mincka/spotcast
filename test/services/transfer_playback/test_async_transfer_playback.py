@@ -4,13 +4,13 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, patch, AsyncMock
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.spotcast.services.transfer_playback import (
     async_transfer_playback,
     HomeAssistant,
     ServiceCall,
     SpotifyAccount,
-    ServiceValidationError,
 )
 
 from test.services.transfer_playback import TEST_MODULE

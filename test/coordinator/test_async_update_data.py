@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, AsyncMock
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import UpdateFailed
+from spotipy import SpotifyException
 from urllib3.exceptions import ReadTimeoutError
 
 from custom_components.spotcast.coordinator import SpotcastCoordinator
@@ -164,3 +165,91 @@ class TestFailedUpdate(IsolatedAsyncioTestCase):
     async def test_update_failed_raised(self):
         with self.assertRaises(UpdateFailed):
             await self.coordinator._async_update_data()
+
+
+class TestRetryExhaustedServerErrors(IsolatedAsyncioTestCase):
+    """spotipy reports retry exhaustion as a 429 even when the retried
+    responses were 5xx server errors. The coordinator must report those
+    as a Spotify outage, not a rate limit."""
+
+    async def asyncSetUp(self):
+
+        self.mocks = {
+            "hass": MagicMock(spec=HomeAssistant),
+            "entry": MagicMock(spec=ConfigEntry),
+            "account": MagicMock(spec=SpotifyAccount),
+        }
+
+        self.mocks["entry"].entry_id = "12345"
+        self.mocks["account"].entry_id = "12345"
+        self.mocks["account"].base_refresh_rate = 30
+
+        self.mocks["account"].async_profile.side_effect = SpotifyException(
+            429,
+            -1,
+            "/v1/me/playlists?limit=1&offset=0:\n Max Retries",
+            reason="too many 502 error responses",
+        )
+
+        self.mocks["hass"].data = {}
+
+        self.coordinator = SpotcastCoordinator(
+            self.mocks["hass"],
+            self.mocks["entry"],
+            self.mocks["account"],
+        )
+
+    async def test_reported_as_server_outage(self):
+        with self.assertRaises(UpdateFailed) as context:
+            await self.coordinator._async_update_data()
+
+        self.assertIn(
+            "Spotify API temporarily unavailable",
+            str(context.exception),
+        )
+
+    async def test_misleading_rate_limit_status_not_reported(self):
+        with self.assertRaises(UpdateFailed) as context:
+            await self.coordinator._async_update_data()
+
+        self.assertNotIn("429", str(context.exception))
+
+
+class TestRetryExhaustedRateLimit(IsolatedAsyncioTestCase):
+    """A genuine rate limit exhaustion keeps the default message."""
+
+    async def asyncSetUp(self):
+
+        self.mocks = {
+            "hass": MagicMock(spec=HomeAssistant),
+            "entry": MagicMock(spec=ConfigEntry),
+            "account": MagicMock(spec=SpotifyAccount),
+        }
+
+        self.mocks["entry"].entry_id = "12345"
+        self.mocks["account"].entry_id = "12345"
+        self.mocks["account"].base_refresh_rate = 30
+
+        self.mocks["account"].async_profile.side_effect = SpotifyException(
+            429,
+            -1,
+            "/v1/me/playlists?limit=1&offset=0:\n Max Retries",
+            reason="too many 429 error responses",
+        )
+
+        self.mocks["hass"].data = {}
+
+        self.coordinator = SpotcastCoordinator(
+            self.mocks["hass"],
+            self.mocks["entry"],
+            self.mocks["account"],
+        )
+
+    async def test_default_message_kept(self):
+        with self.assertRaises(UpdateFailed) as context:
+            await self.coordinator._async_update_data()
+
+        self.assertIn(
+            "Could not refresh Spotify data for entry `12345`",
+            str(context.exception),
+        )

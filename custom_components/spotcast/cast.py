@@ -71,7 +71,10 @@ async def async_play_media(
         media_type,
     )
     spotify_uri = ha_spotify.spotify_uri_from_media_browser_url(media_id)
-    data = {"media_player": {"entity_id": [cast_entity_id]}, "spotify_uri": spotify_uri}
+    data = {
+        "media_player": {"entity_id": [cast_entity_id]},
+        "spotify_uri": spotify_uri,
+    }
 
     await hass.services.async_call(DOMAIN, "play_media", data, blocking=False)
     return True

@@ -4,10 +4,10 @@ Classes:
     SpotifyAccount
 """
 
-from asyncio import Lock, TimeoutError
+from asyncio import Lock
 from logging import getLogger
 
-from spotipy import Spotify, SpotifyException
+from spotipy import SpotifyException
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
@@ -21,6 +21,7 @@ from custom_components.spotcast.sessions import (
     async_get_config_entry_implementation,
 )
 from custom_components.spotcast.utils import ensure_default_data
+from custom_components.spotcast.spotify.client import Spotify
 from custom_components.spotcast.spotify.dataset import Dataset
 from custom_components.spotcast.spotify.search_query import SearchQuery
 from custom_components.spotcast.spotify.exceptions import PlaybackError
@@ -51,7 +52,6 @@ __all__ = [
     "DeviceInfo",
     "DeviceEntryType",
     "SearchQuery",
-    "TimeoutError",
 ]
 
 
@@ -137,7 +137,15 @@ class SpotifyAccount(  # pylint: disable=too-many-instance-attributes
             "refresh_factor": 10,
             "can_expire": False,
         },
+        "liked_songs_count": {
+            "refresh_factor": 10,
+            "can_expire": False,
+        },
         "playlists": {
+            "refresh_factor": 10,
+            "can_expire": False,
+        },
+        "playlists_count": {
             "refresh_factor": 10,
             "can_expire": False,
         },
@@ -160,7 +168,9 @@ class SpotifyAccount(  # pylint: disable=too-many-instance-attributes
         "private": "desktop_api",
     }
 
-    def __init__(
+    # The account facade takes both sessions and the entry settings at
+    # construction, so the argument count is inherent to it.
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         entry_id: str,
         hass: HomeAssistant,
@@ -268,12 +278,15 @@ class SpotifyAccount(  # pylint: disable=too-many-instance-attributes
         private_session = DesktopSession(hass, entry)
         await private_session.async_ensure_token_valid()
 
+        # only pass the account level options: the entry options also
+        # carry settings for other components (e.g. device filtering)
         account = SpotifyAccount(
             entry_id=entry.entry_id,
             hass=hass,
             public_session=public_session,
             private_session=private_session,
-            **entry.options,
+            is_default=entry.options.get("is_default", False),
+            base_refresh_rate=entry.options.get("base_refresh_rate", 30),
         )
 
         await account.async_ensure_tokens_valid(force_entry_update=True)

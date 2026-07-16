@@ -4,14 +4,13 @@ from abc import ABC, abstractmethod
 from logging import getLogger
 
 from homeassistant.core import callback
-from homeassistant.const import STATE_UNKNOWN, STATE_OFF, EntityCategory
+from homeassistant.const import STATE_UNKNOWN, STATE_OFF
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.spotify import SpotifyAccount
 
 LOGGER = getLogger(__name__)
-ENTITY_CATEGORIES = EntityCategory
 
 
 class SpotcastEntity(CoordinatorEntity[SpotcastCoordinator], ABC):
@@ -110,9 +109,8 @@ class SpotcastEntity(CoordinatorEntity[SpotcastCoordinator], ABC):
     def _generic_id(self) -> str:
         """Constructs a generic id used for the entity_id."""
         if self.GENERIC_ID is None:
-            id = self.GENERIC_NAME.lower()
-            id = id.replace(" ", "_")
-            return id
+            generic_id = self.GENERIC_NAME.lower()
+            return generic_id.replace(" ", "_")
 
         return self.GENERIC_ID
 
