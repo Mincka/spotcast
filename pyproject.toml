@@ -36,6 +36,15 @@ exclude = ["test/"]
 
 [tool.pylint]
 max-line-length = 80
+disable = [
+    # Module cycles are inherent to the current package layout
+    # (services/websocket/media_player all reference each other through
+    # the integration facade).
+    "cyclic-import",
+    # Service and websocket handlers share small boilerplate blocks
+    # (account resolution, media player lookup) by design.
+    "duplicate-code",
+]
 
 [tool.pylsp-mypy]
 enabled = true

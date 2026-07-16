@@ -4,7 +4,7 @@ Classes:
     SpotifyAccount
 """
 
-from asyncio import Lock, TimeoutError
+from asyncio import Lock
 from logging import getLogger
 
 from spotipy import SpotifyException
@@ -52,7 +52,6 @@ __all__ = [
     "DeviceInfo",
     "DeviceEntryType",
     "SearchQuery",
-    "TimeoutError",
 ]
 
 
@@ -169,7 +168,9 @@ class SpotifyAccount(  # pylint: disable=too-many-instance-attributes
         "private": "desktop_api",
     }
 
-    def __init__(
+    # The account facade takes both sessions and the entry settings at
+    # construction, so the argument count is inherent to it.
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         entry_id: str,
         hass: HomeAssistant,

@@ -28,10 +28,6 @@ from custom_components.spotcast.const import (
     SPOTIFY_TOKEN_URL,
 )
 
-if TYPE_CHECKING:  # pragma: no cover
-    from custom_components.spotcast.entry_data import EntryData
-
-
 from custom_components.spotcast.entry_data import TokenData
 from custom_components.spotcast.spotify import SpotifyAccount
 from custom_components.spotcast.sessions.oauth_pcke_implementation import (
@@ -41,6 +37,9 @@ from custom_components.spotcast.sessions.oauth_pcke_implementation import (
 from .options_flow_handler import (
     SpotcastOptionsFlowHandler,
 )
+
+if TYPE_CHECKING:  # pragma: no cover
+    from custom_components.spotcast.entry_data import EntryData
 
 LOGGER = getLogger(__name__)
 
@@ -73,7 +72,12 @@ class ManualAuthError(Exception):
         self.error_key = error_key
 
 
-class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
+# `is_matching` only serves discovery flows (dhcp/zeroconf), which
+# spotcast does not implement.
+class SpotcastFlowHandler(  # pylint: disable=abstract-method
+    SpotifyFlowHandler,
+    domain=DOMAIN,
+):
     """Handler of the Config Flow for Spotcast.
 
     Attributes:
@@ -194,7 +198,7 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
 
     async def async_step_desktop_auth(
         self,
-        user_input: dict[str, Any] | None = None,
+        _user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         """Lets the user choose how to provide the desktop token."""
         return self.async_show_menu(
@@ -204,7 +208,7 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
 
     async def async_step_desktop_api_auto(
         self,
-        user_input: dict[str, Any] | None = None,
+        _user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         """Automatic path: a local relay server redirects the browser
         back to Home Assistant to complete the authorization."""
@@ -230,8 +234,10 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
         can exchange the authorization code itself. No relay needed."""
         if self._manual_auth_url is None:
             pkce_impl = self._get_pcke_impl()
-            self._manual_auth_url = await pkce_impl.async_generate_authorize_url(
-                flow_id=self.flow_id
+            self._manual_auth_url = (
+                await pkce_impl.async_generate_authorize_url(
+                    flow_id=self.flow_id
+                )
             )
 
         placeholders = {"authorize_url": self._manual_auth_url}
@@ -293,7 +299,10 @@ class SpotcastFlowHandler(SpotifyFlowHandler, domain=DOMAIN):
 
         decoded_state = _decode_jwt(self.hass, state) if state else None
 
-        if decoded_state is None or decoded_state.get("flow_id") != self.flow_id:
+        if (
+            decoded_state is None
+            or decoded_state.get("flow_id") != self.flow_id
+        ):
             raise ManualAuthError("invalid_state")
 
         return {"code": code, "state": decoded_state}

@@ -31,7 +31,9 @@ from custom_components.spotcast.spotify import SpotifyAccount
 LOGGER = getLogger(__name__)
 
 
-class DeviceManager:
+# The manager owns the full device lifecycle state (tracked, unavailable,
+# purge timestamps, filter options), which is inherent to its role.
+class DeviceManager:  # pylint: disable=too-many-instance-attributes
     """Entity that manages Spotify Devices as they become available
     and drop from the device list
 
@@ -134,16 +136,17 @@ class DeviceManager:
         return matches
 
     async def async_update(self, _=None):
+        """Refreshes the tracked devices from the Spotify API."""
 
         if not self.supervisor.is_ready:
             return
 
         try:
             current_devices = await self._account.async_devices()
-            self.supervisor._is_healthy = True
+            self.supervisor.is_healthy = True
             await self.async_manage_devices(current_devices)
         except self.supervisor.SUPERVISED_EXCEPTIONS as exc:
-            self.supervisor._is_healthy = False
+            self.supervisor.is_healthy = False
             self.supervisor.log_message(exc)
 
     def _key_current_devices(self, current_devices: list) -> dict:
@@ -195,6 +198,8 @@ class DeviceManager:
         return current
 
     async def async_manage_devices(self, current_devices: dict):
+        """Adds, marks unavailable and purges devices based on the
+        current device list reported by Spotify."""
         current = self._key_current_devices(current_devices)
         remove = []
 
@@ -411,15 +416,15 @@ class DeviceManager:
         """
         now = time()
 
-        for id in list(self.unavailable_devices):
+        for key in list(self.unavailable_devices):
 
-            elapsed = now - self.unavailable_since.get(id, now)
+            elapsed = now - self.unavailable_since.get(key, now)
 
             if elapsed < self.stale_device_timeout:
                 continue
 
-            device = self.unavailable_devices.pop(id)
-            self.unavailable_since.pop(id, None)
+            device = self.unavailable_devices.pop(key)
+            self.unavailable_since.pop(key, None)
 
             LOGGER.info(
                 "Removing device `%s` for account `%s`. Unavailable for "

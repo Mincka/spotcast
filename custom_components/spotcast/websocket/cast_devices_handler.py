@@ -41,12 +41,14 @@ async def async_get_cast_devices(
 
     devices = []
 
-    for id, entity in entities.items():
+    for entity_id, entity in entities.items():
 
-        cast_info = entity._cast_info.cast_info
+        # HA's cast integration keeps CastInfo private with no public
+        # accessor.
+        cast_info = entity._cast_info.cast_info  # pylint: disable=protected-access
 
         devices.append({
-            "entity_id": id,
+            "entity_id": entity_id,
             "uuid": str(cast_info.uuid),
             "model_name": cast_info.model_name,
             "friendly_name": cast_info.friendly_name,

@@ -22,7 +22,12 @@ from custom_components.spotcast import DOMAIN
 LOGGER = getLogger(__name__)
 
 
-class SpotifyDevice(MediaPlayer, MediaPlayerEntity):
+# The entity mirrors the full Spotify Connect device state, which
+# requires more attributes than the pylint default.
+class SpotifyDevice(  # pylint: disable=too-many-instance-attributes
+    MediaPlayer,
+    MediaPlayerEntity,
+):
     """Representation of a device in spotify
 
     Attributes:

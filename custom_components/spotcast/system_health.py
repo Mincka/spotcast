@@ -21,7 +21,7 @@ LOGGER = getLogger(__name__)
 
 
 @callback
-def async_register(hass: HomeAssistant, register: SystemHealthRegistration):
+def async_register(_hass: HomeAssistant, register: SystemHealthRegistration):
     """Registers the system health callbacks."""
     register.async_register_info(system_health_info)
 

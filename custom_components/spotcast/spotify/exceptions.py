@@ -14,6 +14,16 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from custom_components.spotcast.exceptions import TokenError
 
+__all__ = [
+    "TokenError",
+    "PlaybackError",
+    "ExpiredDatasetError",
+    "SearchQueryError",
+    "InvalidFilterError",
+    "InvalidTagsError",
+    "InvalidItemTypeError",
+]
+
 
 class PlaybackError(HomeAssistantError):
     """raised when playback failed due to an exception from Spotify"""

@@ -1,11 +1,11 @@
 """Module for the search websocket api endpoint"""
 
 import voluptuous as vol
-from custom_components.spotcast.spotify.search_query import SearchQuery
 from homeassistant.helpers import config_validation as cv
 from homeassistant.core import HomeAssistant
 from homeassistant.components.websocket_api import ActiveConnection
 
+from custom_components.spotcast.spotify.search_query import SearchQuery
 from custom_components.spotcast.spotify.utils import select_image_url
 from custom_components.spotcast.websocket.utils import (
     websocket_wrapper,

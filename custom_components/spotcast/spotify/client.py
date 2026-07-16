@@ -28,7 +28,9 @@ class Spotify(SpotipyClient):
         """
         return self._delete(f"me/library?uris={','.join(uris)}")
 
-    def playlist_items(
+    # Intentionally narrower than spotipy's signature: the new endpoint
+    # does not support the removed `additional_types` argument.
+    def playlist_items(  # pylint: disable=arguments-differ
         self,
         playlist_id: str,
         fields: str = None,

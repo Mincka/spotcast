@@ -3,10 +3,11 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
+from homeassistant.const import EntityCategory
+
 from custom_components.spotcast.coordinator import SpotcastCoordinator
 from custom_components.spotcast.sensor.abstract_entity import (
     SpotcastEntity,
-    EntityCategory,
     SpotifyAccount,
     STATE_UNKNOWN,
 )

@@ -36,6 +36,8 @@ DEFAULT_OPTIONS = MappingProxyType({
 class SpotcastOptionsFlowHandler(OptionsFlow):
     """Handles option configuration via the Integration page"""
 
+    _options: dict = None
+
     SCHEMAS = {
         "init": vol.Schema(
             {
@@ -59,7 +61,7 @@ class SpotcastOptionsFlowHandler(OptionsFlow):
 
     async def async_step_init(
         self,
-        user_input: dict[str] | None = None,
+        _user_input: dict[str] | None = None,
     ) -> ConfigFlowResult:
         """Initial Step for the Option Configuration Flow"""
 

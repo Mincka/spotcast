@@ -4,7 +4,7 @@ Classes:
     PlaybackMixin
 """
 
-from asyncio import sleep, TimeoutError
+from asyncio import sleep
 from logging import getLogger
 from time import time
 
@@ -113,12 +113,11 @@ class PlaybackMixin:
             devices = await self.async_devices(force=True)
             devices = {x["id"]: x for x in devices}
 
-            try:
-                devices[device_id]
+            if device_id in devices:
                 return
-            except KeyError:
-                LOGGER.debug("Device `%s` not yet available", device_id)
-                await sleep(timeout / 4)
+
+            LOGGER.debug("Device `%s` not yet available", device_id)
+            await sleep(timeout / 4)
 
         raise TimeoutError(
             f"device `{device_id}` still not available after {timeout} sec."
