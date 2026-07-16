@@ -2132,7 +2132,7 @@ wheels = [
 
 [[package]]
 name = "spotcast"
-version = "6.5.2"
+version = "6.5.3"
 source = { virtual = "." }
 dependencies = [
     { name = "atomicwrites-homeassistant" },
