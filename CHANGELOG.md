@@ -2,6 +2,13 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases). Releases v6.3.0 through v6.5.2 are documented in the [GitHub release notes](https://github.com/Mincka/spotcast/releases).
 
+## Unreleased
+
+### Fixes
+
+- A `401` from the Spotify API on a token the session still considers valid no longer surfaces as a coordinator error: the account forces a token refresh and retries the call once. Spotify occasionally rejects a freshly refreshed token (`Access token missing`), which previously failed the whole update cycle.
+- The desktop session keeps its refresh token when Spotify omits `refresh_token` from a refresh response. The response replaced the stored token wholesale, which would have left the session permanently unable to refresh.
+
 ## v6.5.3 (2026-07-16)
 
 ### Fixes

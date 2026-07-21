@@ -5,6 +5,7 @@ Classes:
 """
 
 from asyncio import Lock
+from functools import partial
 from logging import getLogger
 
 from spotipy import SpotifyException
@@ -204,7 +205,10 @@ class SpotifyAccount(  # pylint: disable=too-many-instance-attributes
         self.apis: dict[str, Spotify] = {}
 
         for name, session in self.sessions.items():
-            self.apis[name] = Spotify(auth=session.access_token)
+            self.apis[name] = Spotify(
+                auth=session.access_token,
+                token_refresher=partial(self.get_token, name, force=True),
+            )
 
         self.is_default = is_default
         self._base_refresh_rate = base_refresh_rate
