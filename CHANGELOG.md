@@ -2,6 +2,16 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases). Releases v6.3.0 through v6.5.2 are documented in the [GitHub release notes](https://github.com/Mincka/spotcast/releases).
 
+## v6.6.0 (2026-07-25)
+
+### Changes
+
+- The integration is now available in German. The configuration flow, the options form and all ten service definitions are translated, bringing the shipped languages to English, French and German (thanks @vlntnwbr, [#63](https://github.com/Mincka/spotcast/pull/63)).
+
+### Project changes
+
+- Translation files are covered by a consistency test. `strings.json` and `translations/en.json` must stay identical, and every other language file must expose the same keys with the same `{placeholder}` tokens and no blank strings. New languages are picked up automatically, so a missing key can no longer fall back to English unnoticed ([#64](https://github.com/Mincka/spotcast/pull/64)).
+
 ## v6.5.4 (2026-07-21)
 
 ### Fixes
