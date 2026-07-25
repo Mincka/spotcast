@@ -1,0 +1,299 @@
+{
+    "config": {
+        "step": {
+            "desktop_api": {
+                "data": {
+                    "access_token": "Zugriffstoken (Access Token)",
+                    "refresh_token": "Aktualisierungstoken (Refresh Token)"
+                },
+                "description": "Die Schritte zur Erzeugung der notwendigen Tokens sind [hier]({release_url}) beschrieben."
+            },
+            "pick_implementation": {
+                "title": "Zugangsdaten",
+                "description": "Wählen Sie die Zugangsdaten für das Nutzerkonto aus."
+            },
+            "reauth_confirm": {
+                "title": "Spotcast Zugangsdaten aktualisieren",
+                "description": "Die Spotcast Integration muss das Nutzerkonto erneut authentifizieren."
+            },
+            "desktop_auth": {
+                "title": "Desktop-Autorisierung",
+                "description": "Spotcast benötigt einen zweiten Service um sich als Spotify Desktop Anwendung zu identifizieren. Methode auswählen:",
+                "menu_options": {
+                    "desktop_api_manual": "Weiterleitungs-URL (Redirect URL) einfügen (empfohlen, keine Zusatzsoftware)",
+                    "desktop_api_auto": "Relay Server verwenden (automatische Weiterleitung)"
+                }
+            },
+            "desktop_api_manual": {
+                "title": "Weiterleitungs-URL (Redirect URL) einfügen",
+                "description": "1. Öffnen Sie [diesen Link]({authorize_url}), melden Sie sich an und autorisieren Sie nach Aufforderung die Anwendung.\n2. Der Browser wird versuchen eine URL beginnend mit `http://127.0.0.1:8080/login...` zu öffnen und wird wahrscheinlich einen Verbindungsfehler anzeigen. Das ist erwartetes Verhalten.\n3. Kopieren Sie die vollständige URL aus der Adresszeile und fügen Sie diese unten ein.",
+                "data": {
+                    "pasted_url": "Weiterleitungs-URL"
+                }
+            },
+            "doc_confirm": {
+                "title": "Einrichtung beginnen",
+                "description": "Bitte lesen Sie [dieses Handbuch]({setup_guide}) bevor Sie weitermachen.",
+                "data": {
+                    "confirmed": "Ich habe die Dokumentation gelesen."
+                }
+            }
+        },
+        "error": {
+            "must_confirm": "Bestätigung erforderlich.",
+            "invalid_url": "Unerwartetes Format der Weiterleitungs-URL. Kopieren Sie die vollständige URL aus der Adresszeile des Browsers.",
+            "access_denied": "Zugriff verweigert. Öffnen Sie den Link erneut um neue Autorisierungscodes zu generieren.",
+            "missing_code": "Die URL enthält keinen Autorisierungscode. Kopieren Sie die vollständige URL aus der Adresszeile des Browsers.",
+            "invalid_state": "Die URL passt nicht zu diesem Einrichtungsversuch. Starten Sie die Einrichtung erneut.",
+            "token_request_failed": "Autorisierung bei Spotify fehlgeschlagen. Öffnen Sie den Link erneut um neue Autorisierungscodes zu generieren."
+        },
+        "abort": {
+            "connection_error": "Verbindungsaufbau mit den Zugangsdaten {account_type} nicht möglich. Wenn Sie von v5 upgraden, bedenken Sie, dass der Konfigurationsprozess in v6 komplett überarbeitet wurde. Stellen Sie sicher, dass Sie der [Installationsanleitung]({release_url}) folgen. Für mehr Hilfe, [öffnen Sie ein Ticket]({ticket_url}) (auf Englisch, bitte).",
+            "already_configured": "Dieses Nutzerkonto ist bereits in Home Assistant konfiguriert.",
+            "reauth_account_mismatch": "Das angegebene Konto ist nicht das, das aktualisiert werden soll.",
+            "public_private_accounts_mismatch": "Das Konto der OAuth-Zugangsdaten ist ein anderes als das der Desktop-Daten. Stellen Sie sicher, dass die Informationen zu demselben Konto gehören. Wenn Sie in Ihrem Browser in Spotify angemeldet sind, wird Home Assistant nicht nach einer erneuten Anmeldung fragen und das bereits angemeldete Konto verwenden. Wenn Sie ein anderes Konto verbinden wollen, müssen Sie sich zunächst bei Spotify abmelden.",
+            "reauth_successful": "Erneute Authentifizierung erfolgreich."
+        }
+    },
+    "options": {
+        "step": {
+            "apply_options": {
+                "data": {
+                    "set_default": "Das aktive Konto als Standardkonto verwenden",
+                    "base_refresh_rate": "Aktualisierungsrate",
+                    "stale_device_timeout": "Timeout für inaktive Geräte",
+                    "device_filter_mode": "Gerätefiltermodus",
+                    "device_filter_patterns": "Gerätefiltermuster"
+                },
+                "data_description": {
+                    "base_refresh_rate": "Intervall (Sekunden) in dem die Spotify Nutzerdaten aktualisiert werden.",
+                    "stale_device_timeout": "Anzahl von Tagen, nach denen nicht verfügbare Geräte und Entitäten entfernt werden.",
+                    "device_filter_mode": "`Exklusiv` ignoriert Geräte, die dem Muster entsprechen. `Inklusiv` erstellt nur Entitäten für Geräte, die dem Muster entsprechen.",
+                    "device_filter_patterns": "Durch Kommata getrennte Gerätenamen. Groß-/Kleinschreibung wird ignoriert und Platzhalter sind erlaubt, z.B.: `*Jam*, Pixel 7 Pro`. Wenn kein Muster angegeben wird, werden alle Geräte akzeptiert."
+                },
+                "title": "Spotcast - Optionen"
+            }
+        },
+        "abort": {
+            "success": "Konfigurationsoptionen gespeichert."
+        }
+    },
+    "selector": {
+        "device_filter_mode": {
+            "options": {
+                "deny": "Exklusiv",
+                "allow": "Inklusiv"
+            }
+        },
+        "item_type": {
+            "options": {
+                "album": "Album",
+                "artist": "Künstler",
+                "playlist": "Wiedergabeliste",
+                "track": "Lied",
+                "episode": "Episode",
+                "audiobook": "Hörbuch"
+            }
+        },
+        "tags": {
+            "options": {
+                "hipster": "Hipster",
+                "new": "Neu"
+            }
+        }
+    },
+    "services": {
+        "add_to_queue": {
+            "name": "Zur Warteschlange hinzufügen",
+            "description": "Füge Lieder zur aktiven Wiedergabe hinzu.",
+            "fields": {
+                "spotify_uris": {
+                    "name": "Spotify URIs",
+                    "description": "Eine Liste von Spotify URIs für Lieder."
+                },
+                "account": {
+                    "name": "Spotify Nutzerkonto",
+                    "description": "Die ID des Spotify Kontos das verwendet werden soll. Nutzt das Standardkonto, wenn nicht angegeben."
+                }
+            }
+        },
+        "like_media": {
+            "name": "Medien speichern",
+            "description": "Speichere Medien in der Spotify Bibliothek.",
+            "fields": {
+                "spotify_uris": {
+                    "name": "Spotify URIs",
+                    "description": "Eine Liste von Spotify URIs."
+                },
+                "account": {
+                    "name": "Spotify Nutzerkonto",
+                    "description": "Die ID des Spotify Kontos das verwendet werden soll. Nutzt das Standardkonto, wenn nicht angegeben."
+                }
+            }
+        },
+        "unlike_media": {
+            "name": "Gespeicherte Medien entfernen",
+            "description": "Entferne Medien aus der Spotify Bibliothek.",
+            "fields": {
+                "spotify_uris": {
+                    "name": "Spotify URIs",
+                    "description": "Eine Liste von Spotify URIs."
+                },
+                "account": {
+                    "name": "Spotify Nutzerkonto",
+                    "description": "Die ID des Spotify Kontos das verwendet werden soll. Nutzt das Standardkonto, wenn nicht angegeben."
+                }
+            }
+        },
+        "play_custom_context": {
+            "name": "Benutzerdefinierte Warteschlange abspielen",
+            "description": "Starte Wiedergabe mit einer Liste von Liedern.",
+            "fields": {
+                "media_player": {
+                    "name": "Ziel",
+                    "description": "Ein Media Player der mit Spotcast kompatibel ist."
+                },
+                "items": {
+                    "name": "Lieder",
+                    "description": "Eine Liste von Spotify URIs für Lieder."
+                },
+                "account": {
+                    "name": "Spotify Nutzerkonto",
+                    "description": "Die ID des Spotify Kontos das verwendet werden soll. Nutzt das Standardkonto, wenn nicht angegeben."
+                },
+                "data": {
+                    "name": "Optionen",
+                    "description": "Zusatzoptionen für die Wiedergabe."
+                }
+            }
+        },
+        "play_dj": {
+            "name": "Spotify DJ starten",
+            "description": "Starte den Spotify DJ auf dem ausgewählten Gerät.",
+            "fields": {
+                "media_player": {
+                    "name": "Ziel",
+                    "description": "Ein Media Player der mit Spotcast kompatibel ist."
+                },
+                "account": {
+                    "name": "Spotify Nutzerkonto",
+                    "description": "Die ID des Spotify Kontos das verwendet werden soll. Nutzt das Standardkonto, wenn nicht angegeben."
+                },
+                "data": {
+                    "name": "Optionen",
+                    "description": "Zusatzoptionen für die Wiedergabe."
+                }
+            }
+        },
+        "play_from_search": {
+            "name": "Suchergebnisse abspielen",
+            "description": "Führe eine Suche durch und starte Wiedergabe der Ergebnisse.",
+            "fields": {
+                "media_player": {
+                    "name": "Ziel",
+                    "description": "Ein Media Player der mit Spotcast kompatibel ist."
+                },
+                "search_term": {
+                    "name": "Suchbegriff",
+                    "description": "Hiernach wird der Spotify Katalog durchsucht."
+                },
+                "item_type": {
+                    "name": "Medientyp",
+                    "description": "Welche Art von Medien die Suche zurückliefern soll."
+                },
+                "tags": {
+                    "name": "Tags",
+                    "description": "Tags, die der Suche hinzugefügt werden."
+                },
+                "filters": {
+                    "name": "Filter",
+                    "description": "Filter, die auf die Suche angewendet werden."
+                },
+                "account": {
+                    "name": "Spotify Nutzerkonto",
+                    "description": "Die ID des Spotify Kontos das verwendet werden soll. Nutzt das Standardkonto, wenn nicht angegeben."
+                },
+                "data": {
+                    "name": "Optionen",
+                    "description": "Zusatzoptionen für die Wiedergabe."
+                }
+            }
+        },
+        "play_liked_songs": {
+            "name": "Lieblingssongs abspielen",
+            "description": "Starte Wiedergabe aller Lieder, die in der Nutzerbibliothek gespeichert sind.",
+            "fields": {
+                "media_player": {
+                    "name": "Ziel",
+                    "description": "Ein Media Player der mit Spotcast kompatibel ist."
+                },
+                "account": {
+                    "name": "Spotify Nutzerkonto",
+                    "description": "Die ID des Spotify Kontos das verwendet werden soll. Nutzt das Standardkonto, wenn nicht angegeben."
+                },
+                "data": {
+                    "name": "Optionen",
+                    "description": "Zusatzoptionen für die Wiedergabe."
+                }
+            }
+        },
+        "play_media": {
+            "name": "Medium abspielen",
+            "description": "Startet Wiedergabe eines einzelnen Spotify Mediums.",
+            "fields": {
+                "media_player": {
+                    "name": "Ziel",
+                    "description": "Ein Media Player der mit Spotcast kompatibel ist."
+                },
+                "spotify_uri": {
+                    "name": "URI",
+                    "description": "Eine Spotify URI oder URL."
+                },
+                "account": {
+                    "name": "Spotify Nutzerkonto",
+                    "description": "Die ID des Spotify Kontos das verwendet werden soll. Nutzt das Standardkonto, wenn nicht angegeben."
+                },
+                "data": {
+                    "name": "Optionen",
+                    "description": "Zusatzoptionen für die Wiedergabe."
+                }
+            }
+        },
+        "play_saved_episodes": {
+            "name": "Deine Folgen abspielen",
+            "description": "Starte Wiedergabe der Podcast-Folgen, die in der Nutzerbibliothek gespeichert sind.",
+            "fields": {
+                "media_player": {
+                    "name": "Ziel",
+                    "description": "Ein Media Player der mit Spotcast kompatibel ist."
+                },
+                "account": {
+                    "name": "Spotify Nutzerkonto",
+                    "description": "Die ID des Spotify Kontos das verwendet werden soll. Nutzt das Standardkonto, wenn nicht angegeben."
+                },
+                "data": {
+                    "name": "Optionen",
+                    "description": "Zusatzoptionen für die Wiedergabe."
+                }
+            }
+        },
+        "transfer_playback": {
+            "name": "Wiedergabe übertragen",
+            "description": "Überträgt die aktive Wiedergabe an das gewählte Gerät.",
+            "fields": {
+                "media_player": {
+                    "name": "Ziel",
+                    "description": "Ein Media Player der mit Spotcast kompatibel ist."
+                },
+                "account": {
+                    "name": "Spotify Nutzerkonto",
+                    "description": "Die ID des Spotify Kontos das verwendet werden soll. Nutzt das Standardkonto, wenn nicht angegeben."
+                },
+                "data": {
+                    "name": "Optionen",
+                    "description": "Zusatzoptionen für die Wiedergabe."
+                }
+            }
+        }
+    }
+}
