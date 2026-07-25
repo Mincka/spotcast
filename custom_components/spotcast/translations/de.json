@@ -26,7 +26,7 @@
             },
             "desktop_api_manual": {
                 "title": "Weiterleitungs-URL (Redirect URL) einfügen",
-                "description": "1. Öffnen Sie [diesen Link]({authorize_url}), melden Sie sich an und autorisieren Sie nach Aufforderung die Anwendung.\n2. Der Browser wird versuchen eine URL beginnend mit `http://127.0.0.1:8080/login...` zu öffnen und wird wahrscheinlich einen Verbindungsfehler anzeigen. Das ist erwartetes Verhalten.\n3. Kopieren Sie die vollständige URL aus der Adresszeile und fügen sie diese unten ein.",
+                "description": "1. Öffnen Sie [diesen Link]({authorize_url}), melden Sie sich an und autorisieren Sie nach Aufforderung die Anwendung.\n2. Der Browser wird versuchen eine URL beginnend mit `http://127.0.0.1:8080/login...` zu öffnen und wird wahrscheinlich einen Verbindungsfehler anzeigen. Das ist erwartetes Verhalten.\n3. Kopieren Sie die vollständige URL aus der Adresszeile und fügen Sie diese unten ein.",
                 "data": {
                     "pasted_url": "Weiterleitungs-URL"
                 }
@@ -51,7 +51,7 @@
             "connection_error": "Verbindungsaufbau mit den Zugangsdaten {account_type} nicht möglich. Wenn Sie von v5 upgraden, bedenken Sie, dass der Konfigurationsprozess in v6 komplett überarbeitet wurde. Stellen Sie sicher, dass Sie der [Installationsanleitung]({release_url}) folgen. Für mehr Hilfe, [öffnen Sie ein Ticket]({ticket_url}) (auf Englisch, bitte).",
             "already_configured": "Dieses Nutzerkonto ist bereits in Home Assistant konfiguriert.",
             "reauth_account_mismatch": "Das angegebene Konto ist nicht das, das aktualisiert werden soll.",
-            "public_private_accounts_mismatch": "Das Konto der OAuth-Zugangsdaten ist ein anderes als das der Desktop-Daten. Stellen Sie sicher, dass die Informationen zu demselben Konto gehören. Wenn Sie in ihrem Browser in Spotify angemeldet sind, wird Home Assistant nicht nach einer erneuten Anmeldung fragen und das bereits angemeldete Konto verwenden. Wenn Sie ein anderes Konto verbinden wollen, müssen Sie sich zunächst bei Spotify abmelden.",
+            "public_private_accounts_mismatch": "Das Konto der OAuth-Zugangsdaten ist ein anderes als das der Desktop-Daten. Stellen Sie sicher, dass die Informationen zu demselben Konto gehören. Wenn Sie in Ihrem Browser in Spotify angemeldet sind, wird Home Assistant nicht nach einer erneuten Anmeldung fragen und das bereits angemeldete Konto verwenden. Wenn Sie ein anderes Konto verbinden wollen, müssen Sie sich zunächst bei Spotify abmelden.",
             "reauth_successful": "Erneute Authentifizierung erfolgreich."
         }
     },
@@ -68,7 +68,7 @@
                 "data_description": {
                     "base_refresh_rate": "Intervall (Sekunden) in dem die Spotify Nutzerdaten aktualisiert werden.",
                     "stale_device_timeout": "Anzahl von Tagen, nach denen nicht verfügbare Geräte und Entitäten entfernt werden.",
-                    "device_filter_mode": "`Exklusiv` ignoriert Geräte, die dem Muster entsprechen matching the patterns. `Inklusiv` erstellt nur Entitäten für Geräte, die dem Muster entsprechen.",
+                    "device_filter_mode": "`Exklusiv` ignoriert Geräte, die dem Muster entsprechen. `Inklusiv` erstellt nur Entitäten für Geräte, die dem Muster entsprechen.",
                     "device_filter_patterns": "Durch Kommata getrennte Gerätenamen. Groß-/Kleinschreibung wird ignoriert und Platzhalter sind erlaubt, z.B.: `*Jam*, Pixel 7 Pro`. Wenn kein Muster angegeben wird, werden alle Geräte akzeptiert."
                 },
                 "title": "Spotcast - Optionen"
@@ -92,7 +92,7 @@
                 "playlist": "Wiedergabeliste",
                 "track": "Lied",
                 "episode": "Episode",
-                "audiobook": "Hörspiel"
+                "audiobook": "Hörbuch"
             }
         },
         "tags": {
@@ -133,7 +133,7 @@
         },
         "unlike_media": {
             "name": "Gespeicherte Medien entfernen",
-            "description": "Entferne Medien aus der Spotify Bibiothek.",
+            "description": "Entferne Medien aus der Spotify Bibliothek.",
             "fields": {
                 "spotify_uris": {
                     "name": "Spotify URIs",
