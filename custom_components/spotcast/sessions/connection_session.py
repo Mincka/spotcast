@@ -113,15 +113,21 @@ class ConnectionSession(ABC):
         `expires_in` standard key.
         """
 
-    async def async_ensure_token_valid(self) -> bool:
+    async def async_ensure_token_valid(self, force: bool = False) -> bool:
         """Method that ensures a token is currently valid.
+
+        Args:
+            force(bool, optional): Refreshes the token even if it is not
+                expired yet. Used to recover from an API rejecting a
+                token the session still considers valid. Defaults to
+                False.
 
         Returns:
             bool: Returns `True` if the token was refreshed and `False`
                 if not
         """
         async with self._token_lock:
-            if self.valid_token:
+            if self.valid_token and not force:
                 return False
 
             if not self.supervisor.is_ready:

@@ -57,6 +57,51 @@ class TestSuccessfullRefresh(IsolatedAsyncioTestCase):
         )
 
 
+class TestRefreshWithoutNewRefreshToken(IsolatedAsyncioTestCase):
+    """Spotify may omit `refresh_token` when the current one stays
+    valid. The session must keep it instead of dropping it."""
+
+    @patch(f"{TEST_MODULE}.time", new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.async_get_clientsession", new_callable=MagicMock)
+    async def asyncSetUp(
+        self,
+        mock_http_session: MagicMock,
+        mock_time: MagicMock,
+    ):
+
+        mock_http_session.return_value = MagicMock(spec=ClientSession)
+
+        self.session, self.mocks = get_mocked_session()
+
+        self.mocks["http_session"] = mock_http_session.return_value
+        self.mocks["time"] = mock_time
+        self.mocks["time"].return_value = 400
+
+        self.mocks["http_session"].post = AsyncMock()
+        self.mocks["http_session"].post.return_value = MagicMock()
+        self.mocks["response"] = self.mocks["http_session"].post.return_value
+        self.mocks["response"].json = AsyncMock()
+        self.mocks["response"].json.return_value = {
+            "access_token": "baz",
+            "expires_in": 100,
+            "scope": "read write",
+        }
+        self.mocks["response"].status = 200
+
+        self.result = await self.session.async_refresh_token()
+
+    def test_refresh_token_retained(self):
+        self.assertEqual(
+            self.result,
+            {
+                "access_token": "baz",
+                "refresh_token": "bar",
+                "expires_at": 500,
+                "scope": "read write",
+            }
+        )
+
+
 class TestStandardFormatErrorMessage(IsolatedAsyncioTestCase):
 
     @patch(f"{TEST_MODULE}.LOGGER", new_callable=MagicMock)

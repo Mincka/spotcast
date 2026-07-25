@@ -30,31 +30,38 @@ class TokenMixin:
 
         return health
 
-    def get_token(self, api: str) -> str:
+    def get_token(self, api: str, force: bool = False) -> str:
         """Retrives a token from the requested session.
+
+        Safe to call from an executor thread, which is where the
+        spotipy clients run.
 
         Args:
             api(str): The session to retrieve from. Can be `public`
                 or `private`.
+            force(bool, optional): Refreshes the token even if it is
+                not expired yet. Defaults to False.
 
         Returns:
             str: token for the requested session
         """
         return run_coroutine_threadsafe(
-            self.async_get_token(api), self.hass.loop
+            self.async_get_token(api, force), self.hass.loop
         ).result()
 
-    async def async_get_token(self, api: str) -> str:
+    async def async_get_token(self, api: str, force: bool = False) -> str:
         """Retrives a token from the requested session.
 
         Args:
             api(str): The session to retrieve from. Can be `public` or
                 `private`.
+            force(bool, optional): Refreshes the token even if it is
+                not expired yet. Defaults to False.
 
         Returns:
             - str: token for the requested session
         """
-        await self.sessions[api].async_ensure_token_valid()
+        await self.sessions[api].async_ensure_token_valid(force)
         return self.sessions[api].access_token
 
     async def async_ensure_tokens_valid(

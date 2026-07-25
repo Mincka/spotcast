@@ -3,7 +3,16 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from custom_components.spotcast.spotify.client import Spotify
+from spotipy import Spotify as SpotipyClient
+
+from custom_components.spotcast.spotify.client import Spotify, SpotifyException
+
+CALL_ARGS = ("GET", "me/player/devices", None, {})
+
+
+def unauthorized() -> SpotifyException:
+    """Builds the exception spotipy raises on a 401."""
+    return SpotifyException(401, -1, "url:\n Access token missing")
 
 
 class TestSaveToLibrary(TestCase):
@@ -68,3 +77,71 @@ class TestPlaylistItems(TestCase):
             )
         except AssertionError:
             self.fail()
+
+
+class TestUnauthorizedRetry(TestCase):
+
+    @patch.object(SpotipyClient, "_internal_call")
+    def setUp(self, mock_call: MagicMock):
+        self.mock_call = mock_call
+        self.mock_call.side_effect = [unauthorized(), {"devices": []}]
+
+        self.refresher = MagicMock(return_value="fresh")
+        self.client = Spotify(auth="stale", token_refresher=self.refresher)
+
+        self.result = self.client._internal_call(*CALL_ARGS)
+
+    def test_result_of_the_retry_returned(self):
+        self.assertEqual(self.result, {"devices": []})
+
+    def test_token_refresh_forced(self):
+        self.refresher.assert_called_once_with()
+
+    def test_fresh_token_applied_to_the_client(self):
+        self.assertEqual(self.client._auth, "fresh")
+
+    def test_call_retried_once(self):
+        self.assertEqual(self.mock_call.call_count, 2)
+
+
+class TestUnauthorizedWithoutRefresher(TestCase):
+
+    @patch.object(SpotipyClient, "_internal_call")
+    def test_exception_raised(self, mock_call: MagicMock):
+        mock_call.side_effect = unauthorized()
+        client = Spotify(auth="stale")
+
+        with self.assertRaises(SpotifyException):
+            client._internal_call(*CALL_ARGS)
+
+        self.assertEqual(mock_call.call_count, 1)
+
+
+class TestUnauthorizedWithFailingRefresh(TestCase):
+
+    @patch.object(SpotipyClient, "_internal_call")
+    def test_original_error_raised(self, mock_call: MagicMock):
+        mock_call.side_effect = unauthorized()
+        refresher = MagicMock(side_effect=ConnectionError("no token"))
+        client = Spotify(auth="stale", token_refresher=refresher)
+
+        with self.assertRaises(SpotifyException) as ctx:
+            client._internal_call(*CALL_ARGS)
+
+        self.assertEqual(ctx.exception.http_status, 401)
+        self.assertEqual(mock_call.call_count, 1)
+
+
+class TestOtherErrorNotRetried(TestCase):
+
+    @patch.object(SpotipyClient, "_internal_call")
+    def test_exception_raised_without_retry(self, mock_call: MagicMock):
+        mock_call.side_effect = SpotifyException(404, -1, "url:\n Not found")
+        refresher = MagicMock(return_value="fresh")
+        client = Spotify(auth="valid", token_refresher=refresher)
+
+        with self.assertRaises(SpotifyException):
+            client._internal_call(*CALL_ARGS)
+
+        self.assertEqual(mock_call.call_count, 1)
+        refresher.assert_not_called()

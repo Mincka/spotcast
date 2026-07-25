@@ -70,4 +70,9 @@ class DesktopSession(ConnectionSession):
 
         # sets the new expires at key
         data["expires_at"] = data.pop("expires_in") + time()
-        return data
+
+        # the response replaces the whole token, so merge it over the
+        # current one: Spotify may omit `refresh_token` when it is still
+        # valid, which would otherwise leave the session unable to
+        # refresh ever again.
+        return {**self.token, **data}
