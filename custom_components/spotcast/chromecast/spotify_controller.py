@@ -29,8 +29,14 @@ LOGGER = getLogger(__name__)
 # a `getInfo` request reliably. Single devices do not need this.
 GROUP_LAUNCH_DELAY = 3.0
 
+# `Chromecast.wait()` has no timeout of its own and retries forever, so an
+# unreachable device would block the caller rather than fail it.
+CONNECT_TIMEOUT = 20.0
 
-class SpotifyController(BaseController):
+
+class SpotifyController(  # pylint: disable=too-many-instance-attributes
+    BaseController
+):
     """A Chromcast controller for interacting with Spotify
 
     Attributes:
@@ -96,6 +102,10 @@ class SpotifyController(BaseController):
         self.activated_device_id: str = None
         self.credential_error = False
 
+        # What the device said when it refused, for the waiting thread to
+        # raise -- the handlers cannot raise it themselves.
+        self.launch_error: str = None
+
     def _send_message_callback(self, *_):
         """Call back method to send a message after the launch method"""
         if self.current_device is not None and self.current_device.is_group:
@@ -115,6 +125,8 @@ class SpotifyController(BaseController):
         self.is_launched = False
         self.current_device = device
         self.activated_device_id = None
+        self.credential_error = False
+        self.launch_error = None
 
         self._current_message = {
             "type": self.TYPE_GET_INFO,
@@ -126,12 +138,12 @@ class SpotifyController(BaseController):
         }
 
         LOGGER.debug("Waiting for `%s` to be ready", device.name)
-        device.wait()
+        self._wait_for_connection(device)
 
         LOGGER.debug("Starting Spotify on `%s`", device.name)
         device.start_app(self.APP_ID)
         LOGGER.debug("Waiting for `%s` to be available", device.name)
-        device.wait()
+        self._wait_for_connection(device)
 
         self.waiting.clear()
 
@@ -149,6 +161,14 @@ class SpotifyController(BaseController):
                 )
                 return
 
+            # Raised here because the handler that detected it runs on the
+            # socket client's thread, where an exception is logged and dropped.
+            if self.credential_error:
+                raise AppLaunchError(
+                    self.launch_error
+                    or "Spotify refused the credentials for this device"
+                )
+
             if max_attempts is not None and counter >= max_attempts:
                 raise AppLaunchError(
                     "Timeout when waiting for status response from Spotify app"
@@ -160,6 +180,18 @@ class SpotifyController(BaseController):
             )
             self.waiting.wait(1)
             counter += 1
+
+    def _wait_for_connection(self, device: Chromecast):
+        """Waits for the device to be reachable, bounded by CONNECT_TIMEOUT"""
+        device.wait(timeout=CONNECT_TIMEOUT)
+
+        socket_client = getattr(device, "socket_client", None)
+        if socket_client is not None and not socket_client.is_connected:
+            raise AppLaunchError(
+                f"Could not connect to `{device.name}` within "
+                f"{CONNECT_TIMEOUT:.0f}s. The device may be powered down or "
+                "unreachable on the network."
+            )
 
     def stop_app(self, device: Chromecast):
         """Stops the Spotify app on the device"""
@@ -252,21 +284,45 @@ class SpotifyController(BaseController):
 
         return True
 
-    def _add_user_error_handler(self, *_, **__) -> bool:
+    def _add_user_error_handler(
+        self, _message: CastMessage, data: dict
+    ) -> bool:
         """Handler for the add user error message"""
         self.current_device = None
         self.credential_error = True
+        self.launch_error = self._describe(
+            "Spotify refused the credentials for this device", data
+        )
+        LOGGER.error("%s", self.launch_error)
         self.waiting.set()
 
-        raise AppLaunchError("Credentials error. Laucnhgin spotify failed")
+        return True
 
-    def _transfer_error_handler(self, *_, **__) -> bool:
+    def _transfer_error_handler(
+        self, _message: CastMessage, data: dict
+    ) -> bool:
         """Handler for the transfer error message"""
         self.current_device = None
         self.credential_error = True
+        self.launch_error = self._describe(
+            "Spotify refused to transfer playback to this device", data
+        )
+        LOGGER.error("%s", self.launch_error)
         self.waiting.set()
 
-        raise AppLaunchError("Device took too much time to start playback")
+        return True
+
+    @staticmethod
+    def _describe(summary: str, data: dict) -> str:
+        """Adds the device's own account of the refusal to a summary"""
+        payload = (data or {}).get("payload") or {}
+        detail = ", ".join(
+            f"{key}={payload[key]}"
+            for key in ("status", "statusString", "spotifyError", "reason")
+            if key in payload
+        )
+
+        return f"{summary} ({detail})" if detail else summary
 
     def _transfer_success_handler(self, *_, **__) -> bool:
         """Handles the transfer success message"""

@@ -21,13 +21,18 @@ class TestTransferErrorHandling(TestCase):
         mock_account = MagicMock(spec=SpotifyAccount)
         self.controller = SpotifyController(mock_account)
 
-        try:
-            self.controller._transfer_error_handler(
-                MagicMock(spec=CastMessage),
-                {}
-            )
-        except AppLaunchError:
-            pass
+        # The handler records the refusal rather than raising it, since it
+        # runs on a thread where a raise would be logged and dropped.
+        self.controller._transfer_error_handler(
+            MagicMock(spec=CastMessage),
+            {
+                "payload": {
+                    "status": 108,
+                    "statusString": "ERROR-CANNOT-LOAD",
+                    "spotifyError": 409,
+                }
+            }
+        )
 
     def test_device_removed(self):
         self.assertIsNone(self.controller.current_device)
@@ -40,3 +45,7 @@ class TestTransferErrorHandling(TestCase):
 
     def test_credentials_error_set(self):
         self.assertTrue(self.controller.credential_error)
+
+    def test_records_what_the_device_said(self):
+        self.assertIn("ERROR-CANNOT-LOAD", self.controller.launch_error)
+        self.assertIn("409", self.controller.launch_error)
