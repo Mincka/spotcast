@@ -444,16 +444,34 @@ Loggers surfaced in diagnostics: `spotipy`, `pychromecast`.
   failures and reports `UpstreamServerNotready` instead of retry storms.
 - **spotipy's fake 429.** When its urllib3 retries run out, `spotipy`
   raises `SpotifyException(429, -1, "... Max Retries")` **regardless of
-  the real HTTP status**, and its retry logger prints a "rate/request
-  limit" warning for any retried status (429/500/502/503/504)
+  the real HTTP status**
   ([spotipy-dev/spotipy#805](https://github.com/spotipy-dev/spotipy/issues/805)).
   The real status hides in `exc.reason` (urllib3 wording, e.g. "too many
   502 error responses"), and a genuine 429 always carries a `Retry-After`
   header. The coordinator matches that signature
-  (`SERVER_ERROR_PATTERN` in `coordinator.py`) and reports "Spotify API
+  (`SERVER_ERROR_PATTERN` in `spotify/client.py`) and reports "Spotify API
   temporarily unavailable (server errors)" instead of echoing the
   misleading 429. Do not trust a 429 status from a retry-exhausted
   spotipy call without checking `reason`.
+- **Genuine rate limits.** Spotify rate limits per client id, which every
+  account shares. spotipy's default retry would sleep the full
+  `Retry-After` (urllib3 caps it at 6 hours) inside the executor thread,
+  up to 3 times, per call. The extended client (`spotify/client.py`)
+  builds its own requests session (`_build_session`) with 429 removed
+  from the retry codes **and** `respect_retry_after_header=False`:
+  urllib3 retries any 429/503 carrying `Retry-After` when that flag is
+  set, regardless of `status_forcelist`, and spotipy's session builder
+  gives no way to turn it off. Server errors keep spotipy's 3 retries
+  with a short exponential backoff (the urllib3 `Retry` replaces
+  spotipy's subclass, so its misleading "rate/request limit" warning on
+  5xx retries is gone). The client then consults a shared
+  `RateLimitGuard` (`spotify/rate_limit.py`) before every request: a
+  429 registers `Retry-After` (default 30 s when missing) and raises
+  `RateLimitedError`; until the window expires every client fails fast
+  with the same error and no network call. `RateLimitedError` is a
+  `SpotifyException` (status 429) so existing handlers keep working; the
+  coordinator and the service handler special-case it to report the
+  resume time, and system health shows a `Rate Limit` row.
 - **Removed browse categories.** For Spotify applications created after
   2026-02-11, `GET /browse/categories` is gone with no replacement; the
   (deprecated) `spotcast/categories` WebSocket endpoint returns an empty

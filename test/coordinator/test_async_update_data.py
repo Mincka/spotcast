@@ -1,5 +1,6 @@
 """Module to test the _async_update_data function"""
 
+from time import time
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, AsyncMock
 
@@ -14,6 +15,7 @@ from custom_components.spotcast.media_player.device_manager import (
     DeviceManager,
 )
 from custom_components.spotcast.spotify import SpotifyAccount
+from custom_components.spotcast.spotify.exceptions import RateLimitedError
 
 
 class TestSuccessfulUpdate(IsolatedAsyncioTestCase):
@@ -253,3 +255,51 @@ class TestRetryExhaustedRateLimit(IsolatedAsyncioTestCase):
             "Could not refresh Spotify data for entry `12345`",
             str(context.exception),
         )
+
+
+class TestRateLimited(IsolatedAsyncioTestCase):
+    """A rate limit pauses every account: the refresh fails fast and
+    the message says when it resumes."""
+
+    async def asyncSetUp(self):
+
+        self.mocks = {
+            "hass": MagicMock(spec=HomeAssistant),
+            "entry": MagicMock(spec=ConfigEntry),
+            "account": MagicMock(spec=SpotifyAccount),
+        }
+
+        self.mocks["entry"].entry_id = "12345"
+        self.mocks["account"].entry_id = "12345"
+        self.mocks["account"].base_refresh_rate = 30
+
+        self.mocks["account"].async_profile.side_effect = RateLimitedError(
+            time() + 600,
+            "me",
+        )
+
+        self.mocks["hass"].data = {}
+
+        self.coordinator = SpotcastCoordinator(
+            self.mocks["hass"],
+            self.mocks["entry"],
+            self.mocks["account"],
+        )
+
+    async def test_update_failed_raised(self):
+        with self.assertRaises(UpdateFailed):
+            await self.coordinator._async_update_data()
+
+    async def test_message_reports_the_pause(self):
+        with self.assertRaises(UpdateFailed) as context:
+            await self.coordinator._async_update_data()
+
+        self.assertIn("rate limit active", str(context.exception))
+        self.assertIn("paused for", str(context.exception))
+        self.assertIn("`12345`", str(context.exception))
+
+    async def test_remaining_datasets_not_refreshed(self):
+        with self.assertRaises(UpdateFailed):
+            await self.coordinator._async_update_data()
+
+        self.mocks["account"].async_devices.assert_not_called()

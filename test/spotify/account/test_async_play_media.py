@@ -15,6 +15,8 @@ from custom_components.spotcast.spotify.account import (
     Store,
 )
 
+from custom_components.spotcast.spotify.exceptions import RateLimitedError
+
 from test.spotify.account import TEST_MODULE
 
 
@@ -460,3 +462,56 @@ class TestPlaybackError(IsolatedAsyncioTestCase):
                 "foo",
                 "spotify:dummy:uri"
             )
+
+
+class TestRateLimitedPlayback(IsolatedAsyncioTestCase):
+    """A rate limit is not a playback failure: the error keeps its
+    resume time so the service layer can tell the user when to retry."""
+
+    @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.Spotify", spec=Spotify, new_callable=MagicMock)
+    async def asyncSetUp(
+            self,
+            mock_spotify: MagicMock,
+            mock_store: MagicMock,
+    ):
+
+        self.mocks = {
+            "internal": MagicMock(spec=DesktopSession),
+            "external": MagicMock(spec=PublicSession),
+            "hass": MagicMock(spec=HomeAssistant),
+        }
+        self.mocks["hass"].loop = MagicMock()
+
+        self.mocks["external"].token = {
+            "access_token": "12345",
+            "expires_at": 12345.61,
+        }
+
+        self.account = SpotifyAccount(
+            entry_id="12345",
+            hass=self.mocks["hass"],
+            public_session=self.mocks["external"],
+            private_session=self.mocks["internal"],
+            is_default=True
+        )
+
+        self.account.async_ensure_tokens_valid = AsyncMock()
+
+        self.account._datasets["profile"].expires_at = time() + 9999
+        self.account._datasets["profile"]._data = {"name": "Dummy"}
+
+        self.mocks["hass"].async_add_executor_job = AsyncMock()
+        self.mocks["hass"].async_add_executor_job\
+            .side_effect = RateLimitedError(time() + 300)
+
+    async def test_start_playback_not_wrapped(self):
+        with self.assertRaises(RateLimitedError):
+            await self.account.async_play_media(
+                "foo",
+                "spotify:dummy:uri"
+            )
+
+    async def test_transfer_playback_not_wrapped(self):
+        with self.assertRaises(RateLimitedError):
+            await self.account.async_play_media("foo")

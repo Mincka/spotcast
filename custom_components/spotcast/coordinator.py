@@ -15,7 +15,6 @@ Constants:
 from asyncio import exceptions as asyncio_errors
 from datetime import timedelta
 from logging import getLogger
-from re import compile as re_compile
 
 from aiohttp.client_exceptions import ClientResponseError
 from homeassistant.core import HomeAssistant
@@ -29,6 +28,8 @@ from spotipy import SpotifyException
 
 from custom_components.spotcast.const import DOMAIN
 from custom_components.spotcast.spotify import SpotifyAccount
+from custom_components.spotcast.spotify.client import SERVER_ERROR_PATTERN
+from custom_components.spotcast.spotify.exceptions import RateLimitedError
 from custom_components.spotcast.sessions.exceptions import TokenError
 from custom_components.spotcast.sessions.retry_supervisor import (
     RetrySupervisor,
@@ -45,8 +46,6 @@ POTENTIAL_ERRORS = (
     RetrySupervisor.SUPERVISED_EXCEPTIONS + ENTITY_SPECIFIC_ERRORS
 )
 UPDATE_ERRORS = POTENTIAL_ERRORS + (SpotifyException, ClientResponseError)
-
-SERVER_ERROR_PATTERN = re_compile(r"too many 5\d\d error responses")
 
 
 class SpotcastCoordinator(DataUpdateCoordinator[dict]):
@@ -133,7 +132,19 @@ class SpotcastCoordinator(DataUpdateCoordinator[dict]):
         exhausted, even when the retried responses were 5xx server
         errors. Report those as a Spotify outage instead of echoing a
         misleading rate-limit status (see spotipy-dev/spotipy#805).
+
+        A rate limit pauses every account until the `Retry-After`
+        window expires; the refresh fails fast without a network call
+        and the message says when it resumes.
         """
+        if isinstance(exc, RateLimitedError):
+            return (
+                "Spotify rate limit active for this client id. Refresh "
+                f"of entry `{self.account.entry_id}` paused for "
+                f"{exc.seconds_remaining} s (until "
+                f"{exc.resume_time})"
+            )
+
         if (
             isinstance(exc, SpotifyException)
             and exc.http_status == 429

@@ -2,6 +2,12 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases). Releases v6.3.0 through v6.5.2 are documented in the [GitHub release notes](https://github.com/Mincka/spotcast/releases).
 
+## Unreleased
+
+### Fixes
+
+- A Spotify rate limit (`429`) no longer blocks Home Assistant for hours. spotipy retried a `429` by sleeping the full `Retry-After` (up to 6 hours, up to 3 times) inside a Home Assistant worker thread, once per account and once per action call, so a rate limit left coordinator refreshes and `play_media` calls hanging for hours and every waking thread immediately re-knocked on a door that had already said no. Spotcast now disables spotipy's `429` retry, reads `Retry-After` once and pauses every account sharing the client id until the window expires: refreshes fail fast with "Spotify rate limit active ... paused for N s (until HH:MM:SS)", action calls return "Spotify is rate limiting this client id. Try again in N s", system health shows a `Rate Limit` row, and everything resumes on its own ([#68](https://github.com/Mincka/spotcast/issues/68)).
+
 ## v6.6.0 (2026-07-25)
 
 ### Changes

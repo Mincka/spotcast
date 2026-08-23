@@ -10,7 +10,10 @@ from time import time
 
 from spotipy import SpotifyException
 
-from custom_components.spotcast.spotify.exceptions import PlaybackError
+from custom_components.spotcast.spotify.exceptions import (
+    PlaybackError,
+    RateLimitedError,
+)
 
 LOGGER = getLogger(__name__)
 
@@ -195,6 +198,8 @@ class PlaybackMixin:
                     True,
                 )
                 return
+            except RateLimitedError:
+                raise
             except SpotifyException as exc:
                 raise PlaybackError(exc.msg) from exc
 
@@ -226,31 +231,56 @@ class PlaybackMixin:
 
         try:
             await self.hass.async_add_executor_job(*start_args)
+        except RateLimitedError:
+            raise
         except SpotifyException as exc:
             if exc.http_status != 404:
                 raise PlaybackError(exc.msg) from exc
 
-            # A Spotify Connect device that just came online (e.g. a
-            # librespot device) may not be registered yet when we issue
-            # the play command, so Spotify answers 404 "Device not found".
-            # Wait for it to appear and retry once before giving up,
-            # instead of surfacing an error the user cannot act on.
-            LOGGER.info(
-                "Device `%s` not found on first play attempt; waiting for "
-                "it to become available",
-                device_id,
-            )
+            await self._async_retry_when_device_appears(start_args, device_id)
 
-            try:
-                await self.async_wait_for_device(device_id)
-                await self.hass.async_add_executor_job(*start_args)
-            except TimeoutError as timeout_exc:
-                raise PlaybackError(
-                    f"Device `{device_id}` is not available on Spotify "
-                    "Connect."
-                ) from timeout_exc
-            except SpotifyException as retry_exc:
-                raise PlaybackError(retry_exc.msg) from retry_exc
+    async def _async_retry_when_device_appears(
+        self,
+        start_args: tuple,
+        device_id: str,
+    ):
+        """Retries a playback start once the device is registered.
+
+        A Spotify Connect device that just came online (e.g. a
+        librespot device) may not be registered yet when we issue the
+        play command, so Spotify answers 404 "Device not found". Wait
+        for it to appear and retry once before giving up, instead of
+        surfacing an error the user cannot act on.
+
+        Args:
+            - start_args(tuple): the executor job arguments of the
+                playback start
+            - device_id(str): the id of the device to wait for
+
+        Raises:
+            - PlaybackError: raised when the device never shows up or
+                the retry fails
+            - RateLimitedError: raised when the retry hits the rate
+                limit, untouched so it surfaces with its resume time
+        """
+        LOGGER.info(
+            "Device `%s` not found on first play attempt; waiting for "
+            "it to become available",
+            device_id,
+        )
+
+        try:
+            await self.async_wait_for_device(device_id)
+            await self.hass.async_add_executor_job(*start_args)
+        except TimeoutError as timeout_exc:
+            raise PlaybackError(
+                f"Device `{device_id}` is not available on Spotify "
+                "Connect."
+            ) from timeout_exc
+        except RateLimitedError:
+            raise
+        except SpotifyException as retry_exc:
+            raise PlaybackError(retry_exc.msg) from retry_exc
 
     async def async_shuffle(
         self,
@@ -337,6 +367,8 @@ class PlaybackMixin:
                 uri,
                 device_id,
             )
+        except RateLimitedError:
+            raise
         except SpotifyException as exc:
             raise PlaybackError(
                 f"Could not add `{uri}` to device `{device_id}`"

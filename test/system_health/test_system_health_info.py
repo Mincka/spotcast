@@ -96,3 +96,30 @@ class TestUnHealthyAccount(IsolatedAsyncioTestCase):
             self.result["Account 1 Public Token"],
             {"type": "failed", "error": "unhealthy"},
         )
+
+
+class TestRateLimitRow(IsolatedAsyncioTestCase):
+
+    def setUp(self):
+        self.hass = MagicMock(spec=HomeAssistant)
+        self.hass.data = {"spotcast": {}}
+
+    @patch(f"{TEST_MODULE}.async_check_can_reach_url", new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.RATE_LIMIT_GUARD")
+    async def test_ok_when_not_limited(self, guard: MagicMock, _: MagicMock):
+        guard.is_limited = False
+        result = await system_health_info(self.hass)
+
+        self.assertEqual(result["Rate Limit"], "ok")
+
+    @patch(f"{TEST_MODULE}.async_check_can_reach_url", new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.RATE_LIMIT_GUARD")
+    async def test_failed_when_limited(self, guard: MagicMock, _: MagicMock):
+        guard.is_limited = True
+        guard.resume_time = "12:34:56"
+        result = await system_health_info(self.hass)
+
+        self.assertEqual(
+            result["Rate Limit"],
+            {"type": "failed", "error": "limited until 12:34:56"},
+        )
