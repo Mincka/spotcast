@@ -444,8 +444,7 @@ Loggers surfaced in diagnostics: `spotipy`, `pychromecast`.
   failures and reports `UpstreamServerNotready` instead of retry storms.
 - **spotipy's fake 429.** When its urllib3 retries run out, `spotipy`
   raises `SpotifyException(429, -1, "... Max Retries")` **regardless of
-  the real HTTP status**, and its retry logger prints a "rate/request
-  limit" warning for any retried status (429/500/502/503/504)
+  the real HTTP status**
   ([spotipy-dev/spotipy#805](https://github.com/spotipy-dev/spotipy/issues/805)).
   The real status hides in `exc.reason` (urllib3 wording, e.g. "too many
   502 error responses"), and a genuine 429 always carries a `Retry-After`
@@ -458,7 +457,14 @@ Loggers surfaced in diagnostics: `spotipy`, `pychromecast`.
   account shares. spotipy's default retry would sleep the full
   `Retry-After` (urllib3 caps it at 6 hours) inside the executor thread,
   up to 3 times, per call. The extended client (`spotify/client.py`)
-  removes 429 from spotipy's retry codes and consults a shared
+  builds its own requests session (`_build_session`) with 429 removed
+  from the retry codes **and** `respect_retry_after_header=False`:
+  urllib3 retries any 429/503 carrying `Retry-After` when that flag is
+  set, regardless of `status_forcelist`, and spotipy's session builder
+  gives no way to turn it off. Server errors keep spotipy's 3 retries
+  with a short exponential backoff (the urllib3 `Retry` replaces
+  spotipy's subclass, so its misleading "rate/request limit" warning on
+  5xx retries is gone). The client then consults a shared
   `RateLimitGuard` (`spotify/rate_limit.py`) before every request: a
   429 registers `Retry-After` (default 30 s when missing) and raises
   `RateLimitedError`; until the window expires every client fails fast

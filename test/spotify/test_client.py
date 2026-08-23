@@ -1,5 +1,9 @@
 """Module to test the extended spotipy client"""
 
+import json
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from threading import Thread
+from time import monotonic
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -305,3 +309,87 @@ class TestRateLimitOnUnauthorizedRetry(TestCase):
 
         self.assertTrue(guard.is_limited)
         self.assertEqual(mock_call.call_count, 2)
+
+
+class FakeSpotifyHandler(BaseHTTPRequestHandler):
+    """Answers like api.spotify.com does during a rate limit."""
+
+    queue: list[int] = []
+    hits = 0
+
+    def log_message(self, *_):
+        pass
+
+    def do_GET(self):
+        FakeSpotifyHandler.hits += 1
+        status = FakeSpotifyHandler.queue.pop(0)
+        body = json.dumps(
+            {"error": {"status": status, "message": "nope"}}
+            if status >= 400 else {"devices": []}
+        ).encode()
+        self.send_response(status)
+        if status == 429:
+            self.send_header("Retry-After", "3")
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+
+class TestRealStackRateLimit(TestCase):
+    """Through the real requests/urllib3 stack, a 429 with Retry-After
+    must come back immediately: urllib3 retries any 429 carrying the
+    header when respect_retry_after_header is set, regardless of
+    status_forcelist, so the session must be built without it."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), FakeSpotifyHandler)
+        Thread(target=cls.server.serve_forever, daemon=True).start()
+        cls.prefix = f"http://127.0.0.1:{cls.server.server_port}/v1/"
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+
+    def setUp(self):
+        FakeSpotifyHandler.hits = 0
+        self.guard = RateLimitGuard()
+        self.client = Spotify(
+            auth="dummy",
+            rate_limit_guard=self.guard,
+            requests_timeout=5,
+        )
+        self.client.prefix = self.prefix
+        self.addCleanup(self.client._session.close)
+
+    def test_429_not_retried_nor_slept(self):
+        FakeSpotifyHandler.queue = [429, 429, 429, 429]
+
+        start = monotonic()
+        with self.assertRaises(RateLimitedError):
+            self.client.devices()
+
+        self.assertLess(monotonic() - start, 1.0)
+        self.assertEqual(FakeSpotifyHandler.hits, 1)
+        self.assertAlmostEqual(self.guard.seconds_remaining, 3, delta=1)
+
+    def test_server_errors_still_retried(self):
+        FakeSpotifyHandler.queue = [502, 503, 200]
+
+        result = self.client.devices()
+
+        self.assertEqual(result, {"devices": []})
+        self.assertEqual(FakeSpotifyHandler.hits, 3)
+        self.assertFalse(self.guard.is_limited)
+
+    def test_exhausted_server_errors_not_a_rate_limit(self):
+        FakeSpotifyHandler.queue = [502, 502, 502, 502]
+
+        with self.assertRaises(SpotifyException) as ctx:
+            self.client.devices()
+
+        self.assertNotIsInstance(ctx.exception, RateLimitedError)
+        self.assertIn("502", str(ctx.exception.reason))
+        self.assertFalse(self.guard.is_limited)

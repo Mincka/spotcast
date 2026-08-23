@@ -9,8 +9,11 @@ from logging import getLogger
 from re import compile as re_compile
 from typing import Any
 
+from requests import Session
+from requests.adapters import HTTPAdapter
 from spotipy import Spotify as SpotipyClient
 from spotipy.exceptions import SpotifyException
+from urllib3.util.retry import Retry
 
 from custom_components.spotcast.spotify.exceptions import RateLimitedError
 from custom_components.spotcast.spotify.rate_limit import (
@@ -23,7 +26,8 @@ LOGGER = getLogger(__name__)
 # spotipy retries 429 responses by sleeping the full `Retry-After`
 # inside the calling (executor) thread, up to 3 times, which can block
 # a Home Assistant worker for hours. Rate limits are handled by the
-# shared guard instead; only server errors are left to spotipy.
+# shared guard instead; only server errors are left to the retry
+# adapter, with a short exponential backoff.
 SERVER_ERROR_RETRY_CODES = (500, 502, 503, 504)
 
 # spotipy hard-codes http status 429 when its retries are exhausted,
@@ -75,6 +79,31 @@ class Spotify(SpotipyClient):
         super().__init__(*args, **kwargs)
         self._token_refresher = token_refresher
         self._rate_limit_guard = rate_limit_guard or RATE_LIMIT_GUARD
+
+    def _build_session(self):
+        """Builds the requests session with a retry adapter that never
+        sleeps on a `Retry-After` header.
+
+        Removing 429 from `status_forcelist` is not enough: urllib3
+        also retries any 429/503 that carries a `Retry-After` header
+        when `respect_retry_after_header` is set (the default), and
+        spotipy's own session builder gives no way to turn it off.
+        """
+        self._session = Session()
+        retry = Retry(
+            total=self.retries,
+            connect=None,
+            read=False,
+            allowed_methods=frozenset(["GET", "POST", "PUT", "DELETE"]),
+            status=self.status_retries,
+            backoff_factor=self.backoff_factor,
+            status_forcelist=self.status_forcelist,
+            respect_retry_after_header=False,
+        )
+
+        adapter = HTTPAdapter(max_retries=retry)
+        self._session.mount("http://", adapter)
+        self._session.mount("https://", adapter)
 
     def _internal_call(
         self,
