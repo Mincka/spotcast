@@ -98,6 +98,9 @@ Marks the account as the default Spotcast account, used by actions and WebSocket
 
 How often (in seconds) Spotcast refreshes the account data from Spotify: profile, available devices, playback state and library counts. Defaults to `30`, minimum `5`. Raise it if you want fewer calls to the Spotify API; lower it if you want playback state to react faster.
 
+> [!NOTE]
+> Spotify enforces its rate limit per application (client id), not per Spotify account. Every account configured in Spotcast shares the quota, and so does any other integration using the same application (for example the core Spotify integration). When Spotify answers with a rate limit, Spotcast pauses the API calls of all accounts until the `Retry-After` window expires and reports it in the logs and in **Settings > System > Repairs > System information**. If you run several accounts or hit the limit regularly, raise the refresh rate and give other integrations their own Spotify application.
+
 ### Days before removing unavailable devices
 
 A Spotify Connect device that disappears from the account (a phone that left the network, an ended [Jam](https://support.spotify.com/us/article/jam/) session) keeps its `media_player` entity for this many days before Spotcast removes the entity and its device registry entry. Defaults to `7`. Set it to `0` to remove devices as soon as they become unavailable.

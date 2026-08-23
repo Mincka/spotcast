@@ -13,6 +13,7 @@ from custom_components.spotcast import __version__
 from .chromecast import SpotifyController
 from .const import DOMAIN
 from .spotify.account import SpotifyAccount
+from .spotify.rate_limit import RATE_LIMIT_GUARD
 from .sessions import (
     PublicSession,
 )
@@ -41,6 +42,14 @@ async def system_health_info(hass: HomeAssistant) -> dict[str]:
         hass,
         f"https://{SpotifyController.APP_HOSTNAME}/",
     )
+
+    if RATE_LIMIT_GUARD.is_limited:
+        health_info["Rate Limit"] = {
+            "type": "failed",
+            "error": f"limited until {RATE_LIMIT_GUARD.resume_time}",
+        }
+    else:
+        health_info["Rate Limit"] = "ok"
 
     # accounts are numbered instead of named: system health ends up in
     # public bug reports and must not leak Spotify usernames or ids

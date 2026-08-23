@@ -1,5 +1,6 @@
 """Module to test the async_relay_service_call"""
 
+from time import time
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, patch, AsyncMock
 
@@ -8,8 +9,10 @@ from urllib3.exceptions import ReadTimeoutError
 from custom_components.spotcast.services.service_handler import (
     ServiceHandler,
     HomeAssistant,
+    HomeAssistantError,
     ServiceCall,
     UnknownServiceError,
+    RateLimitedError,
     SERVICE_HANDLERS
 )
 
@@ -86,3 +89,25 @@ class TestErrorDuringServiceCall(IsolatedAsyncioTestCase):
             self.mock_log.assert_called_with(self.error)
         except AssertionError:
             self.fail()
+
+
+class TestRateLimitedDuringServiceCall(IsolatedAsyncioTestCase):
+    """A rate limit must surface to the user as an actionable error,
+    not a traceback."""
+
+    mock_play = AsyncMock()
+
+    @patch(f"{TEST_MODULE}.SERVICE_HANDLERS", {"play_media": mock_play})
+    async def test_home_assistant_error_raised(self):
+
+        hass = MagicMock(spec=HomeAssistant)
+        call = MagicMock(spec=ServiceCall)
+        call.service = "play_media"
+        self.mock_play.side_effect = RateLimitedError(time() + 300)
+        handler = ServiceHandler(hass)
+
+        with self.assertRaises(HomeAssistantError) as ctx:
+            await handler.async_relay_service_call(call)
+
+        self.assertIn("rate limiting", str(ctx.exception))
+        self.assertIn("Try again in", str(ctx.exception))
