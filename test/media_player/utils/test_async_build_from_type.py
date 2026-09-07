@@ -12,6 +12,7 @@ from custom_components.spotcast.media_player.utils import (
     HomeAssistant,
     SpotifyAccount,
     SpotifyController,
+    wait_for_connection,
 )
 
 TEST_MODULE = "custom_components.spotcast.media_player.utils"
@@ -151,6 +152,15 @@ class TestCastDeviceRunningNonSpotifyApp(IsolatedAsyncioTestCase):
             self.mock_chromecast.quit_app.assert_called()
         except AssertionError:
             self.fail()
+
+    def test_initial_wait_is_bounded(self):
+        """The first wait must be the bounded one, not `Chromecast.wait`,
+        which blocks forever against an unreachable device.
+        """
+        self.mock_hass.async_add_executor_job.assert_any_call(
+            wait_for_connection,
+            self.mock_chromecast,
+        )
 
 
 class TestCastDeviceRunningSpotifyAppForOtherAccount(IsolatedAsyncioTestCase):

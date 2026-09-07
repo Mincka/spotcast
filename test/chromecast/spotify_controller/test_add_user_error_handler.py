@@ -7,7 +7,6 @@ from custom_components.spotcast.chromecast.spotify_controller import (
     SpotifyController,
     SpotifyAccount,
     CastMessage,
-    AppLaunchError,
 )
 
 TEST_MODULE = "custom_components.spotcast.chromecast.spotify_controller"
@@ -49,3 +48,35 @@ class TestAddUserErrorHandling(TestCase):
     def test_records_what_the_device_said(self):
         self.assertIn("ERROR-CANNOT-LOAD", self.controller.launch_error)
         self.assertIn("409", self.controller.launch_error)
+
+
+class TestAddUserErrorRecordOrdering(TestCase):
+    """`launch_error` must be readable as soon as the flag is set
+
+    The waiting thread polls `credential_error` every second rather
+    than only waking on `waiting.set()`, so a poll landing between
+    the two assignments would report the generic message and drop
+    what the device actually said.
+    """
+
+    @patch(f"{TEST_MODULE}.threading.Event")
+    def test_detail_is_recorded_before_the_flag_is_raised(
+            self,
+            mock_event: MagicMock,  # pylint: disable=W0613
+    ):
+        controller = SpotifyController(MagicMock(spec=SpotifyAccount))
+        observed = []
+
+        with patch.object(
+                SpotifyController,
+                "_describe",
+                side_effect=lambda *_: observed.append(
+                    controller.credential_error
+                ) or "detail",
+        ):
+            controller._add_user_error_handler(
+                MagicMock(spec=CastMessage),
+                {},
+            )
+
+        self.assertEqual(observed, [False])

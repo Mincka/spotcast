@@ -2,6 +2,12 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases). Releases v6.3.0 through v6.5.2 are documented in the [GitHub release notes](https://github.com/Mincka/spotcast/releases).
 
+## Unreleased
+
+### Fixes
+
+- A cast to an unreachable or refusing Chromecast now fails with a clear error instead of hanging the service call. Spotcast waited on the device with no timeout, both when building the player and again inside the app launch, so a powered-down or unreachable device blocked `spotcast.play` indefinitely. Every wait is now bounded to 20 seconds and reports "Could not connect to `<device>` within 20s". Separately, when the device refused the Spotify credentials, the refusal was raised on pychromecast's socket thread where it was logged and discarded, and the launch loop kept polling for an answer that had already arrived, so the caller only ever saw "Timeout when waiting for status response from Spotify app". The refusal is now recorded and raised to the caller with the device's own account of it, for example "Spotify refused the credentials for this device (status=108, statusString=ERROR-CANNOT-LOAD, spotifyError=409)" (thanks @chsienki, [#67](https://github.com/Mincka/spotcast/pull/67)).
+
 ## v6.6.1 (2026-08-23)
 
 ### Fixes

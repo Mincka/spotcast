@@ -11,6 +11,7 @@ import json
 
 from pychromecast.controllers import BaseController
 from pychromecast.controllers import CastMessage
+from pychromecast.error import RequestTimeout
 from requests import post, Response, HTTPError
 
 from custom_components.spotcast.spotify import SpotifyAccount
@@ -29,9 +30,29 @@ LOGGER = getLogger(__name__)
 # a `getInfo` request reliably. Single devices do not need this.
 GROUP_LAUNCH_DELAY = 3.0
 
-# `Chromecast.wait()` has no timeout of its own and retries forever, so an
-# unreachable device would block the caller rather than fail it.
+# `Chromecast.wait()` blocks forever when called without a timeout, which
+# is how an unreachable device used to block the caller instead of failing
+# it. Given a timeout it raises `RequestTimeout` instead of returning.
 CONNECT_TIMEOUT = 20.0
+
+
+def wait_for_connection(device: Chromecast):
+    """Waits for a device to be reachable, bounded by CONNECT_TIMEOUT
+
+    Args:
+        - device(Chromecast): the device to wait for
+
+    Raises:
+        - AppLaunchError: when the device is not reachable in time
+    """
+    try:
+        device.wait(timeout=CONNECT_TIMEOUT)
+    except RequestTimeout as exc:
+        raise AppLaunchError(
+            f"Could not connect to `{device.name}` within "
+            f"{CONNECT_TIMEOUT:.0f}s. The device may be powered down or "
+            "unreachable on the network."
+        ) from exc
 
 
 class SpotifyController(  # pylint: disable=too-many-instance-attributes
@@ -44,6 +65,10 @@ class SpotifyController(  # pylint: disable=too-many-instance-attributes
             spotify controller
         - waiting(threading.Event): A threading Event loop manager
         - is_launched(bool): True if the app is currently launched
+        - credential_error(bool): True if the device refused the
+            credentials or the playback transfer
+        - launch_error(str): what the device said when it refused,
+            for the waiting thread to raise
 
     Constants:
         - APP_ID(str): the chromecast app code for spotify
@@ -138,12 +163,12 @@ class SpotifyController(  # pylint: disable=too-many-instance-attributes
         }
 
         LOGGER.debug("Waiting for `%s` to be ready", device.name)
-        self._wait_for_connection(device)
+        wait_for_connection(device)
 
         LOGGER.debug("Starting Spotify on `%s`", device.name)
         device.start_app(self.APP_ID)
         LOGGER.debug("Waiting for `%s` to be available", device.name)
-        self._wait_for_connection(device)
+        wait_for_connection(device)
 
         self.waiting.clear()
 
@@ -180,18 +205,6 @@ class SpotifyController(  # pylint: disable=too-many-instance-attributes
             )
             self.waiting.wait(1)
             counter += 1
-
-    def _wait_for_connection(self, device: Chromecast):
-        """Waits for the device to be reachable, bounded by CONNECT_TIMEOUT"""
-        device.wait(timeout=CONNECT_TIMEOUT)
-
-        socket_client = getattr(device, "socket_client", None)
-        if socket_client is not None and not socket_client.is_connected:
-            raise AppLaunchError(
-                f"Could not connect to `{device.name}` within "
-                f"{CONNECT_TIMEOUT:.0f}s. The device may be powered down or "
-                "unreachable on the network."
-            )
 
     def stop_app(self, device: Chromecast):
         """Stops the Spotify app on the device"""
@@ -289,10 +302,13 @@ class SpotifyController(  # pylint: disable=too-many-instance-attributes
     ) -> bool:
         """Handler for the add user error message"""
         self.current_device = None
-        self.credential_error = True
         self.launch_error = self._describe(
             "Spotify refused the credentials for this device", data
         )
+        # Set last: the waiting thread polls, so it can read this flag
+        # without waking on `waiting.set()`, and must not find it set
+        # while `launch_error` is still empty.
+        self.credential_error = True
         LOGGER.error("%s", self.launch_error)
         self.waiting.set()
 
@@ -303,10 +319,11 @@ class SpotifyController(  # pylint: disable=too-many-instance-attributes
     ) -> bool:
         """Handler for the transfer error message"""
         self.current_device = None
-        self.credential_error = True
         self.launch_error = self._describe(
             "Spotify refused to transfer playback to this device", data
         )
+        # Set last, see `_add_user_error_handler`.
+        self.credential_error = True
         LOGGER.error("%s", self.launch_error)
         self.waiting.set()
 
