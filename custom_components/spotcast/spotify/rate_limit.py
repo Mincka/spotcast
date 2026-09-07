@@ -90,8 +90,7 @@ class RateLimitGuard:
 
             # a longer window already registered wins: the api does
             # not shorten a penalty because we asked again
-            if retry_at > self._retry_at:
-                self._retry_at = retry_at
+            self._retry_at = max(self._retry_at, retry_at)
 
             level = DEBUG if self._announced else WARNING
             self._announced = True

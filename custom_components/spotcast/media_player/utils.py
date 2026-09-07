@@ -26,7 +26,10 @@ from custom_components.spotcast.media_player import (
     SpotifyAccount,
 )
 
-from custom_components.spotcast.chromecast import SpotifyController
+from custom_components.spotcast.chromecast import (
+    SpotifyController,
+    wait_for_connection,
+)
 
 LOGGER = getLogger(__name__)
 
@@ -199,7 +202,7 @@ async def async_build_from_type(
             zconf=ChromeCastZeroconf.get_zeroconf()
         )
 
-        await hass.async_add_executor_job(media_player.wait)
+        await hass.async_add_executor_job(wait_for_connection, media_player)
 
         spotify_controller = SpotifyController(account)
         media_player.register_handler(spotify_controller)
