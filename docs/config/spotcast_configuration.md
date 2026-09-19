@@ -42,11 +42,31 @@ Follow these instructions to finalize the setup in Home Assistant:
 > [!TIP]
 > If you already made a Spotcast configuration in the past on this server, this step will not be required and you can skip to [2.2](#22-public-oauth-authorization).
 >
-> If your application credentials for your Spotify Application changed and you need to edit them, Home Assistant doesn't offer you that option when setting an integration with existing application credentials. You need to remove the current credentials manually, which can be done by following [these instructions](https://www.home-assistant.io/integrations/application_credentials/#deleting-application-credentials) from Home Assistant.
+> Need to change credentials you already entered? See [Changing or resetting the application credentials](#changing-or-resetting-the-application-credentials) below.
 
 Once you see this window below in Home Assistant, provide a name (to your discretion) and provide the Client ID and Client Secret from your Spotify Application created in [Step 1](#1-create-a-spotify-application).
 
 ![Application Credential Step Screenshot](../../assets/images/docs/spotcast_configuration/3_1_application_credentials.png)
+
+### Changing or resetting the application credentials
+
+Home Assistant stores application credentials globally, outside the Spotcast integration, and never validates them. Removing or reinstalling Spotcast therefore does not clear them, and the form from [2.1](#21-application-credentials) is not shown again as long as a set of Spotify credentials exists. You need this section when:
+
+- Spotcast aborts the setup with "Spotify rejected the Client ID or Client Secret stored in Home Assistant".
+- Spotify shows an `INVALID_CLIENT: Invalid client` page after you press **Link account**.
+- You rotated the Client Secret in the Spotify Developer Dashboard, or want to switch to another Spotify Application.
+
+To replace them:
+
+1. Remove every Spotcast entry under **Settings > Devices & services > Spotcast**. Home Assistant refuses to delete credentials that an integration still uses. If the official Spotify integration shares the same credentials, remove its entry too and set it up again afterwards.
+2. Open the credentials panel with this link, or go to **Settings > Devices & services**, open the three-dot menu in the top right corner and pick **Application credentials**:
+
+   [![Open your Home Assistant instance and manage your application credentials.](https://my.home-assistant.io/badges/application_credentials.svg)](https://my.home-assistant.io/redirect/application_credentials/)
+
+3. Select the Spotify entry and delete it.
+4. Start the Spotcast setup again. The form from [2.1](#21-application-credentials) is shown and you can enter the new Client ID and Client Secret.
+
+The Home Assistant documentation on [deleting application credentials](https://www.home-assistant.io/integrations/application_credentials/#deleting-application-credentials) describes the same steps.
 
 ### 2.2 Public OAuth authorization
 
