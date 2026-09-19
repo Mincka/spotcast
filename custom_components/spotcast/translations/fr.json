@@ -33,7 +33,7 @@
             },
             "doc_confirm": {
                 "title": "Démarrer la configuration",
-                "description": "Veuillez suivre le [guide de configuration]({setup_guide}) avant de continuer.",
+                "description": "Veuillez suivre le [guide de configuration]({setup_guide}) avant de continuer.\n\nVous avez déjà saisi des informations d'identification et devez les modifier ? Consultez [comment les réinitialiser]({credentials_guide}).",
                 "data": {
                     "confirmed": "J'ai lu la documentation"
                 }
@@ -48,6 +48,7 @@
             "token_request_failed": "Impossible d'échanger le code d'autorisation avec Spotify. Les codes d'autorisation sont à usage unique, ouvrez à nouveau le lien pour en obtenir un nouveau."
         },
         "abort": {
+            "invalid_credentials": "Spotify a rejeté le Client ID ou le Client Secret enregistrés dans Home Assistant. Supprimez-les depuis [Informations d'identification de l'application]({credentials_url}) puis relancez la configuration pour en saisir de nouveaux. Consultez [le guide]({credentials_guide}) pour les détails.",
             "connection_error": "Erreur de connexion à Spotify avec les informations d'identification {account_type}. Si vous effectuez une mise à jour depuis la v5, notez que le processus de configuration a complètement changé en v6. Merci de suivre le [guide d'installation]({release_url}). Pour de l'aide supplémentaire, [ouvrez un ticket]({ticket_url}).",
             "already_configured": "Ce compte est déjà configuré dans Home Assistant",
             "reauth_account_mismatch": "Le compte fourni ne concorde pas avec le compte Spotify étant réauthentifié",

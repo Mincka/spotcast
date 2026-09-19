@@ -33,7 +33,7 @@
             },
             "doc_confirm": {
                 "title": "Einrichtung beginnen",
-                "description": "Bitte lesen Sie [dieses Handbuch]({setup_guide}) bevor Sie weitermachen.",
+                "description": "Bitte lesen Sie [dieses Handbuch]({setup_guide}) bevor Sie weitermachen.\n\nSie haben bereits Zugangsdaten eingegeben und müssen diese ändern? Lesen Sie, [wie Sie sie zurücksetzen]({credentials_guide}).",
                 "data": {
                     "confirmed": "Ich habe die Dokumentation gelesen."
                 }
@@ -48,6 +48,7 @@
             "token_request_failed": "Autorisierung bei Spotify fehlgeschlagen. Öffnen Sie den Link erneut um neue Autorisierungscodes zu generieren."
         },
         "abort": {
+            "invalid_credentials": "Spotify hat die in Home Assistant gespeicherte Client ID oder das Client Secret abgelehnt. Löschen Sie diese unter [Anwendungs-Anmeldedaten]({credentials_url}) und starten Sie die Einrichtung erneut, um neue einzugeben. Details finden Sie im [Handbuch]({credentials_guide}).",
             "connection_error": "Verbindungsaufbau mit den Zugangsdaten {account_type} nicht möglich. Wenn Sie von v5 upgraden, bedenken Sie, dass der Konfigurationsprozess in v6 komplett überarbeitet wurde. Stellen Sie sicher, dass Sie der [Installationsanleitung]({release_url}) folgen. Für mehr Hilfe, [öffnen Sie ein Ticket]({ticket_url}) (auf Englisch, bitte).",
             "already_configured": "Dieses Nutzerkonto ist bereits in Home Assistant konfiguriert.",
             "reauth_account_mismatch": "Das angegebene Konto ist nicht das, das aktualisiert werden soll.",

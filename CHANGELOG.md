@@ -2,6 +2,12 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases). Releases v6.3.0 through v6.5.2 are documented in the [GitHub release notes](https://github.com/Mincka/spotcast/releases).
 
+## Unreleased
+
+### Fixes
+
+- A wrong Client ID or Client Secret no longer strands the setup on Spotify's error page. Home Assistant stores application credentials outside the integration and never checks them, so a typo sent the user to Spotify's own "INVALID_CLIENT" page, the flow never heard back, and reinstalling Spotcast did not bring the credentials form back. Spotcast now asks Spotify to validate the stored pair before the redirect, both on setup and on reauthentication, and aborts with "Spotify rejected the Client ID or Client Secret stored in Home Assistant" plus a direct link to the Application credentials panel where they can be deleted. The first setup screen also links to the new [changing or resetting the application credentials](docs/config/spotcast_configuration.md#changing-or-resetting-the-application-credentials) section of the guide ([#73](https://github.com/Mincka/spotcast/issues/73)).
+
 ## v6.6.2 (2026-09-07)
 
 ### Fixes

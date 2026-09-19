@@ -75,6 +75,8 @@ Follow the [configuration guide](./docs/config/spotcast_configuration.md) or cli
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=spotcast)
 
+Entered the wrong Client ID or Client Secret? Home Assistant keeps them outside the integration, so see [changing or resetting the application credentials](./docs/config/spotcast_configuration.md#changing-or-resetting-the-application-credentials).
+
 ### Options
 
 Each account exposes options under **Settings > Devices & services > Spotcast > Configure**:
