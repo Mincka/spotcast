@@ -5,6 +5,7 @@ Classes:
     - MediaPlayerNotFoundError
     - UnknownIntegrationError
     - MissingActiveDeviceError
+    - AccountMismatchError
 """
 
 from homeassistant.exceptions import HomeAssistantError
@@ -24,3 +25,7 @@ class UnknownIntegrationError(MediaPlayerError):
 
 class MissingActiveDeviceError(MediaPlayerError):
     """No Active device found for the account provided"""
+
+
+class AccountMismatchError(MediaPlayerError):
+    """The Spotify Connect entity belongs to another Spotcast account"""

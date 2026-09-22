@@ -21,6 +21,9 @@ data:
 
 Let the user select a compatible device on which to start the playback. **_Must be a single device_**. A Chromecast speaker group (for example a Google Cast group) is a valid target and counts as a single device.
 
+> [!NOTE]
+> A `*_spotcast` entity belongs to the account named in it and only works with that account. To play with another account on a Chromecast, target its Google Cast `media_player` entity: Spotcast relaunches the Spotify app there, signed in with the calling account.
+
 ### `spotify_uri` (str)
 
 *Required*

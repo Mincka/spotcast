@@ -16,6 +16,7 @@ from spotipy import SpotifyException
 
 from custom_components.spotcast.media_player.exceptions import (
     MissingActiveDeviceError,
+    AccountMismatchError,
 )
 from custom_components.spotcast.spotify import SpotifyAccount
 from custom_components.spotcast.utils import get_account_entry
@@ -128,7 +129,7 @@ async def async_play_media(hass: HomeAssistant, call: ServiceCall):
         media_player = await async_media_player_from_id(
             hass=hass, account=account, entity_id=entity_id
         )
-    except MissingActiveDeviceError as exc:
+    except (MissingActiveDeviceError, AccountMismatchError) as exc:
         raise ServiceValidationError(str(exc)) from exc
 
     LOGGER.info(

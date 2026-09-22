@@ -9,6 +9,7 @@ from custom_components.spotcast.services.play_custom_context import (
     ServiceCall,
     SpotifyAccount,
     MissingActiveDeviceError,
+    AccountMismatchError,
     ServiceValidationError,
 )
 from custom_components.spotcast.media_player._abstract_player import (
@@ -232,6 +233,46 @@ class TestMissingActiveDevice(IsolatedAsyncioTestCase):
 
         self.mocks["hass"].data = {}
         self.mocks["media_player"].id = "12345"
+
+        with self.assertRaises(ServiceValidationError):
+            await async_play_custom_context(
+                self.mocks["hass"],
+                self.mocks["call"],
+            )
+
+
+class TestEntityOfOtherAccount(IsolatedAsyncioTestCase):
+    """A `*_spotcast` entity of another account is a user error, so it
+    surfaces as a ServiceValidationError (see #76)."""
+
+    @patch(f"{TEST_MODULE}.async_media_player_from_id")
+    @patch(f"{TEST_MODULE}.get_account_entry", new_callable=MagicMock)
+    @patch.object(SpotifyAccount, "async_from_config_entry")
+    async def test_error_raised(
+            self,
+            mock_account: AsyncMock,
+            mock_entry: MagicMock,
+            mock_media_player: AsyncMock,
+    ):
+
+        mock_account.return_value = MagicMock(spec=SpotifyAccount)
+        mock_media_player.side_effect = AccountMismatchError("other")
+
+        self.mocks = {
+            "hass": MagicMock(spec=HomeAssistant),
+            "call": MagicMock(spec=ServiceCall),
+        }
+
+        self.mocks["call"].data = {
+            "media_player": {
+                "entity_id": [
+                    "media_player.foo_other_spotcast"
+                ]
+            },
+            "tracks": ["foo", "bar"]
+        }
+
+        self.mocks["hass"].data = {}
 
         with self.assertRaises(ServiceValidationError):
             await async_play_custom_context(

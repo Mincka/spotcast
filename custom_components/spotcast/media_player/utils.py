@@ -18,6 +18,7 @@ from custom_components.spotcast.media_player.exceptions import (
     MediaPlayerNotFoundError,
     UnknownIntegrationError,
     MissingActiveDeviceError,
+    AccountMismatchError,
 )
 from custom_components.spotcast.media_player import (
     MediaPlayer,
@@ -189,6 +190,14 @@ async def async_build_from_type(
 
     Returns:
         - MediaPlayer: an object of type media player
+
+    Raises:
+        - AccountMismatchError: raised when a `*_spotcast` entity of
+            another account is targeted. A Spotify Connect device is
+            signed in to a single account, so the requesting account
+            cannot reach it and Spotify would answer 404 (see #76).
+        - UnknownIntegrationError: raised when the entity type is not
+            managed by spotcast
     """
 
     LOGGER.debug("Building Device of type `%s`", type(Entity))
@@ -235,6 +244,17 @@ async def async_build_from_type(
         return media_player
 
     if isinstance(entity, SpotifyDevice):
+        if entity.account.id != account.id:
+            raise AccountMismatchError(
+                f"`{entity.entity_id}` is the Spotify Connect device of "
+                f"account `{entity.account.name}` and cannot be used by "
+                f"account `{account.name}`. A Spotify Connect device "
+                "stays signed in to one account. To play with account "
+                f"`{account.name}`, target the device's Google Cast "
+                "media player, or one of that account's `*_spotcast` "
+                "entities."
+            )
+
         return entity
 
     raise UnknownIntegrationError(

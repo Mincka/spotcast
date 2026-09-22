@@ -37,6 +37,7 @@ class SpotifyDevice(  # pylint: disable=too-many-instance-attributes
 
     Properties:
         - unique_id(str): the unique identifier for Home Assistant
+        - account(SpotifyAccount): the account the device belongs to
         - id(str): the spotify device id in spotify for the device
         - name(str): the name as reported by Spotify
         - icon(str): the icon of the device based on the state
@@ -92,6 +93,13 @@ class SpotifyDevice(  # pylint: disable=too-many-instance-attributes
         return f"{slugify(name)}_{account_id}"
 
     @property
+    def account(self) -> SpotifyAccount:
+        """The Spotcast account this device belongs to. A Spotify
+        Connect device is signed in to a single account, so only that
+        account can target this entity."""
+        return self._account
+
+    @property
     def id(self) -> str:
         """The Spotify Device id from the API"""
         return self.device_data["id"]
@@ -135,6 +143,9 @@ class SpotifyDevice(  # pylint: disable=too-many-instance-attributes
         return STATE_ON if is_active else STATE_OFF
 
     def _define_entity_id(self):
-        """Define the entity ID from the stable identity key"""
+        """Define the entity ID from the stable identity key. The key
+        embeds the raw Spotify account id, which can contain characters
+        that are invalid in an entity id (the `.` and `-` in an id like
+        `first.last-xx`), so the whole key is slugified (see #76)."""
 
-        return f"media_player.{self._identity_key}_spotcast"
+        return f"media_player.{slugify(self._identity_key)}_spotcast"

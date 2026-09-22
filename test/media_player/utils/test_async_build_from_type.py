@@ -9,6 +9,7 @@ from custom_components.spotcast.media_player.utils import (
     Chromecast,
     SpotifyDevice,
     UnknownIntegrationError,
+    AccountMismatchError,
     HomeAssistant,
     SpotifyAccount,
     SpotifyController,
@@ -292,7 +293,9 @@ class TestSpotifyDeviceCreation(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.mock_hass = MagicMock(spec=HomeAssistant)
         self.mock_account = MagicMock(spec=SpotifyAccount)
+        self.mock_account.id = "koen"
         self.mock_entity = MagicMock(spec=SpotifyDevice)
+        self.mock_entity.account = self.mock_account
         self.result = await async_build_from_type(
             self.mock_hass,
             self.mock_entity,
@@ -316,3 +319,55 @@ class TestNoneManagedDeviceCreation(IsolatedAsyncioTestCase):
                 self.mock_entity,
                 self.mock_account,
             )
+
+
+class TestSpotifyDeviceOfOtherAccount(IsolatedAsyncioTestCase):
+    """A `*_spotcast` entity belongs to one account. Another account
+    cannot reach that device through Spotify, so the request is refused
+    right away with an explanation instead of a 404 followed by a 12 s
+    wait (see #76)."""
+
+    async def asyncSetUp(self):
+        self.mock_hass = MagicMock(spec=HomeAssistant)
+
+        self.mock_account = MagicMock(spec=SpotifyAccount)
+        self.mock_account.id = "eva"
+        self.mock_account.name = "Eva Farrow"
+
+        self.mock_entity = MagicMock(spec=SpotifyDevice)
+        self.mock_entity.entity_id = "media_player.cloudytv_koen_spotcast"
+        self.mock_entity.account = MagicMock(spec=SpotifyAccount)
+        self.mock_entity.account.id = "koen"
+        self.mock_entity.account.name = "Cloudykoe"
+
+    async def _build(self):
+        return await async_build_from_type(
+            self.mock_hass,
+            self.mock_entity,
+            self.mock_account,
+        )
+
+    async def test_error_raised(self):
+        with self.assertRaises(AccountMismatchError):
+            await self._build()
+
+    async def test_message_names_owner_account(self):
+        with self.assertRaises(AccountMismatchError) as ctx:
+            await self._build()
+
+        self.assertIn("`Cloudykoe`", str(ctx.exception))
+
+    async def test_message_names_calling_account(self):
+        with self.assertRaises(AccountMismatchError) as ctx:
+            await self._build()
+
+        self.assertIn("`Eva Farrow`", str(ctx.exception))
+
+    async def test_message_names_entity(self):
+        with self.assertRaises(AccountMismatchError) as ctx:
+            await self._build()
+
+        self.assertIn(
+            "`media_player.cloudytv_koen_spotcast`",
+            str(ctx.exception),
+        )

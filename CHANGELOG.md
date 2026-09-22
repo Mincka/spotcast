@@ -2,6 +2,13 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases). Releases v6.3.0 through v6.5.2 are documented in the [GitHub release notes](https://github.com/Mincka/spotcast/releases).
 
+## Unreleased
+
+### Fixes
+
+- Targeting a `*_spotcast` media player with a Spotcast account it does not belong to now fails immediately with "`media_player.x` is the Spotify Connect device of account `A` and cannot be used by account `B`" and points at the device's Google Cast entity. A Spotify Connect device is signed in to a single account, so the other account's command got a 404 from Spotify, and Spotcast waited 12 seconds for the device to appear before giving up with "not available on Spotify Connect" (or, for `transfer_playback`, the raw "Device not found"). The transfer path now also waits and retries once when a device is still registering, as `play_media` already did, and the timeout message names the account ([#76](https://github.com/Mincka/spotcast/issues/76)).
+- Newly created `*_spotcast` entities get a valid entity id when the Spotify account id contains a dot or a dash: an id like `first.last-xx` produced `media_player.<device>_first.last-xx_spotcast`, which Home Assistant flags as invalid and will refuse from 2027.2. Entities already in the registry keep their stored entity id ([#76](https://github.com/Mincka/spotcast/issues/76)).
+
 ## v6.6.3 (2026-09-19)
 
 ### Fixes
