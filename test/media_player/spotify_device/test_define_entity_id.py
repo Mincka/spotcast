@@ -108,3 +108,62 @@ class TestUmlautOnlyName(TestCase):
             self.device._define_entity_id(),
             "media_player.uberall_dummy_spotcast"
         )
+
+
+class TestAccountIdWithDotAndDash(TestCase):
+    """Spotify account ids can contain `.` and `-`, which are invalid in
+    an entity id. Home Assistant flagged the raw id and will refuse it
+    from 2027.2 (see #76)."""
+
+    def setUp(self):
+
+        self.mock_account = MagicMock(spec=SpotifyAccount)
+        self.mock_account.id = "first.last-xx"
+        self.mock_account.name = "First Last"
+
+        self.device = SpotifyDevice(
+            self.mock_account,
+            {
+                "id": "12345",
+                "name": "CloudyTv",
+                "type": "TV",
+                "is_active": False,
+            }
+        )
+
+    def test_account_id_slugified(self):
+        self.assertEqual(
+            self.device._define_entity_id(),
+            "media_player.cloudytv_first_last_xx_spotcast"
+        )
+
+    def test_identity_key_keeps_raw_account_id(self):
+        self.assertEqual(
+            self.device.unique_id,
+            "cloudytv_first.last-xx_spotcast_device",
+        )
+
+
+class TestNameAndAccountIdSlugified(TestCase):
+
+    def setUp(self):
+
+        self.mock_account = MagicMock(spec=SpotifyAccount)
+        self.mock_account.id = "first.last-xx"
+        self.mock_account.name = "First Last"
+
+        self.device = SpotifyDevice(
+            self.mock_account,
+            {
+                "id": "12345",
+                "name": "Echo Dot K\u00fcche",
+                "type": "Speaker",
+                "is_active": False,
+            }
+        )
+
+    def test_both_parts_slugified(self):
+        self.assertEqual(
+            self.device._define_entity_id(),
+            "media_player.echo_dot_kuche_first_last_xx_spotcast"
+        )

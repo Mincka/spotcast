@@ -19,6 +19,7 @@ from custom_components.spotcast.spotify.utils import url_to_uri
 from custom_components.spotcast.media_player.utils import (
     async_media_player_from_id,
     MissingActiveDeviceError,
+    AccountMismatchError,
 )
 
 from custom_components.spotcast.services.utils import (
@@ -72,7 +73,7 @@ async def async_play_custom_context(hass: HomeAssistant, call: ServiceCall):
             account,
             entity_id,
         )
-    except MissingActiveDeviceError as exc:
+    except (MissingActiveDeviceError, AccountMismatchError) as exc:
         raise ServiceValidationError(str(exc)) from exc
 
     LOGGER.info(

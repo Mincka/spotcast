@@ -515,3 +515,191 @@ class TestRateLimitedPlayback(IsolatedAsyncioTestCase):
     async def test_transfer_playback_not_wrapped(self):
         with self.assertRaises(RateLimitedError):
             await self.account.async_play_media("foo")
+
+
+class TestTransferDeviceNotReadyThenSucceeds(IsolatedAsyncioTestCase):
+    """A transfer to a device that is still registering (a Chromecast
+    whose Spotify app was just relaunched) gets the same wait-and-retry
+    as a playback start (see #76)."""
+
+    @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.Spotify", spec=Spotify, new_callable=MagicMock)
+    async def asyncSetUp(
+            self,
+            mock_spotify: MagicMock,
+            mock_store: MagicMock,
+    ):
+
+        self.mocks = {
+            "internal": MagicMock(spec=DesktopSession),
+            "external": MagicMock(spec=PublicSession),
+            "hass": MagicMock(spec=HomeAssistant),
+        }
+        self.mocks["hass"].loop = MagicMock()
+
+        self.mocks["external"].token = {
+            "access_token": "12345",
+            "expires_at": 12345.61,
+        }
+
+        self.account = SpotifyAccount(
+            entry_id="12345",
+            hass=self.mocks["hass"],
+            public_session=self.mocks["external"],
+            private_session=self.mocks["internal"],
+            is_default=True
+        )
+
+        self.account.async_ensure_tokens_valid = AsyncMock()
+
+        self.account._datasets["profile"].expires_at = time() + 9999
+        self.account._datasets["profile"]._data = {"display_name": "Dummy", "name": "Dummy"}
+        self.account.async_wait_for_device = AsyncMock()
+
+        self.mocks["hass"].async_add_executor_job = AsyncMock(
+            side_effect=[
+                SpotifyException(404, -1, "Device not found"),
+                None,
+            ]
+        )
+
+        await self.account.async_play_media("foo")
+
+    def test_waited_for_device(self):
+        try:
+            self.account.async_wait_for_device.assert_called_once_with("foo")
+        except AssertionError:
+            self.fail()
+
+    def test_transfer_retried(self):
+        self.assertEqual(
+            self.mocks["hass"].async_add_executor_job.call_count,
+            2,
+        )
+
+    def test_retry_is_a_transfer(self):
+        try:
+            self.mocks["hass"].async_add_executor_job.assert_called_with(
+                self.account.apis["public"].transfer_playback,
+                "foo",
+                True,
+            )
+        except AssertionError:
+            self.fail()
+
+
+class TestTransferDeviceNeverAvailable(IsolatedAsyncioTestCase):
+    """When the device never shows up, the transfer fails with the same
+    explanatory error as a playback start, naming the account."""
+
+    @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.Spotify", spec=Spotify, new_callable=MagicMock)
+    async def asyncSetUp(
+            self,
+            mock_spotify: MagicMock,
+            mock_store: MagicMock,
+    ):
+
+        self.mocks = {
+            "internal": MagicMock(spec=DesktopSession),
+            "external": MagicMock(spec=PublicSession),
+            "hass": MagicMock(spec=HomeAssistant),
+        }
+        self.mocks["hass"].loop = MagicMock()
+
+        self.mocks["external"].token = {
+            "access_token": "12345",
+            "expires_at": 12345.61,
+        }
+
+        self.account = SpotifyAccount(
+            entry_id="12345",
+            hass=self.mocks["hass"],
+            public_session=self.mocks["external"],
+            private_session=self.mocks["internal"],
+            is_default=True
+        )
+
+        self.account.async_ensure_tokens_valid = AsyncMock()
+
+        self.account._datasets["profile"].expires_at = time() + 9999
+        self.account._datasets["profile"]._data = {"display_name": "Dummy", "name": "Dummy"}
+        self.account.async_wait_for_device = AsyncMock(
+            side_effect=TimeoutError()
+        )
+
+        self.mocks["hass"].async_add_executor_job = AsyncMock(
+            side_effect=SpotifyException(404, -1, "Device not found")
+        )
+
+    async def test_error_raised(self):
+        with self.assertRaises(PlaybackError):
+            await self.account.async_play_media("foo")
+
+    async def test_message_names_device(self):
+        with self.assertRaises(PlaybackError) as ctx:
+            await self.account.async_play_media("foo")
+
+        self.assertIn("`foo`", str(ctx.exception))
+
+    async def test_message_names_account(self):
+        with self.assertRaises(PlaybackError) as ctx:
+            await self.account.async_play_media("foo")
+
+        self.assertIn("`Dummy`", str(ctx.exception))
+
+
+class TestTransferOtherError(IsolatedAsyncioTestCase):
+    """Only a 404 triggers the wait. Any other Spotify error on a
+    transfer is reported right away."""
+
+    @patch(f"{TEST_MODULE}.Store", spec=Store, new_callable=MagicMock)
+    @patch(f"{TEST_MODULE}.Spotify", spec=Spotify, new_callable=MagicMock)
+    async def asyncSetUp(
+            self,
+            mock_spotify: MagicMock,
+            mock_store: MagicMock,
+    ):
+
+        self.mocks = {
+            "internal": MagicMock(spec=DesktopSession),
+            "external": MagicMock(spec=PublicSession),
+            "hass": MagicMock(spec=HomeAssistant),
+        }
+        self.mocks["hass"].loop = MagicMock()
+
+        self.mocks["external"].token = {
+            "access_token": "12345",
+            "expires_at": 12345.61,
+        }
+
+        self.account = SpotifyAccount(
+            entry_id="12345",
+            hass=self.mocks["hass"],
+            public_session=self.mocks["external"],
+            private_session=self.mocks["internal"],
+            is_default=True
+        )
+
+        self.account.async_ensure_tokens_valid = AsyncMock()
+
+        self.account._datasets["profile"].expires_at = time() + 9999
+        self.account._datasets["profile"]._data = {"display_name": "Dummy", "name": "Dummy"}
+        self.account.async_wait_for_device = AsyncMock()
+
+        self.mocks["hass"].async_add_executor_job = AsyncMock(
+            side_effect=SpotifyException(403, -1, "Premium required")
+        )
+
+    async def test_error_raised(self):
+        with self.assertRaises(PlaybackError):
+            await self.account.async_play_media("foo")
+
+    async def test_no_wait_for_device(self):
+        with self.assertRaises(PlaybackError):
+            await self.account.async_play_media("foo")
+
+        try:
+            self.account.async_wait_for_device.assert_not_called()
+        except AssertionError:
+            self.fail()

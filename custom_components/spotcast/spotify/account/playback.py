@@ -191,17 +191,25 @@ class PlaybackMixin:
 
         if context_uri is None and (uris == [] or uris is None):
             LOGGER.info("transfering playback to device `%s`", device_id)
+            transfer_args = (
+                self.apis["public"].transfer_playback,
+                device_id,
+                True,
+            )
+
             try:
-                await self.hass.async_add_executor_job(
-                    self.apis["public"].transfer_playback,
-                    device_id,
-                    True,
-                )
-                return
+                await self.hass.async_add_executor_job(*transfer_args)
             except RateLimitedError:
                 raise
             except SpotifyException as exc:
-                raise PlaybackError(exc.msg) from exc
+                if exc.http_status != 404:
+                    raise PlaybackError(exc.msg) from exc
+
+                await self._async_retry_when_device_appears(
+                    transfer_args, device_id
+                )
+
+            return
 
         LOGGER.info(
             "Starting playback of `%s` on device `%s`", context_uri, device_id
@@ -241,20 +249,22 @@ class PlaybackMixin:
 
     async def _async_retry_when_device_appears(
         self,
-        start_args: tuple,
+        job_args: tuple,
         device_id: str,
     ):
-        """Retries a playback start once the device is registered.
+        """Retries a playback start or transfer once the device is
+        registered.
 
         A Spotify Connect device that just came online (e.g. a
-        librespot device) may not be registered yet when we issue the
-        play command, so Spotify answers 404 "Device not found". Wait
-        for it to appear and retry once before giving up, instead of
-        surfacing an error the user cannot act on.
+        librespot device, or a Chromecast whose Spotify app was just
+        relaunched) may not be registered yet when we issue the
+        command, so Spotify answers 404 "Device not found". Wait for it
+        to appear and retry once before giving up, instead of surfacing
+        an error the user cannot act on.
 
         Args:
-            - start_args(tuple): the executor job arguments of the
-                playback start
+            - job_args(tuple): the executor job arguments of the
+                playback start or transfer
             - device_id(str): the id of the device to wait for
 
         Raises:
@@ -271,11 +281,12 @@ class PlaybackMixin:
 
         try:
             await self.async_wait_for_device(device_id)
-            await self.hass.async_add_executor_job(*start_args)
+            await self.hass.async_add_executor_job(*job_args)
         except TimeoutError as timeout_exc:
             raise PlaybackError(
                 f"Device `{device_id}` is not available on Spotify "
-                "Connect."
+                f"Connect for account `{self.name}`. It may be signed in "
+                "to another account or switched off."
             ) from timeout_exc
         except RateLimitedError:
             raise

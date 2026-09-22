@@ -148,6 +148,8 @@ Spotcast creates multiple entities for each Spotify account.
 
 Spotcast creates `media_player` entities and devices to represent Spotify Connect devices linked to a Spotcast account. These media players do not implement any playback functionality and are meant to be used in action calls when starting playback on a Spotify Connect device.
 
+Each of these entities belongs to the account named in it (`Spotcast (<account>) - <device>`) and can only be targeted with that account. A Spotify Connect device is signed in to a single Spotify account, and Spotify offers no way to change that remotely, so a call from another account fails with an explicit error. To use a Chromecast with another Spotcast account, target its Google Cast `media_player` entity instead: Spotcast relaunches the Spotify app there, signed in with the calling account.
+
 ## WebSocket API
 
 Spotcast provides multiple WebSocket API endpoints, used for example by companion frontend cards:

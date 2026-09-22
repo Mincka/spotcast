@@ -34,6 +34,7 @@ class TestDeviceFound(IsolatedAsyncioTestCase):
 
         mock_hass = MagicMock(spec=HomeAssistant)
         mock_account = MagicMock(spec=SpotifyAccount)
+        self.mock_device.account = mock_account
 
         self.result = await async_media_player_from_id(
             mock_hass,
