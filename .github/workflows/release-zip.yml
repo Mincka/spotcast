@@ -1,0 +1,40 @@
+name: Release zip
+
+# Builds spotcast.zip (the integration files at the zip root) and attaches it
+# to the release. HACS downloads this asset because hacs.json sets
+# zip_release, and GitHub counts its downloads per release.
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to attach spotcast.zip to (e.g. v6.6.4)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  zip:
+    name: Build and upload spotcast.zip
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Build spotcast.zip from the tagged tree
+        run: git archive --format=zip --output=spotcast.zip "HEAD:custom_components/spotcast"
+
+      - name: Check the archive layout
+        run: unzip -l spotcast.zip | grep -q " manifest.json$"
+
+      - name: Upload to the release
+        run: gh release upload "$TAG" spotcast.zip --clobber --repo "$GITHUB_REPOSITORY"
