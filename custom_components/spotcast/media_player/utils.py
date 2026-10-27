@@ -211,35 +211,41 @@ async def async_build_from_type(
             zconf=ChromeCastZeroconf.get_zeroconf()
         )
 
-        await hass.async_add_executor_job(wait_for_connection, media_player)
+        # The socket client must be stopped on any failure, or it keeps
+        # reconnecting to the device for the life of the process (#80).
+        try:
+            await hass.async_add_executor_job(wait_for_connection, media_player)
 
-        spotify_controller = SpotifyController(account)
-        media_player.register_handler(spotify_controller)
-        await account.async_playback_state()
+            spotify_controller = SpotifyController(account)
+            media_player.register_handler(spotify_controller)
+            await account.async_playback_state()
 
-        do_quit = need_to_quit_app(media_player, account)
-        running_spotify = media_player.app_id == spotify_controller.APP_ID
+            do_quit = need_to_quit_app(media_player, account)
+            running_spotify = media_player.app_id == spotify_controller.APP_ID
 
-        if do_quit:
-            media_player.quit_app()
+            if do_quit:
+                media_player.quit_app()
 
-        if not running_spotify or do_quit:
-            await hass.async_add_executor_job(
-                spotify_controller.launch_app,
-                media_player,
-            )
-
-            activated_id = spotify_controller.activated_device_id
-
-            if activated_id is not None and activated_id != media_player.id:
-                LOGGER.debug(
-                    "Cast device `%s` registered under id `%s`, which "
-                    "differs from the requested id; using it as the "
-                    "playback target",
-                    media_player.name,
-                    activated_id,
+            if not running_spotify or do_quit:
+                await hass.async_add_executor_job(
+                    spotify_controller.launch_app,
+                    media_player,
                 )
-                media_player.id = activated_id
+
+                activated_id = spotify_controller.activated_device_id
+
+                if activated_id is not None and activated_id != media_player.id:
+                    LOGGER.debug(
+                        "Cast device `%s` registered under id `%s`, which "
+                        "differs from the requested id; using it as the "
+                        "playback target",
+                        media_player.name,
+                        activated_id,
+                    )
+                    media_player.id = activated_id
+        except BaseException:
+            media_player.release()
+            raise
 
         return media_player
 

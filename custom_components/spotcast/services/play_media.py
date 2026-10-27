@@ -31,6 +31,7 @@ from custom_components.spotcast.media_player.utils import (
 from custom_components.spotcast.services.utils import (
     EXTRAS_SCHEMA,
     entity_from_target_selector,
+    async_play_and_release,
 )
 
 LOGGER = getLogger(__name__)
@@ -139,8 +140,7 @@ async def async_play_media(hass: HomeAssistant, call: ServiceCall):
         account.id,
     )
 
-    await account.async_play_media(media_player.id, uri, **extras)
-    await account.async_apply_extras(media_player.id, extras)
+    await async_play_and_release(account, media_player, extras, uri)
 
 
 async def async_episode_index(

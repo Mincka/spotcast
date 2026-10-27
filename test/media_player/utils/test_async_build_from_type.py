@@ -1,5 +1,6 @@
 """Module to test the build_from_integration function"""
 
+from asyncio import CancelledError
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, AsyncMock, patch
 
@@ -371,3 +372,79 @@ class TestSpotifyDeviceOfOtherAccount(IsolatedAsyncioTestCase):
             "`media_player.cloudytv_koen_spotcast`",
             str(ctx.exception),
         )
+
+
+class TestCastDeviceReleasedWhenLaunchFails(IsolatedAsyncioTestCase):
+    """A failed connection or launch must stop the socket client, or it
+    keeps reconnecting to the device for the life of HA (see #80)."""
+
+    @patch(f"{TEST_MODULE}.Chromecast", new_callable=MagicMock)
+    async def asyncSetUp(self, mock_chromecast: MagicMock):
+        self.mock_account = MagicMock(spec=SpotifyAccount)
+        self.mock_hass = MagicMock(spec=HomeAssistant)
+        self.mock_hass.async_add_executor_job = AsyncMock(
+            side_effect=TimeoutError("device refused the connection")
+        )
+
+        self.mock_entity = MagicMock(spec=CastDevice)
+        self.mock_entity._cast_info = MagicMock()
+
+        self.mock_chromecast = mock_chromecast.return_value
+
+        with self.assertRaises(TimeoutError):
+            await async_build_from_type(
+                self.mock_hass,
+                self.mock_entity,
+                self.mock_account,
+            )
+
+    def test_release_called(self):
+        self.mock_chromecast.release.assert_called_once_with()
+
+
+class TestCastDeviceReleasedWhenCancelled(IsolatedAsyncioTestCase):
+
+    @patch(f"{TEST_MODULE}.Chromecast", new_callable=MagicMock)
+    async def test_release_called(self, mock_chromecast: MagicMock):
+        mock_hass = MagicMock(spec=HomeAssistant)
+        mock_hass.async_add_executor_job = AsyncMock(
+            side_effect=CancelledError()
+        )
+        mock_entity = MagicMock(spec=CastDevice)
+        mock_entity._cast_info = MagicMock()
+
+        with self.assertRaises(CancelledError):
+            await async_build_from_type(
+                mock_hass,
+                mock_entity,
+                MagicMock(spec=SpotifyAccount),
+            )
+
+        mock_chromecast.return_value.release.assert_called_once_with()
+
+
+class TestCastDeviceKeptOpenOnSuccess(IsolatedAsyncioTestCase):
+    """The connection stays open until the service has started playback,
+    so the receiver app is not left without a sender before then."""
+
+    @patch(f"{TEST_MODULE}.SpotifyController")
+    @patch(f"{TEST_MODULE}.Chromecast", new_callable=MagicMock)
+    async def test_release_not_called(
+            self,
+            mock_chromecast: MagicMock,
+            mock_controller: MagicMock,
+    ):
+        mock_hass = MagicMock(spec=HomeAssistant)
+        mock_hass.async_add_executor_job = AsyncMock()
+        mock_entity = MagicMock(spec=CastDevice)
+        mock_entity._cast_info = MagicMock()
+        mock_chromecast.return_value.app_id = None
+        mock_controller.return_value.activated_device_id = None
+
+        await async_build_from_type(
+            mock_hass,
+            mock_entity,
+            MagicMock(spec=SpotifyAccount),
+        )
+
+        mock_chromecast.return_value.release.assert_not_called()

@@ -51,6 +51,17 @@ class Chromecast(ParentChromecast, MediaPlayer):
     def id(self, value: str) -> None:
         self._spotify_id = value
 
+    def release(self) -> None:
+        """Stops the socket client opened for this service call.
+
+        Without it the client thread reconnects to the device for the
+        life of the process, one per call, until the device refuses new
+        connections (see #80). `disconnect(timeout=0)` cannot be used:
+        its join raises `TimeoutError` while the thread is still
+        winding down. Spotify keeps playing on the receiver once the
+        sender is gone."""
+        self.socket_client.disconnect()
+
     @property
     def is_group(self) -> bool:
         """Returns True if the player is a speaker group (e.g. a Google
