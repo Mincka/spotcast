@@ -2,6 +2,7 @@
 
 Functions:
     - entity_from_target_selector
+    - async_play_and_release
 """
 
 from typing import Iterable
@@ -13,6 +14,8 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.core import HomeAssistant
 
+from custom_components.spotcast.media_player import MediaPlayer
+from custom_components.spotcast.spotify import SpotifyAccount
 from custom_components.spotcast.services.exceptions import (
     TooManyMediaPlayersError,
     AmbiguousDeviceIdError,
@@ -156,3 +159,36 @@ def clean_extras(extras: dict, keep: Iterable) -> dict:
         result[key] = value
 
     return result
+
+
+async def async_play_and_release(
+        account: SpotifyAccount,
+        media_player: MediaPlayer,
+        extras: dict,
+        *args,
+        **kwargs,
+):
+    """Starts playback on the media player, then releases the player.
+
+    A cast device is released only once Spotify has the playback, so the
+    receiver app is never left without a sender before then. It is
+    released on failure too, or its socket client reconnects to the
+    device for the life of the process (see #80).
+
+    Args:
+        - account(SpotifyAccount): the account starting the playback
+        - media_player(MediaPlayer): the device to play on
+        - extras(dict): the playback extras of the service call
+        - *args, **kwargs: what to play, passed on to
+            `SpotifyAccount.async_play_media`
+    """
+    try:
+        await account.async_play_media(
+            media_player.id,
+            *args,
+            **kwargs,
+            **extras,
+        )
+        await account.async_apply_extras(media_player.id, extras)
+    finally:
+        media_player.release()

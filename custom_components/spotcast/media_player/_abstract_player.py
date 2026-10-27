@@ -36,3 +36,7 @@ class MediaPlayer(ABC):
     @abstractmethod
     def name(self) -> str:
         """The name of the device"""
+
+    def release(self) -> None:
+        """Frees what the player holds for the current service call.
+        Nothing to free by default."""

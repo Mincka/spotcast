@@ -13,7 +13,16 @@ from custom_components.spotcast.services.play_media import (
     AccountMismatchError,
 )
 
+from custom_components.spotcast.media_player._abstract_player import (
+    MediaPlayer
+)
+
 TEST_MODULE = "custom_components.spotcast.services.play_media"
+SERVICE = async_play_media
+CALL_DATA = {
+    "spotify_uri": "spotify:playlist:foo",
+    "media_player": {"entity_id": ["media_player.foo"]},
+}
 
 
 class TestBaseMediaPlayback(IsolatedAsyncioTestCase):
@@ -481,3 +490,56 @@ class TestEntityOfOtherAccount(IsolatedAsyncioTestCase):
 
         with self.assertRaises(ServiceValidationError):
             await async_play_media(self.mocks["hass"], self.mocks["call"])
+
+
+class TestMediaPlayerReleased(IsolatedAsyncioTestCase):
+    """The media player is released once playback is handed to Spotify,
+    and also when starting it fails (see #80)."""
+
+    async def _play(self, play_side_effect=None):
+        with (
+            patch(f"{TEST_MODULE}.async_media_player_from_id") as mock_player,
+            patch(f"{TEST_MODULE}.get_account_entry", new_callable=MagicMock),
+            patch.object(
+                SpotifyAccount,
+                "async_from_config_entry",
+            ) as mock_account,
+        ):
+            mock_account.return_value = MagicMock(spec=SpotifyAccount)
+            mock_account.return_value.async_play_media.side_effect = (
+                play_side_effect
+            )
+            mock_player.return_value = MagicMock(spec=MediaPlayer)
+            mock_player.return_value.id = "12345"
+            self.order = []
+            mock_account.return_value.async_apply_extras.side_effect = (
+                lambda *_: self.order.append("extras")
+            )
+            mock_player.return_value.release.side_effect = (
+                lambda: self.order.append("release")
+            )
+            self.mock_account = mock_account.return_value
+            self.mock_player = mock_player.return_value
+
+            hass = MagicMock(spec=HomeAssistant)
+            hass.data = {}
+            call = MagicMock(spec=ServiceCall)
+            call.data = CALL_DATA
+
+            await SERVICE(hass, call)
+
+    async def test_released_after_playback(self):
+        await self._play()
+
+        self.mock_player.release.assert_called_once_with()
+
+    async def test_released_after_extras_applied(self):
+        await self._play()
+
+        self.assertEqual(self.order, ["extras", "release"])
+
+    async def test_released_when_playback_fails(self):
+        with self.assertRaises(RuntimeError):
+            await self._play(RuntimeError("Spotify refused"))
+
+        self.mock_player.release.assert_called_once_with()

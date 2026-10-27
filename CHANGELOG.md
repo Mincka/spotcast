@@ -2,6 +2,16 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases). Releases v6.3.0 through v6.5.2 are documented in the [GitHub release notes](https://github.com/Mincka/spotcast/releases).
 
+## Unreleased
+
+### Fixes
+
+- Casting to a Google Cast device no longer leaves a connection open on the device after every call. Each play service call that targeted a Cast entity opened a new connection to the device to launch Spotify, and nothing ever closed it, so the connection kept reconnecting in the background for as long as Home Assistant ran. A speaker that received a few plays a day collected dozens of them, until it refused new connections and every later cast to it failed until Home Assistant was restarted. Spotcast now closes the connection once Spotify has taken over playback, and also when the launch or the playback request fails. Spotify keeps playing on the device after the connection closes (thanks @algovera, [#80](https://github.com/Mincka/spotcast/issues/80)).
+
+### Project changes
+
+- HACS now installs Spotcast from a `spotcast.zip` file attached to each GitHub release instead of the source archive of the tag. Nothing changes for users, and the download count of that file shows how many installs and updates each release gets ([#79](https://github.com/Mincka/spotcast/pull/79)).
+
 ## v6.6.4 (2026-09-22)
 
 ### Fixes
