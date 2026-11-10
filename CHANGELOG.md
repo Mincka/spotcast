@@ -2,6 +2,12 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases). Releases v6.3.0 through v6.5.2 are documented in the [GitHub release notes](https://github.com/Mincka/spotcast/releases).
 
+## v6.6.7 (2026-11-10)
+
+### Fixes
+
+- Home Assistant 2026.11 no longer logs "The deprecated constant CONN_CLASS_CLOUD_POLL was used from spotcast" at startup. The config flow still declared a connection class that Home Assistant stopped reading long ago (it comes from `iot_class` in the manifest), and the constant it used is removed in Home Assistant 2027.5.0, which would have stopped Spotcast from loading. The declaration is gone and nothing else changes (thanks @tschoehuijs, [#83](https://github.com/Mincka/spotcast/issues/83)).
+
 ## v6.6.5 (2026-10-27)
 
 ### Fixes
