@@ -11,7 +11,6 @@ from urllib.parse import urlsplit, parse_qs
 from base64 import b64encode
 
 from aiohttp import ClientError, ClientSession, ClientTimeout
-from homeassistant.config_entries import CONN_CLASS_CLOUD_POLL
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import BooleanSelector
@@ -162,7 +161,6 @@ class SpotcastFlowHandler(  # pylint: disable=abstract-method
         - DOMAIN(str): The domain of flow is linked to
         - VERSION(int): The major version of the config
         - MINOR_VERSION(int): the minor version of the config
-        - CONNECTION_CLASS(str): The type of integration being setup
 
     Properties:
         - extra_authorize_data(dict[str]): Provides additional
@@ -179,7 +177,6 @@ class SpotcastFlowHandler(  # pylint: disable=abstract-method
     DOMAIN = DOMAIN
     VERSION = 2
     MINOR_VERSION = 1
-    CONNECTION_CLASS = CONN_CLASS_CLOUD_POLL
 
     DESKTOP_API_SCHEMA = vol.Schema(
         {
