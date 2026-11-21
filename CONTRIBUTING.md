@@ -8,7 +8,7 @@ The project uses trunk-based development:
 
 - `main` is the only long-lived branch; it is protected and releases are tagged from it. **Open your pull requests against `main`.**
 - Work happens on short-lived branches with descriptive names such as `feature/<topic>`, `bugfix/<topic>` or `chore/<topic>`.
-- Pre-releases (alpha/beta) are published as GitHub pre-releases from `main`; HACS users can opt into them by enabling beta versions.
+- Pre-releases (alpha/beta) are published as GitHub pre-releases from `main`; users can opt into them with **Include pre-releases** in the menu of the Spotcast page in the Marketplace (previously known as HACS).
 - `release/<version>` branches are only created when an older release needs a hotfix while `main` has moved on.
 
 ## Development setup
