@@ -23,19 +23,23 @@ If you are looking for comprehensive Spotify control from Home Assistant (full m
 
 ## Installation
 
-### HACS (custom repository)
+### Marketplace
 
-Spotcast is not in the HACS default store. Install it through HACS by adding this repository as a custom repository:
+Spotcast installs through the Home Assistant Marketplace (previously known as HACS). It is not in the Marketplace catalog yet, so it is added as a custom repository first. The quickest way is this link:
 
-1. In Home Assistant, open **HACS**.
-2. Open the menu (⋮ top right) and select **Custom repositories**.
-3. Add `https://github.com/Mincka/spotcast` with type **Integration**.
-4. Search for `Spotcast` in HACS and download it.
-5. Restart Home Assistant.
+[![Open your Home Assistant instance and open a repository inside the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Mincka&repository=spotcast&category=integration)
 
-Or use this direct link:
+It asks to add the custom repository `Mincka/spotcast` to the Marketplace. Select **Add**, then **Install** on the Spotcast page, and restart Home Assistant if a repair asks you to.
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Mincka&repository=spotcast&category=integration)
+Or add it by hand:
+
+1. Go to **Settings > Marketplace**.
+2. In the upper-right corner, select **Add from link**.
+3. Under **GitHub link**, enter `Mincka/spotcast` and select **Add**.
+4. Open **Spotcast (maintained)**, select **Install**, then **Install** again in the dialog.
+5. Restart Home Assistant if a repair asks you to.
+
+Adding a custom repository needs a GitHub account connected to the Marketplace. If none is connected, the Marketplace asks you to connect one.
 
 ### Manual installation
 
@@ -52,7 +56,7 @@ To switch:
 
 1. Delete the `custom_components/spotcast` folder in your Home Assistant configuration directory.
 2. Restart Home Assistant. Spotcast fails to load during this boot, that's expected.
-3. Add this repository as described in [HACS (custom repository)](#hacs-custom-repository) and download Spotcast.
+3. Add this repository as described in [Marketplace](#marketplace) and download Spotcast.
 4. Restart Home Assistant again.
 
 Since Home Assistant 2026.11, the restart in step 2 matters: the Marketplace only notices the old folder is gone when Home Assistant starts. Until then, downloading Spotcast fails with *"The spotcast directory belongs to fondberg/spotcast"*.
