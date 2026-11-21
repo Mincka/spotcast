@@ -1,4 +1,7 @@
 {
+    "application_credentials": {
+        "description": "Spotcast needs the Client ID and Client Secret of a Spotify app. Create one in the [Spotify developer dashboard]({dashboard_url}) with `{redirect_uri}` as a Redirect URI, or reuse the app of the official Spotify integration. Credentials entered for the Spotify integration are not shared with Spotcast, so enter them here as well. Step 1 of the [setup guide]({setup_guide_url}) has the details."
+    },
     "config": {
         "step": {
             "desktop_api": {

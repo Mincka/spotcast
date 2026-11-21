@@ -80,8 +80,9 @@ The account keeps them under a stable naming scheme
 - It does **not** hardcode a client id. It authenticates through a Home
   Assistant `AbstractOAuth2Implementation`, resolved from
   `config_entry.data["external_api"]["auth_implementation"]`. The client
-  id therefore comes from the user's **Application Credentials** (the same
-  Spotify app the built-in Spotify integration uses; see section 6).
+  id therefore comes from the user's **Application Credentials** for
+  Spotcast (which can point to the same Spotify app the built-in Spotify
+  integration uses; see section 6).
 - Scopes are the eleven listed in `SpotifyAccount.SCOPE`
   (`user-modify-playback-state`, `user-read-playback-state`,
   `user-read-private`, `playlist-read-private`,
@@ -291,10 +292,15 @@ so Home Assistant loads all three before Spotcast.
   `application_credentials.py` re-exports `async_get_authorization_server`
   straight from `homeassistant.components.spotify.application_credentials`.
   In other words, Spotcast reuses the official integration's definition of
-  Spotify's OAuth endpoints, and the Spotify **app** (client id/secret) a
-  user registered for the official integration is reused for Spotcast's
-  public session. If you already set up the official Spotify integration,
-  its credentials satisfy Spotcast's public authorization.
+  Spotify's OAuth endpoints. The Spotify **app** a user registered for the
+  official integration can be reused for Spotcast's public session, but
+  its client id and secret have to be entered again: Home Assistant stores
+  Application Credentials per integration (`async_client_credentials`
+  filters on the domain), so the ones saved for `spotify` are never
+  offered to `spotcast`. Spotcast's `application_credentials.py` also
+  provides `async_get_description_placeholders`, which fills the "Add
+  application credentials" dialog with the Spotify developer dashboard
+  link, the redirect URI the app needs, and this point.
 - **The `spotify` dependency** also brings the `spotifyaio` library into
   the environment (Spotcast's own Web API client is `spotipy`; the test
   suite references `spotifyaio` because the dependency provides it, so it

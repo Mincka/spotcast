@@ -19,7 +19,7 @@ During the config flow Spotcast performs two authorizations: a normal one for yo
 ## 1. Create a Spotify Application
 
 > [!TIP]
-> If you configured the [Spotify](https://www.home-assistant.io/integrations/spotify/) integration in Home Assistant, this step is very likely already done and all you need is the Client ID and Client Secret of the application.
+> If you configured the [Spotify](https://www.home-assistant.io/integrations/spotify/) integration in Home Assistant, this step is very likely already done and all you need is the Client ID and Client Secret of the application. Home Assistant does not share the credentials you entered for the Spotify integration with Spotcast, so you enter them again in [2.1](#21-application-credentials).
 >
 > You can set up a secondary application if you want, but this is not necessary.
 
