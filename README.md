@@ -44,6 +44,21 @@ Or use this direct link:
 3. Copy the `custom_components/spotcast/` folder into the `custom_components/` folder of your Home Assistant configuration directory.
 4. Restart Home Assistant.
 
+### Coming from the original fondberg/spotcast?
+
+This repository is the maintained continuation of [fondberg/spotcast](https://github.com/fondberg/spotcast). Your Spotcast configuration belongs to the `spotcast` integration, not to the repository it was downloaded from, so switching keeps your accounts, entities and automations. Do **not** delete Spotcast under *Settings > Devices & services*: that is what would erase them.
+
+To switch:
+
+1. Delete the `custom_components/spotcast` folder in your Home Assistant configuration directory.
+2. Restart Home Assistant. Spotcast fails to load during this boot, that's expected.
+3. Add this repository as described in [HACS (custom repository)](#hacs-custom-repository) and download Spotcast.
+4. Restart Home Assistant again.
+
+Since Home Assistant 2026.11, the restart in step 2 matters: the Marketplace only notices the old folder is gone when Home Assistant starts. Until then, downloading Spotcast fails with *"The spotcast directory belongs to fondberg/spotcast"*.
+
+If you were on v4.x, you also need to set Spotcast up again. Spotify changed its authentication, so v4 can no longer log in, and v6 replaces the old `sp_dc`/`sp_key` YAML with a setup flow (see the [configuration guide](./docs/config/spotcast_configuration.md)). Update your automations too: `spotcast.start` became [`spotcast.play_media`](./docs/services/play_media.md) and related actions, and `spotcast.play_category` was removed.
+
 ## Configuration
 
 ### Minimum Home Assistant version
