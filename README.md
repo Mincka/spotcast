@@ -25,21 +25,18 @@ If you are looking for comprehensive Spotify control from Home Assistant (full m
 
 ### Marketplace
 
-Spotcast installs through the Home Assistant Marketplace (previously known as HACS). It is not in the Marketplace catalog yet, so it is added as a custom repository first. The quickest way is this link:
+Spotcast is in the catalog of the Home Assistant Marketplace (previously known as HACS):
+
+1. Go to **Settings > Marketplace**.
+2. Search for **Spotcast** and open it.
+3. Select **Install**, then **Install** again in the dialog.
+4. Restart Home Assistant if a repair asks you to.
+
+Or open its page directly:
 
 [![Open your Home Assistant instance and open a repository inside the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Mincka&repository=spotcast&category=integration)
 
-It asks to add the custom repository `Mincka/spotcast` to the Marketplace. Select **Add**, then **Install** on the Spotcast page, and restart Home Assistant if a repair asks you to.
-
-Or add it by hand:
-
-1. Go to **Settings > Marketplace**.
-2. In the upper-right corner, select **Add from link**.
-3. Under **GitHub link**, enter `Mincka/spotcast` and select **Add**.
-4. Open **Spotcast (maintained)**, select **Install**, then **Install** again in the dialog.
-5. Restart Home Assistant if a repair asks you to.
-
-Adding a custom repository needs a GitHub account connected to the Marketplace. If none is connected, the Marketplace asks you to connect one.
+Home Assistant refreshes the catalog when it starts and every 6 hours. If Spotcast does not show up, restart Home Assistant.
 
 ### Manual installation
 
@@ -56,10 +53,12 @@ To switch:
 
 1. Delete the `custom_components/spotcast` folder in your Home Assistant configuration directory.
 2. Restart Home Assistant. Spotcast fails to load during this boot, that's expected.
-3. Add this repository as described in [Marketplace](#marketplace) and download Spotcast.
+3. Install Spotcast from the [Marketplace](#marketplace).
 4. Restart Home Assistant again.
 
-Since Home Assistant 2026.11, the restart in step 2 matters: the Marketplace only notices the old folder is gone when Home Assistant starts. Until then, downloading Spotcast fails with *"The spotcast directory belongs to fondberg/spotcast"*.
+Since Home Assistant 2026.11, the restart in step 2 matters: the Marketplace only notices the old folder is gone when Home Assistant starts. Until then, installing Spotcast fails with *"The spotcast directory belongs to fondberg/spotcast"*.
+
+fondberg/spotcast has been removed from the catalog, so Home Assistant may show a repair saying so and pointing to its Marketplace page to uninstall it. Follow the steps above instead: the Marketplace refuses to uninstall it while Spotcast is set up, and asks you to delete Spotcast under *Settings > Devices & services*, which would erase your configuration.
 
 If you were on v4.x, you also need to set Spotcast up again. Spotify changed its authentication, so v4 can no longer log in, and v6 replaces the old `sp_dc`/`sp_key` YAML with a setup flow (see the [configuration guide](./docs/config/spotcast_configuration.md)). Update your automations too: `spotcast.start` became [`spotcast.play_media`](./docs/services/play_media.md) and related actions, and `spotcast.play_category` was removed.
 
