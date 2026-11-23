@@ -28,7 +28,7 @@ If you are looking for comprehensive Spotify control from Home Assistant (full m
 Spotcast is in the catalog of the Home Assistant Marketplace (previously known as HACS):
 
 1. Go to **Settings > Marketplace**.
-2. Search for **Spotcast** and open **Spotcast (maintained)**.
+2. Search for **Spotcast** and open it.
 3. Select **Install**, then **Install** again in the dialog.
 4. Restart Home Assistant if a repair asks you to.
 

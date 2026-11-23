@@ -1,5 +1,5 @@
 {
-    "name": "Spotcast (maintained)",
+    "name": "Spotcast",
     "homeassistant": "2026.4.0",
     "zip_release": true,
     "filename": "spotcast.zip"
