@@ -33,7 +33,7 @@ from .config_flow import DEFAULT_OPTIONS
 from .spotify import SpotifyAccount
 from .coordinator import SpotcastCoordinator
 
-__version__ = "6.6.7"
+__version__ = "6.6.8"
 
 
 LOGGER = getLogger(__name__)
