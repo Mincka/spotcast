@@ -2,6 +2,12 @@
 
 This repository is the continuation of the original [fondberg/spotcast](https://github.com/fondberg/spotcast) project. For the history of releases prior to v6, see the [original project's releases](https://github.com/fondberg/spotcast/releases). Releases v6.3.0 through v6.5.2 are documented in the [GitHub release notes](https://github.com/Mincka/spotcast/releases).
 
+## v6.6.8 (2026-11-27)
+
+### Fixes
+
+- Spotcast now recovers on its own when Spotify cannot be reached while Home Assistant starts. A timeout, a DNS or connection error, or a server error from Spotify during setup left the integration in "Failed to set up", Home Assistant never retried it, and every `spotcast.*` action failed with "Action spotcast.play_media not found" until the integration was reloaded by hand or Home Assistant restarted. Spotcast now tells Home Assistant to retry the setup in these cases, and it loads as soon as Spotify answers again. This covers the Spotify API, the token endpoint and Spotify rate limits; an authorization error still stops the setup, since a retry would not fix it (thanks @michaelarnauts, [#92](https://github.com/Mincka/spotcast/issues/92)).
+
 ## v6.6.7 (2026-11-10)
 
 ### Fixes
