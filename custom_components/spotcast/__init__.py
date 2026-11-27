@@ -13,6 +13,9 @@ Constants:
 from datetime import timedelta
 from logging import getLogger
 
+from aiohttp.client_exceptions import ClientError, ClientResponseError
+from requests.exceptions import HTTPError, RequestException
+from spotipy import SpotifyException
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
@@ -23,6 +26,7 @@ from .const import DOMAIN
 from .services import ServiceHandler
 from .services.const import SERVICE_SCHEMAS
 from .sessions.exceptions import TokenRefreshError, InternalServerError
+from .sessions.retry_supervisor import RetrySupervisor
 from .utils import ensure_default_data
 from .websocket import async_setup_websocket
 from .config_flow import DEFAULT_OPTIONS
@@ -38,6 +42,43 @@ PLATFORMS = [
     Platform.BINARY_SENSOR,
     Platform.MEDIA_PLAYER,
 ]
+
+# Errors that can reach the setup while Spotify or the network is
+# briefly unavailable (typically right after Home Assistant starts).
+# Those that carry an http status are only transient for 429 and 5xx,
+# see `is_transient_setup_error`.
+SETUP_NETWORK_ERRORS = RetrySupervisor.SUPERVISED_EXCEPTIONS + (
+    RequestException,
+    ClientError,
+    TimeoutError,
+    SpotifyException,
+)
+
+
+def is_transient_setup_error(exc: BaseException) -> bool:
+    """Returns True if a setup error is worth retrying later.
+
+    Network failures (timeouts, connection and DNS errors) and server
+    side errors (5xx, 429) clear on their own, so the setup should be
+    retried. Other http statuses (401, 403, 404...) will not change on
+    a retry and must surface as a setup error instead of looping.
+    """
+    status = None
+
+    if isinstance(exc, SpotifyException):
+        # covers spotipy's fake 429 for exhausted 5xx retries and the
+        # local rate limit guard (`RateLimitedError`)
+        status = exc.http_status
+    elif isinstance(exc, ClientResponseError):
+        status = exc.status
+    elif isinstance(exc, HTTPError):
+        status = getattr(exc.response, "status_code", None)
+    elif isinstance(exc, SETUP_NETWORK_ERRORS):
+        return True
+    else:
+        return False
+
+    return isinstance(status, int) and (status == 429 or status >= 500)
 
 
 def get_missing_scopes(entry: ConfigEntry) -> set[str]:
@@ -97,6 +138,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryAuthFailed() from exc
     except InternalServerError as exc:
         raise ConfigEntryNotReady(f"{exc.code} - {exc.message}") from exc
+    except SETUP_NETWORK_ERRORS as exc:
+        if not is_transient_setup_error(exc):
+            raise
+        # Home Assistant retries the setup with a backoff. Without
+        # this the entry stays in `setup_error` until a manual reload.
+        raise ConfigEntryNotReady(
+            f"Spotify is unreachable, setup will be retried: {exc}"
+        ) from exc
 
     coordinator = SpotcastCoordinator(hass, entry, account)
     await coordinator.async_config_entry_first_refresh()

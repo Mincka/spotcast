@@ -3,6 +3,15 @@
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock, patch, AsyncMock
 
+from requests.exceptions import (
+    ConnectionError as RequestsConnectionError,
+    ReadTimeout,
+)
+from spotipy import SpotifyException
+
+from custom_components.spotcast.sessions.exceptions import (
+    UpstreamServerNotready,
+)
 from custom_components.spotcast import (
     async_setup_entry,
     HomeAssistant,
@@ -236,6 +245,97 @@ class TestGatewayError(IsolatedAsyncioTestCase):
                 self.mocks["hass"],
                 self.mocks["entry"],
             )
+
+
+def build_failing_setup_mocks() -> dict:
+    """Returns the mocks for a setup where building the account fails"""
+    mocks = {
+        "hass": MagicMock(spec=HomeAssistant),
+        "entry": MagicMock(spec=ConfigEntry),
+    }
+
+    mocks["hass"].data = {}
+    mocks["hass"].services = MagicMock()
+    mocks["entry"].entry_id = "foo"
+    mocks["entry"].data = FULL_SCOPE_DATA
+    mocks["entry"].options = {}
+
+    return mocks
+
+
+class TestNetworkErrorAtAccountBuild(IsolatedAsyncioTestCase):
+    """Issue #92: a timeout while HA starts left the entry in
+    setup_error instead of letting HA retry it."""
+
+    async def assert_not_ready(self, side_effect: Exception):
+        mocks = build_failing_setup_mocks()
+
+        with patch.object(
+            SpotifyAccount,
+            "async_from_config_entry",
+            side_effect=side_effect,
+        ):
+            with self.assertRaises(ConfigEntryNotReady) as ctx:
+                await async_setup_entry(mocks["hass"], mocks["entry"])
+
+        self.assertIs(ctx.exception.__cause__, side_effect)
+        mocks["hass"].services.async_register.assert_not_called()
+
+    async def test_profile_read_timeout(self):
+        await self.assert_not_ready(ReadTimeout(
+            "HTTPSConnectionPool(host='api.spotify.com', port=443): "
+            "Read timed out. (read timeout=5)"
+        ))
+
+    async def test_dns_failure(self):
+        await self.assert_not_ready(RequestsConnectionError(
+            "Failed to resolve 'api.spotify.com'"
+        ))
+
+    async def test_token_endpoint_unreachable(self):
+        await self.assert_not_ready(UpstreamServerNotready(
+            "Server not ready for refresh"
+        ))
+
+    async def test_aiohttp_timeout(self):
+        await self.assert_not_ready(TimeoutError())
+
+    async def test_spotify_server_errors(self):
+        await self.assert_not_ready(SpotifyException(
+            429, -1, "url", reason="too many 502 error responses"
+        ))
+
+
+class TestNetworkErrorAtTokenCheck(IsolatedAsyncioTestCase):
+
+    @patch.object(SpotifyAccount, "async_from_config_entry")
+    async def test_not_ready_raised(self, mock_account: AsyncMock):
+        mocks = build_failing_setup_mocks()
+        mock_account.return_value = MagicMock(spec=SpotifyAccount)
+        mock_account.return_value.is_default = True
+        mock_account.return_value.async_ensure_tokens_valid = AsyncMock(
+            side_effect=ReadTimeout("Read timed out")
+        )
+
+        with self.assertRaises(ConfigEntryNotReady):
+            await async_setup_entry(mocks["hass"], mocks["entry"])
+
+
+class TestPermanentHttpErrorAtAccountBuild(IsolatedAsyncioTestCase):
+    """A 4xx will not clear on a retry, so it must not loop through
+    ConfigEntryNotReady."""
+
+    @patch.object(SpotifyAccount, "async_from_config_entry")
+    async def test_error_propagates(self, mock_account: AsyncMock):
+        error = SpotifyException(403, -1, "Forbidden")
+        mock_account.side_effect = error
+        mocks = build_failing_setup_mocks()
+
+        with self.assertRaises(SpotifyException) as ctx:
+            await async_setup_entry(mocks["hass"], mocks["entry"])
+
+        self.assertIs(ctx.exception, error)
+        self.assertNotIsInstance(ctx.exception, ConfigEntryNotReady)
 
 
 class TestTokensErrorAtAccountBuild(IsolatedAsyncioTestCase):
